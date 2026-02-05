@@ -234,11 +234,11 @@ export default function RegisterPage() {
               />
               <p className="text-xs text-muted-foreground text-center">
                 Dengan mendaftar, kamu menyetujui{" "}
-                <a href="https://moneybro.com/terms" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                <a href="https://moneybro.my.id/terms" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
                   Syarat & Ketentuan
                 </a>{" "}
                 dan{" "}
-                <a href="https://moneybro.com/privacy" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                <a href="https://moneybro.my.id/privacy" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
                   Kebijakan Privasi
                 </a>
               </p>
