@@ -24,16 +24,14 @@ ENV NEXT_TELEMETRY_DISABLED=1
 # Create non-root user for security
 RUN addgroup -S nextjs && adduser -S nextjs -G nextjs
 
-# Install production dependencies
-COPY package*.json ./
-RUN npm ci --omit=dev
-
-# Copy built assets
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/next.config.* ./
-COPY --from=builder /app/postcss.config.* ./
-COPY --from=builder /app/tailwind.config.* ./
+# Copy artifacts and dependencies from builder (keeps TypeScript available for next.config.ts)
+COPY --from=builder /app/package*.json ./
+COPY --from=builder --chown=nextjs:nextjs /app/node_modules ./node_modules
+COPY --from=builder --chown=nextjs:nextjs /app/.next ./.next
+COPY --from=builder --chown=nextjs:nextjs /app/public ./public
+COPY --from=builder --chown=nextjs:nextjs /app/next.config.* ./
+COPY --from=builder --chown=nextjs:nextjs /app/postcss.config.* ./
+COPY --from=builder --chown=nextjs:nextjs /app/tailwind.config.* ./
 
 USER nextjs
 EXPOSE 3000
