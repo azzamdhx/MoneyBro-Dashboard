@@ -57,16 +57,16 @@ export default function ContactPage() {
         <ContactItem
           icon={<Mail className="h-6 w-6 text-primary" />}
           title="Email"
-          description="support@moneybro.org"
+          description="support@moneybro.my.id"
           action="Kirim Email"
-          href="mailto:support@moneybro.org"
+          href="mailto:support@moneybro.my.id"
         />
         <ContactItem
           icon={<Github className="h-6 w-6 text-primary" />}
           title="GitHub"
           description="Laporkan bug atau request fitur"
           action="Buka"
-          href="https://github.com/moneybro/moneybro"
+          href="https://github.com/azzamdhx/MoneyBro"
         />
       </div>
 

@@ -59,8 +59,6 @@
   --radius: 0.625rem;
   --background: #000000;
   --foreground: #0a0a0a;
-  
-  /* Category Colors - Modern Style */
   --income: #10b981;
   --expense: #f97316;
   --debt: #ec4899;
@@ -99,8 +97,6 @@
 .dark {
   --background: #000000;
   --foreground: #fefefe;
-  
-  /* Category Colors - Modern Style (Dark Mode) */
   --income: #34d399;
   --expense: #fb923c;
   --debt: #f472b6;
@@ -172,7 +168,6 @@
   }
 }
 
-/* Remove white hover background on Recharts bars */
 .recharts-bar-rectangle:hover {
   filter: brightness(1.1) !important;
 }
