@@ -28,6 +28,8 @@ function isMutation(body: { query?: string }): boolean {
   return body.query?.trimStart().startsWith("mutation") ?? false;
 }
 
+export const runtime = "edge";
+
 export async function POST(request: NextRequest) {
   const authHeader = request.headers.get("authorization");
   const userId = extractUserIdFromToken(authHeader);
@@ -78,7 +80,7 @@ export async function POST(request: NextRequest) {
     if (ttl !== null) {
       try {
         const cacheKey = buildCacheKey(userId, operationName, body.variables);
-        await redis.set(cacheKey, JSON.stringify(responseData), { ex: ttl });
+        redis.set(cacheKey, JSON.stringify(responseData), { ex: ttl });
       } catch {
         // Redis error — ignore
       }
@@ -91,13 +93,14 @@ export async function POST(request: NextRequest) {
     if (keysToInvalidate.length > 0) {
       try {
         const pattern = `gql:${userId}:*`;
-        const allKeys = await redis.keys(pattern);
-        const toDelete = allKeys.filter((key) =>
-          keysToInvalidate.some((queryName) => key.includes(`:${queryName}`))
-        );
-        if (toDelete.length > 0) {
-          await Promise.all(toDelete.map((key) => redis.del(key)));
-        }
+        redis.keys(pattern).then((allKeys) => {
+          const toDelete = allKeys.filter((key) =>
+            keysToInvalidate.some((queryName) => key.includes(`:${queryName}`))
+          );
+          if (toDelete.length > 0) {
+            Promise.all(toDelete.map((key) => redis.del(key)));
+          }
+        });
       } catch {
         // Redis error — ignore
       }

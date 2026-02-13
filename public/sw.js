@@ -1,17 +1,7 @@
 const CACHE_NAME = "moneybro-v1";
-const STATIC_ASSETS = [
-  "/",
-  "/dashboard",
-  "/icons/icon-192x192.png",
-  "/icons/icon-512x512.png",
-  "/primary-logo.png",
-];
 
-// Install — precache static assets
-self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS))
-  );
+// Install — skip waiting, no precaching to avoid slow startup
+self.addEventListener("install", () => {
   self.skipWaiting();
 });
 
@@ -29,18 +19,18 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
-// Fetch — network first, fallback to cache
+// Fetch
 self.addEventListener("fetch", (event) => {
   const { request } = event;
 
   // Skip non-GET requests (mutations, POST, etc.)
   if (request.method !== "GET") return;
 
-  // Skip API routes and GraphQL — these should not be cached by SW
+  // Skip API routes — handled by Redis cache
   const url = new URL(request.url);
   if (url.pathname.startsWith("/api/")) return;
 
-  // For navigation requests (HTML pages) — network first
+  // For navigation requests — network first, cache fallback for offline
   if (request.mode === "navigate") {
     event.respondWith(
       fetch(request)
@@ -49,20 +39,31 @@ self.addEventListener("fetch", (event) => {
           caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
           return response;
         })
-        .catch(() => caches.match(request).then((cached) => cached || caches.match("/")))
+        .catch(() => caches.match(request))
     );
     return;
   }
 
-  // For static assets — stale-while-revalidate
-  event.respondWith(
-    caches.match(request).then((cached) => {
-      const fetching = fetch(request).then((response) => {
-        const clone = response.clone();
-        caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
-        return response;
-      });
-      return cached || fetching;
-    })
-  );
+  // For static assets (JS, CSS, images) — stale-while-revalidate
+  if (
+    url.pathname.startsWith("/_next/") ||
+    url.pathname.startsWith("/icons/") ||
+    url.pathname.endsWith(".png") ||
+    url.pathname.endsWith(".ico")
+  ) {
+    event.respondWith(
+      caches.match(request).then((cached) => {
+        const fetching = fetch(request)
+          .then((response) => {
+            if (response.ok) {
+              const clone = response.clone();
+              caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+            }
+            return response;
+          })
+          .catch(() => cached);
+        return cached || fetching;
+      })
+    );
+  }
 });
