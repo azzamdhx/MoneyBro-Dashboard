@@ -80,7 +80,7 @@ export default function LoginPage() {
 
       // Normal login flow
       if (loginData.token) {
-        Cookies.set("token", loginData.token, { expires: 7 });
+        Cookies.set("token", loginData.token, { expires: 7, sameSite: "lax", secure: true });
         toast.success("Login berhasil!");
         router.push("/dashboard");
       }

@@ -58,7 +58,7 @@ function Verify2FAContent() {
 
       const verifyData = data as { verify2FA?: { token: string } };
       if (verifyData?.verify2FA?.token) {
-        Cookies.set("token", verifyData.verify2FA.token, { expires: 7 });
+        Cookies.set("token", verifyData.verify2FA.token, { expires: 7, sameSite: "lax", secure: true });
         toast.success("Verifikasi berhasil!");
         router.push("/dashboard");
       }

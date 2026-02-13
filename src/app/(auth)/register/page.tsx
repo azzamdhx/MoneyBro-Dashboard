@@ -111,7 +111,7 @@ export default function RegisterPage() {
       });
 
       const { token } = (result.data as { register: { token: string } }).register;
-      Cookies.set("token", token, { expires: 7 });
+      Cookies.set("token", token, { expires: 7, sameSite: "lax", secure: true });
 
       toast.success("Registrasi berhasil!");
       router.push("/dashboard");

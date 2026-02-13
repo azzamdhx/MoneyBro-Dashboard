@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useQuery } from "@apollo/client/react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { HighlightCard } from "@/components/ui/highlight-card";
@@ -7,23 +8,26 @@ import { formatIDR } from "@/lib/utils/currency";
 import { GET_DASHBOARD, GET_UPCOMING_PAYMENTS } from "@/lib/graphql/queries";
 import {
   Wallet,
-  BarChart3,
   Receipt,
   CreditCard,
   BadgeDollarSign,
 } from "lucide-react";
 import { ValueChip } from "@/components/ui/value-chip";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Cell,
-} from "recharts";
+
+const LazyCharts = dynamic(() => import("@/components/dashboard-charts"), {
+  loading: () => (
+    <div className="grid gap-4 md:grid-cols-2">
+      {[...Array(2)].map((_, i) => (
+        <Card key={i}>
+          <CardHeader><Skeleton className="h-5 w-40" /></CardHeader>
+          <CardContent><Skeleton className="h-[300px] w-full" /></CardContent>
+        </Card>
+      ))}
+    </div>
+  ),
+  ssr: false,
+});
 
 
 interface BalanceSummary {
@@ -106,7 +110,7 @@ export default function DashboardPage() {
   
   const now = new Date();
   const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-  const { data: upcomingPaymentsData, loading: loadingUpcoming } = useQuery<UpcomingPaymentsData>(
+  const { data: upcomingPaymentsData } = useQuery<UpcomingPaymentsData>(
     GET_UPCOMING_PAYMENTS,
     {
       variables: {
@@ -118,7 +122,7 @@ export default function DashboardPage() {
     }
   );
 
-  if (loading || loadingUpcoming) {
+  if (loading) {
     return (
       <div className="space-y-6">
         <div>
@@ -414,113 +418,11 @@ export default function DashboardPage() {
         );
       })()}
 
-      {/* Charts Grid */}
-      <div className="grid gap-4 md:grid-cols-2">
-        {/* Cash Flow Bar Chart */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Arus Kas Bulan Ini</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={cashFlowData}>
-                  <defs>
-                    {cashFlowData.map((entry, index) => (
-                      <linearGradient key={`gradient-${index}`} id={entry.fill.replace('url(#', '').replace(')', '')} x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor={entry.gradientColors[0]} />
-                        <stop offset="100%" stopColor={entry.gradientColors[1]} />
-                      </linearGradient>
-                    ))}
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#27272A" />
-                  <XAxis dataKey="name" stroke="#71717A" fontSize={12} />
-                  <YAxis stroke="#71717A" fontSize={12} tickFormatter={(value) => `${value / 1000000}jt`} />
-                  <Tooltip
-                    cursor={{ fill: 'transparent' }}
-                    contentStyle={{
-                      backgroundColor: "#18181B",
-                      border: "1px solid #27272A",
-                      borderRadius: "8px",
-                      color: "#FFFFFF",
-                    }}
-                    itemStyle={{ color: "#FFFFFF" }}
-                    labelStyle={{ color: "#FFFFFF" }}
-                    formatter={(value) => [formatIDR(value as number), null]}
-                  />
-                  <Bar dataKey="value" radius={[8, 8, 0, 0]} isAnimationActive={false}>
-                    {cashFlowData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.fill} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Top Categories Bar Chart */}
-        <Card>
-            <CardHeader>
-              <CardTitle>Top Kategori</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {categoryData.length > 0 ? (
-                <div className="h-[300px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={categoryData} layout="vertical">
-                      <defs>
-                        {categoryData.map((entry, index) => (
-                          <linearGradient key={`gradient-${index}`} id={entry.gradientId} x1="0" y1="0" x2="1" y2="0">
-                            <stop offset="0%" stopColor={entry.gradientColors[0]} />
-                            <stop offset="100%" stopColor={entry.gradientColors[1]} />
-                          </linearGradient>
-                        ))}
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#27272A" horizontal={false} />
-                      <XAxis
-                        type="number"
-                        stroke="#71717A"
-                        fontSize={12}
-                        tickFormatter={(value) => `${value / 1000000}jt`}
-                      />
-                      <YAxis
-                        type="category"
-                        dataKey="name"
-                        stroke="#71717A"
-                        fontSize={12}
-                        width={80}
-                      />
-                      <Tooltip
-                        cursor={{ fill: 'transparent' }}
-                        contentStyle={{
-                          backgroundColor: "#18181B",
-                          border: "1px solid #27272A",
-                          borderRadius: "8px",
-                          color: "#FFFFFF",
-                        }}
-                        itemStyle={{ color: "#FFFFFF" }}
-                        labelStyle={{ color: "#FFFFFF" }}
-                        formatter={(value) => [formatIDR(value as number), null]}
-                      />
-                      <Bar dataKey="value" radius={[0, 8, 8, 0]} isAnimationActive={false}>
-                        {categoryData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.fill} />
-                        ))}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              ) : (
-                <div className="h-[300px] flex flex-col items-center justify-center text-muted-foreground">
-                  <BarChart3 className="h-12 w-12 mb-4 opacity-50" />
-                  <p className="text-sm">Belum ada kategori</p>
-                  <p className="text-xs mt-1">Buat kategori untuk mulai tracking</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-      </div>
+      {/* Charts — lazy loaded */}
+      <LazyCharts
+        cashFlowData={cashFlowData}
+        categoryData={categoryData}
+      />
     </div>
   );
 }
