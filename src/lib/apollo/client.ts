@@ -3,7 +3,7 @@ import { setContext } from "@apollo/client/link/context";
 import Cookies from "js-cookie";
 
 const httpLink = createHttpLink({
-  uri: process.env.NEXT_PUBLIC_API_URL!,
+  uri: typeof window !== "undefined" ? "/api/graphql" : process.env.NEXT_PUBLIC_API_URL!,
 });
 
 const authLink = setContext((_, { headers }) => {
