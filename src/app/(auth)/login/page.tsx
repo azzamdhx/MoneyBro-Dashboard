@@ -143,7 +143,7 @@ export default function LoginPage() {
                     </div>
                     <FormControl>
                       <div className="relative">
-                        <Input placeholder="••••••••" type={showPassword ? "text" : "password"} {...field} />
+                        <Input placeholder="••••••••" type={showPassword ? "text" : "password"} autoComplete="current-password" {...field} />
                         <button
                           type="button"
                           onClick={() => setShowPassword(!showPassword)}

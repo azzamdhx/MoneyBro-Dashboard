@@ -11,8 +11,7 @@ import Image from "next/image";
 import Cookies from "js-cookie";
 import { VERIFY_2FA, RESEND_2FA_CODE } from "@/lib/graphql/mutations";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { OTPInput } from "@/components/ui/otp-input";
 import { BackgroundGradientAnimation } from "@/components/ui/background-gradient-animation";
 
 function Verify2FAContent() {
@@ -142,18 +141,11 @@ function Verify2FAContent() {
 
           <form onSubmit={handleVerify} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="code">Kode Verifikasi</Label>
-              <Input
-                id="code"
-                type="text"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                maxLength={6}
-                placeholder="000000"
+              <OTPInput
                 value={code}
-                onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
-                className="text-center text-2xl tracking-widest font-mono"
-                autoFocus
+                onChange={setCode}
+                length={6}
+                disabled={verifying}
               />
             </div>
             <Button type="submit" className="w-full" disabled={verifying || code.length !== 6}>
