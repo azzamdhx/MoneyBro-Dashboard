@@ -2,7 +2,7 @@
   "name": "MoneyBro",
   "short_name": "MoneyBro",
   "description": "Manage your expenses, installments, and debts with ease",
-  "start_url": "/dashboard",
+  "start_url": "/login",
   "display": "standalone",
   "background_color": "#000000",
   "theme_color": "#0078D4",
