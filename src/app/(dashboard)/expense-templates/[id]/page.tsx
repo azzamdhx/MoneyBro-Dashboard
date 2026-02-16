@@ -43,6 +43,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatIDR } from "@/lib/utils/currency";
+import { formatNumberID } from "@/lib/utils/format";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
 
@@ -782,7 +783,7 @@ export default function ExpenseTemplateDetailPage() {
                       </TableCell>
                       <TableCell>
                         <Input
-                          value={item.unitPrice ? item.unitPrice.toLocaleString("id-ID") : ""}
+                          value={item.unitPrice ? formatNumberID(item.unitPrice) : ""}
                           onChange={(e) => {
                             const val = parseNumber(e.target.value);
                             setItems((prev) =>

@@ -24,6 +24,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatIDR } from "@/lib/utils/currency";
+import { formatNumberID, formatDateID, toRFC3339 } from "@/lib/utils/format";
 import {
   CREATE_INSTALLMENT,
   UPDATE_INSTALLMENT,
@@ -98,7 +99,7 @@ interface InstallmentData {
 
 const formatNumber = (value: string): string => {
   const num = value.replace(/\D/g, "");
-  return num ? parseInt(num).toLocaleString("id-ID") : "";
+  return num ? formatNumberID(parseInt(num)) : "";
 };
 
 const parseNumber = (value: string): number => {
@@ -135,7 +136,7 @@ export default function InstallmentDetailPage() {
     if (installment) {
       setFormData({
         name: installment.name,
-        actualAmount: installment.actualAmount.toLocaleString("id-ID"),
+        actualAmount: formatNumberID(installment.actualAmount),
         tenor: installment.tenor.toString(),
         dueDay: installment.dueDay.toString(),
         startDate: installment.startDate?.slice(0, 10) || "",
@@ -210,7 +211,7 @@ export default function InstallmentDetailPage() {
       monthlyPayment: Math.ceil(parseNumber(formData.actualAmount) / parseInt(formData.tenor)),
       tenor: parseInt(formData.tenor),
       dueDay: parseInt(formData.dueDay),
-      startDate: formData.startDate ? `${formData.startDate}T00:00:00Z` : null,
+      startDate: formData.startDate ? toRFC3339(formData.startDate) : null,
       notes: formData.notes || null,
     };
 
@@ -232,7 +233,7 @@ export default function InstallmentDetailPage() {
         input: {
           installmentId: id,
           amount: installment.monthlyPayment,
-          paidAt: new Date().toISOString(),
+          paidAt: toRFC3339(new Date().toISOString()),
         },
       },
     });
@@ -432,11 +433,7 @@ export default function InstallmentDetailPage() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      {new Date(payment.paidAt).toLocaleDateString("id-ID", {
-                        day: "numeric",
-                        month: "long",
-                        year: "numeric",
-                      })}
+                      {formatDateID(payment.paidAt)}
                     </TableCell>
                     <TableCell className="text-right font-medium">
                       {formatIDR(payment.amount)}

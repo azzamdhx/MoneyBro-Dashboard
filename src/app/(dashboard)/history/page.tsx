@@ -5,6 +5,7 @@ import { useQuery } from "@apollo/client/react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { HighlightCard } from "@/components/ui/highlight-card";
 import { formatIDR } from "@/lib/utils/currency";
+import { formatMonthYear } from "@/lib/utils/format";
 import { GET_INCOMES, GET_EXPENSES, GET_DEBTS, GET_INSTALLMENTS, GET_ACTUAL_PAYMENTS } from "@/lib/graphql/queries";
 import {
   Wallet,
@@ -217,7 +218,7 @@ function getAvailablePastMonths(
     const date = new Date(year, month - 1, 1);
     return {
       value: monthKey,
-      label: date.toLocaleDateString("id-ID", { month: "long", year: "numeric" }),
+      label: formatMonthYear(date),
     };
   });
 }
@@ -489,7 +490,7 @@ export default function HistoryPage() {
         gradientColor={getBalanceGradientBg()}
         balanceLabel={
           <p className="text-xs sm:text-sm font-medium text-white/70">
-            Saldo Bersih {selectedMonth ? new Date(selectedMonth).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' }) : ""}
+            Saldo Bersih {selectedMonth ? formatMonthYear(`${selectedMonth}-01`) : ""}
           </p>
         }
         balanceValue={

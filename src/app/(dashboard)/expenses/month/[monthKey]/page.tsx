@@ -5,6 +5,7 @@ import { useQuery, useMutation } from "@apollo/client/react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { formatIDR } from "@/lib/utils/currency";
+import { formatMonthYear } from "@/lib/utils/format";
 import { GET_EXPENSES } from "@/lib/graphql/queries";
 import { DELETE_EXPENSE } from "@/lib/graphql/mutations";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
@@ -39,9 +40,7 @@ interface ExpensesData {
 }
 
 const getMonthName = (monthKey: string): string => {
-  const [year, month] = monthKey.split("-");
-  const date = new Date(parseInt(year), parseInt(month) - 1, 1);
-  return date.toLocaleDateString("id-ID", { month: "long", year: "numeric" });
+  return formatMonthYear(`${monthKey}-01`);
 };
 
 export default function MonthDetailPage() {

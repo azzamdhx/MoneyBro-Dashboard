@@ -6,6 +6,7 @@ import { useQuery } from "@apollo/client/react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { formatIDR } from "@/lib/utils/currency";
+import { formatDateShortID } from "@/lib/utils/format";
 import { GET_DEBTS } from "@/lib/graphql/queries";
 import { Plus, Wallet, CheckCircle2, Clock } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -165,11 +166,7 @@ export default function DebtsPage() {
                             </span>
                             {debt.dueDate && (
                               <span className="text-xs text-muted-foreground">
-                                · {new Date(debt.dueDate).toLocaleDateString("id-ID", {
-                                  day: "numeric",
-                                  month: "short",
-                                  year: "numeric",
-                                })}
+                                · {formatDateShortID(debt.dueDate)}
                               </span>
                             )}
                           </div>

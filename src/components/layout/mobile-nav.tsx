@@ -105,7 +105,7 @@ export function MobileNav() {
   }
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50">
+    <nav className="md:hidden pb-5 fixed bottom-0 left-0 right-0 z-50">
       {/* Background with rounded top */}
       <div className="absolute inset-0 bg-card rounded-t-3xl border-t border-x border-border" />
       

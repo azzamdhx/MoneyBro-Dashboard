@@ -9,6 +9,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { formatDateID } from "@/lib/utils/format";
 
 const MONTHS = [
   "Jan", "Feb", "Mar", "Apr", "Mei", "Jun",
@@ -78,12 +79,7 @@ export function DatePicker({
 
   const formatDisplayValue = (val: string) => {
     if (!val) return placeholder;
-    const date = new Date(val);
-    return date.toLocaleDateString("id-ID", { 
-      day: "numeric",
-      month: "long", 
-      year: "numeric" 
-    });
+    return formatDateID(val);
   };
 
   const daysInMonth = getDaysInMonth(viewDate.year, viewDate.month);

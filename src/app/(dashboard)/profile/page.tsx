@@ -7,8 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { GET_ME, CHECK_EMAIL_AVAILABILITY } from "@/lib/graphql/queries";
 import { UPDATE_PROFILE, CHANGE_PASSWORD, ENABLE_2FA, DISABLE_2FA, DELETE_ACCOUNT } from "@/lib/graphql/mutations";
-import { ChevronLeft, User, Mail, Calendar, Loader2, Lock, Shield, Pencil, X, Check, Eye, EyeOff, ChevronRight } from "lucide-react";
+import { ChevronLeft, User, Loader2, Lock, Shield, Pencil, X, Check, Eye, EyeOff, ChevronRight } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { formatDateID } from "@/lib/utils/format";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import {
@@ -274,54 +275,59 @@ export default function ProfilePage() {
   if (loading) {
     return (
       <div className="space-y-8">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Skeleton className="h-10 w-10" />
-            <div className="space-y-2">
-              <Skeleton className="h-8 w-32" />
-              <Skeleton className="h-4 w-48" />
-            </div>
-          </div>
-          <Skeleton className="h-9 w-20" />
-        </div>
-
-        {/* Avatar Skeleton */}
-        <div className="flex items-center gap-4 p-4 rounded-xl border bg-card">
-          <Skeleton className="h-16 w-16 rounded-full" />
+        <div className="flex items-center gap-4">
+          <Skeleton className="h-10 w-10" />
           <div className="space-y-2">
-            <Skeleton className="h-5 w-32" />
+            <Skeleton className="h-8 w-32" />
             <Skeleton className="h-4 w-48" />
           </div>
         </div>
 
-        {/* Sections Grid Skeleton */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-1">
-            <Skeleton className="h-3 w-24 ml-4 mb-2" />
-            <div className="rounded-xl border bg-card divide-y divide-border">
-              {[...Array(3)].map((_, i) => (
-                <div key={i} className="flex items-center gap-4 p-4">
-                  <Skeleton className="h-10 w-10 rounded-full" />
-                  <div className="flex-1 space-y-2">
-                    <Skeleton className="h-3 w-20" />
-                    <Skeleton className="h-4 w-32" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className="space-y-1">
-            <Skeleton className="h-3 w-20 ml-4 mb-2" />
-            <div className="rounded-xl border bg-card divide-y divide-border">
-              {[...Array(2)].map((_, i) => (
-                <div key={i} className="flex items-center gap-4 p-4">
-                  <Skeleton className="h-10 w-10 rounded-full" />
-                  <div className="flex-1 space-y-2">
-                    <Skeleton className="h-4 w-28" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Left Column - Profile Skeleton */}
+          <div className="space-y-4">
+            <div className="space-y-1">
+              <Skeleton className="h-3 w-16 ml-4 mb-2" />
+              <div className="rounded-xl border bg-card p-6">
+                <div className="flex flex-col items-center gap-3">
+                  <Skeleton className="h-16 w-16 rounded-full" />
+                  <div className="space-y-2 flex flex-col items-center">
+                    <Skeleton className="h-5 w-32" />
+                    <Skeleton className="h-4 w-48" />
                     <Skeleton className="h-3 w-40" />
                   </div>
                 </div>
-              ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column - Keamanan + Zona Berbahaya Skeleton */}
+          <div className="space-y-4">
+            <div className="space-y-1">
+              <Skeleton className="h-3 w-20 ml-4 mb-2" />
+              <div className="rounded-xl border bg-card divide-y divide-border">
+                {[...Array(2)].map((_, i) => (
+                  <div key={i} className="flex items-center gap-4 p-4">
+                    <Skeleton className="h-10 w-10 rounded-full" />
+                    <div className="flex-1 space-y-2">
+                      <Skeleton className="h-4 w-28" />
+                      <Skeleton className="h-3 w-40" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="space-y-1">
+              <Skeleton className="h-3 w-24 ml-4 mb-2" />
+              <div className="rounded-xl border bg-card p-4">
+                <div className="flex items-center gap-4">
+                  <Skeleton className="h-10 w-10 rounded-full" />
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-3 w-48" />
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -331,82 +337,40 @@ export default function ProfilePage() {
 
   return (
     <div className="space-y-8">
-      {/* Header with Edit Button */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" asChild>
-            <Link href="/settings">
-              <ChevronLeft className="h-5 w-5" />
-            </Link>
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold">Profil Saya</h1>
-            <p className="text-muted-foreground">Kelola informasi akun kamu</p>
-          </div>
-        </div>
-        {isEditing ? (
-          <div className="flex gap-2 w-fit">
-            <Button variant="outline" size="sm" onClick={handleCancelEdit} disabled={saving}>
-              <X className="h-4 w-4 mr-1" />
-              Batal
-            </Button>
-            <Button size="sm" onClick={handleSaveProfile} disabled={saving}>
-              {saving ? (
-                <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-              ) : (
-                <Check className="h-4 w-4 mr-1" />
-              )}
-              Simpan
-            </Button>
-          </div>
-        ) : (
-          <Button variant="outline" size="sm" onClick={handleStartEdit} className="w-fit">
-            <Pencil className="h-4 w-4 mr-1" />
-            Edit
-          </Button>
-        )}
-      </div>
-
-      {/* Avatar */}
-      <div className="flex items-center gap-4 p-4 rounded-xl border bg-card">
-        <div className="h-16 w-16 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
-          <User className="h-8 w-8 text-primary" />
-        </div>
-        <div className="flex-1">
-          <h3 className="text-lg font-semibold">{user?.name || "User"}</h3>
-          <p className="text-sm text-muted-foreground">{user?.email}</p>
+      {/* Header */}
+      <div className="flex items-center gap-4">
+        <Button variant="ghost" size="icon" asChild>
+          <Link href="/settings">
+            <ChevronLeft className="h-5 w-5" />
+          </Link>
+        </Button>
+        <div>
+          <h1 className="text-2xl font-bold">Profil Saya</h1>
+          <p className="text-muted-foreground">Kelola informasi akun kamu</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Profile Info */}
-        <ProfileSection title="Informasi Akun">
-          <div className="flex items-center gap-4 p-4">
-            <div className="flex-shrink-0 h-10 w-10 rounded-full bg-muted flex items-center justify-center">
-              <User className="h-5 w-5" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm text-muted-foreground">Nama Lengkap</p>
-              {isEditing ? (
-                <Input
-                  value={editName}
-                  onChange={(e) => setEditName(e.target.value)}
-                  placeholder="Nama lengkap"
-                  className="mt-1"
-                />
-              ) : (
-                <p className="font-medium">{user?.name || "-"}</p>
-              )}
-            </div>
-          </div>
-          <div className="flex items-center gap-4 p-4">
-            <div className="flex-shrink-0 h-10 w-10 rounded-full bg-muted flex items-center justify-center">
-              <Mail className="h-5 w-5" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm text-muted-foreground">Email</p>
-              {isEditing ? (
-                <div className="mt-1 space-y-1">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Left Column - Profile */}
+        <div className="space-y-4">
+          <ProfileSection title="Profil">
+            {isEditing ? (
+              <div className="p-6 space-y-4">
+                <div className="flex flex-col items-center gap-3 pb-4">
+                  <div className="h-16 w-16 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+                    <User className="h-8 w-8 text-primary" />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm text-muted-foreground">Nama Lengkap</Label>
+                  <Input
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    placeholder="Nama lengkap"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm text-muted-foreground">Email</Label>
                   <div className="relative">
                     <Input
                       value={editEmail}
@@ -423,82 +387,97 @@ export default function ProfilePage() {
                     <p className="text-xs text-destructive">{emailError}</p>
                   )}
                 </div>
-              ) : (
-                <p className="font-medium">{user?.email || "-"}</p>
-              )}
-            </div>
-          </div>
-          <div className="flex items-center gap-4 p-4">
-            <div className="flex-shrink-0 h-10 w-10 rounded-full bg-muted flex items-center justify-center">
-              <Calendar className="h-5 w-5" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm text-muted-foreground">Bergabung Sejak</p>
-              <p className="font-medium">
-                {user?.createdAt ? new Date(user.createdAt).toLocaleDateString("id-ID", { 
-                  year: "numeric", 
-                  month: "long", 
-                  day: "numeric" 
-                }) : "-"}
-              </p>
-            </div>
-          </div>
-        </ProfileSection>
-
-        {/* Security */}
-        <ProfileSection title="Keamanan">
-          <button
-            onClick={() => setShowPasswordDialog(true)}
-            className="w-full flex items-center gap-4 p-4 hover:bg-muted/50 transition-colors text-left"
-          >
-            <div className="flex-shrink-0 h-10 w-10 rounded-full bg-muted flex items-center justify-center">
-              <Lock className="h-5 w-5" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="font-medium">Ubah Password</p>
-              <p className="text-sm text-muted-foreground">Perbarui password akun kamu</p>
-            </div>
-            <ChevronRight className="h-5 w-5 text-muted-foreground" />
-          </button>
-          <button
-            onClick={() => setShow2FADialog(true)}
-            className="w-full flex items-center gap-4 p-4 hover:bg-muted/50 transition-colors text-left"
-          >
-            <div className="flex-shrink-0 h-10 w-10 rounded-full bg-muted flex items-center justify-center">
-              <Shield className="h-5 w-5" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="font-medium">Autentikasi Dua Faktor</p>
-              <p className="text-sm text-muted-foreground">
-                {user?.twoFAEnabled ? "Nonaktifkan 2FA" : "Aktifkan lapisan keamanan ekstra"}
-              </p>
-            </div>
-            {user?.twoFAEnabled ? (
-              <Badge variant="default" className="bg-green-500">Aktif</Badge>
+                <div className="flex gap-2 pt-2">
+                  <Button variant="outline" size="sm" className="flex-1" onClick={handleCancelEdit} disabled={saving}>
+                    <X className="h-4 w-4 mr-1" />
+                    Batal
+                  </Button>
+                  <Button size="sm" className="flex-1" onClick={handleSaveProfile} disabled={saving}>
+                    {saving ? (
+                      <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                    ) : (
+                      <Check className="h-4 w-4 mr-1" />
+                    )}
+                    Simpan
+                  </Button>
+                </div>
+              </div>
             ) : (
-              <ChevronRight className="h-5 w-5 text-muted-foreground" />
+              <div className="flex flex-col items-center gap-3 p-6">
+                <div className="h-16 w-16 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+                  <User className="h-8 w-8 text-primary" />
+                </div>
+                <div className="text-center space-y-1">
+                  <h3 className="text-lg font-semibold">{user?.name || "User"}</h3>
+                  <p className="text-sm text-muted-foreground">{user?.email}</p>
+                  {user?.createdAt && (
+                    <p className="text-xs text-muted-foreground">Bergabung sejak {formatDateID(user.createdAt)}</p>
+                  )}
+                </div>
+                <Button variant="outline" size="sm" onClick={handleStartEdit} className="mt-2">
+                  <Pencil className="h-4 w-4 mr-1" />
+                  Edit Profil
+                </Button>
+              </div>
             )}
-          </button>
-        </ProfileSection>
+          </ProfileSection>
+        </div>
 
-        {/* Danger Zone */}
-        <ProfileSection title="Zona Berbahaya">
-          <button
-            onClick={() => setShowDeleteDialog(true)}
-            className="w-full flex items-center gap-4 p-4 hover:bg-destructive/10 transition-colors text-left"
-          >
-            <div className="flex-shrink-0 h-10 w-10 rounded-full bg-destructive/10 flex items-center justify-center">
-              <X className="h-5 w-5 text-destructive" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="font-medium text-destructive">Hapus Akun</p>
-              <p className="text-sm text-muted-foreground">
-                Hapus akun dan semua data secara permanen
-              </p>
-            </div>
-            <ChevronRight className="h-5 w-5 text-muted-foreground" />
-          </button>
-        </ProfileSection>
+        {/* Right Column - Keamanan + Zona Berbahaya */}
+        <div className="space-y-4">
+          <ProfileSection title="Keamanan">
+            <button
+              onClick={() => setShowPasswordDialog(true)}
+              className="w-full flex items-center gap-4 p-4 hover:bg-muted/50 transition-colors text-left"
+            >
+              <div className="flex-shrink-0 h-10 w-10 rounded-full bg-muted flex items-center justify-center">
+                <Lock className="h-5 w-5" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-medium">Ubah Password</p>
+                <p className="text-sm text-muted-foreground">Perbarui password akun kamu</p>
+              </div>
+              <ChevronRight className="h-5 w-5 text-muted-foreground" />
+            </button>
+            <button
+              onClick={() => setShow2FADialog(true)}
+              className="w-full flex items-center gap-4 p-4 hover:bg-muted/50 transition-colors text-left"
+            >
+              <div className="flex-shrink-0 h-10 w-10 rounded-full bg-muted flex items-center justify-center">
+                <Shield className="h-5 w-5" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-medium">Autentikasi Dua Faktor</p>
+                <p className="text-sm text-muted-foreground">
+                  {user?.twoFAEnabled ? "Nonaktifkan 2FA" : "Aktifkan lapisan keamanan ekstra"}
+                </p>
+              </div>
+              {user?.twoFAEnabled ? (
+                <Badge variant="default" className="bg-green-500">Aktif</Badge>
+              ) : (
+                <ChevronRight className="h-5 w-5 text-muted-foreground" />
+              )}
+            </button>
+          </ProfileSection>
+
+          <ProfileSection title="Zona Berbahaya">
+            <button
+              onClick={() => setShowDeleteDialog(true)}
+              className="w-full flex items-center gap-4 p-4 hover:bg-destructive/10 transition-colors text-left"
+            >
+              <div className="flex-shrink-0 h-10 w-10 rounded-full bg-destructive/10 flex items-center justify-center">
+                <X className="h-5 w-5 text-destructive" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-destructive">Hapus Akun</p>
+                <p className="text-sm text-muted-foreground">
+                  Hapus akun dan semua data secara permanen
+                </p>
+              </div>
+              <ChevronRight className="h-5 w-5 text-muted-foreground" />
+            </button>
+          </ProfileSection>
+        </div>
       </div>
 
       {/* Password Change Dialog */}

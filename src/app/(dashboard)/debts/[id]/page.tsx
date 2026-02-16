@@ -31,6 +31,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatIDR } from "@/lib/utils/currency";
+import { formatNumberID, formatDateShortID, formatDateID, toRFC3339 } from "@/lib/utils/format";
+
 import {
   CREATE_DEBT,
   UPDATE_DEBT,
@@ -112,7 +114,7 @@ const PAYMENT_TYPES = [
 
 const formatNumber = (value: string): string => {
   const num = value.replace(/\D/g, "");
-  return num ? parseInt(num).toLocaleString("id-ID") : "";
+  return num ? formatNumberID(parseInt(num)) : "";
 };
 
 const parseNumber = (value: string): number => {
@@ -151,13 +153,13 @@ export default function DebtDetailPage() {
     if (debt) {
       setFormData({
         personName: debt.personName,
-        actualAmount: debt.actualAmount.toLocaleString("id-ID"),
+        actualAmount: formatNumberID(debt.actualAmount),
         paymentType: debt.paymentType,
         tenor: debt.tenor?.toString() || "",
         dueDate: debt.dueDate?.slice(0, 10) || "",
         notes: debt.notes || "",
       });
-      setPaymentAmount(debt.monthlyPayment?.toLocaleString("id-ID") || "");
+      setPaymentAmount(debt.monthlyPayment ? formatNumberID(debt.monthlyPayment) : "");
     }
   }, [debt]);
 
@@ -226,7 +228,7 @@ export default function DebtDetailPage() {
       personName: formData.personName,
       actualAmount: parseNumber(formData.actualAmount),
       paymentType: formData.paymentType,
-      dueDate: formData.dueDate ? `${formData.dueDate}T00:00:00Z` : null,
+      dueDate: formData.dueDate ? toRFC3339(formData.dueDate) : null,
       notes: formData.notes || null,
     };
 
@@ -255,7 +257,7 @@ export default function DebtDetailPage() {
         input: {
           debtId: id,
           amount: parseNumber(paymentAmount),
-          paidAt: `${paymentDate}T00:00:00Z`,  // Gunakan tanggal yang dipilih
+          paidAt: toRFC3339(paymentDate),
         },
       },
     });
@@ -375,7 +377,7 @@ export default function DebtDetailPage() {
                       <Input
                         value={paymentAmount}
                         onChange={(e) => setPaymentAmount(formatNumber(e.target.value))}
-                        placeholder={debt?.monthlyPayment?.toLocaleString("id-ID") || "0"}
+                        placeholder={debt?.monthlyPayment ? formatNumberID(debt.monthlyPayment) : "0"}
                         className="pl-10"
                       />
                     </div>
@@ -456,11 +458,7 @@ export default function DebtDetailPage() {
               <p className="text-sm text-muted-foreground">Jatuh Tempo</p>
               <p className="text-2xl font-bold">
                 {debt.dueDate
-                  ? new Date(debt.dueDate).toLocaleDateString("id-ID", {
-                    day: "numeric",
-                    month: "short",
-                    year: "numeric",
-                  })
+                  ? formatDateShortID(debt.dueDate)
                   : "-"}
               </p>
             </CardContent>
@@ -492,11 +490,7 @@ export default function DebtDetailPage() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      {new Date(payment.paidAt).toLocaleDateString("id-ID", {
-                        day: "numeric",
-                        month: "long",
-                        year: "numeric",
-                      })}
+                      {formatDateID(payment.paidAt)}
                     </TableCell>
                     <TableCell className="text-right font-medium">
                       {formatIDR(payment.amount)}

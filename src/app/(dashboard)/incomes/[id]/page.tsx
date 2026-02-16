@@ -41,6 +41,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatIDR } from "@/lib/utils/currency";
+import { formatNumberID, toRFC3339 } from "@/lib/utils/format";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
 
@@ -270,7 +271,7 @@ export default function IncomeDetailPage() {
       setFormData({
         categoryId: income.category.id,
         sourceName: income.sourceName,
-        amount: income.amount.toLocaleString("id-ID"),
+        amount: formatNumberID(income.amount),
         incomeType: income.incomeType,
         notes: income.notes || "",
       });
@@ -360,7 +361,7 @@ export default function IncomeDetailPage() {
                   sourceName: item.sourceName,
                   amount: item.amount,
                   incomeType: item.incomeType,
-                  incomeDate: incomeDate ? `${incomeDate}-01T00:00:00Z` : null,
+                  incomeDate: incomeDate ? toRFC3339(incomeDate) : null,
                   notes: item.notes || null,
                 },
               },
@@ -387,7 +388,7 @@ export default function IncomeDetailPage() {
         sourceName: formData.sourceName,
         amount: parseNumber(formData.amount),
         incomeType: formData.incomeType,
-        incomeDate: incomeDate ? `${incomeDate}-01T00:00:00Z` : null,
+        incomeDate: incomeDate ? toRFC3339(incomeDate) : null,
         notes: formData.notes || null,
       };
       updateIncome({ variables: { id, input } });
@@ -817,7 +818,7 @@ export default function IncomeDetailPage() {
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <Input
-                            value={item.amount ? item.amount.toLocaleString("id-ID") : ""}
+                            value={item.amount ? formatNumberID(item.amount) : ""}
                             onChange={(e) => {
                               const val = parseNumber(e.target.value);
                               setItems((prev) =>

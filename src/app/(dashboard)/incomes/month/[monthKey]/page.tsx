@@ -5,6 +5,7 @@ import { useQuery, useMutation } from "@apollo/client/react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { formatIDR } from "@/lib/utils/currency";
+import { formatMonthYear } from "@/lib/utils/format";
 import { GET_INCOMES } from "@/lib/graphql/queries";
 import { DELETE_INCOME } from "@/lib/graphql/mutations";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
@@ -54,10 +55,7 @@ export default function MonthlyIncomesPage() {
 
   const total = incomes.reduce((sum, i) => sum + i.amount, 0);
 
-  const monthLabel = new Date(`${monthKey}-01`).toLocaleDateString("id-ID", {
-    month: "long",
-    year: "numeric",
-  });
+  const monthLabel = formatMonthYear(`${monthKey}-01`);
 
   return (
     <div className="space-y-6">

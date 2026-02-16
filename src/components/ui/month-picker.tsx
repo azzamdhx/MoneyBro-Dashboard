@@ -9,6 +9,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { formatMonthYear } from "@/lib/utils/format";
 
 const MONTHS = [
   "Jan", "Feb", "Mar", "Apr", "Mei", "Jun",
@@ -41,8 +42,7 @@ export function MonthPicker({ value, onChange, disabledMonths = new Set(), class
 
   const formatDisplayValue = (val: string) => {
     if (!val) return "Pilih bulan";
-    const date = new Date(`${val}-01`);
-    return date.toLocaleDateString("id-ID", { month: "long", year: "numeric" });
+    return formatMonthYear(`${val}-01`);
   };
 
   return (

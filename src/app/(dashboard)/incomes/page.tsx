@@ -6,6 +6,7 @@ import { useQuery } from "@apollo/client/react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { formatIDR } from "@/lib/utils/currency";
+import { formatMonthYear } from "@/lib/utils/format";
 import { GET_INCOMES } from "@/lib/graphql/queries";
 import { Plus, Wallet, CalendarDays, RefreshCw } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -43,8 +44,7 @@ interface MonthlySummary {
 }
 
 const getMonthName = (dateStr: string): string => {
-  const date = new Date(dateStr);
-  return date.toLocaleDateString("id-ID", { month: "long", year: "numeric" });
+  return formatMonthYear(dateStr);
 };
 
 const getMonthKey = (dateStr: string): string => {

@@ -36,6 +36,7 @@ import { toast } from "sonner";
 import { Loader2, ArrowLeft, FolderPlus, Trash2, Plus, FileText } from "lucide-react";
 import { MonthPicker } from "@/components/ui/month-picker";
 import { formatIDR } from "@/lib/utils/currency";
+import { formatNumberID, toRFC3339 } from "@/lib/utils/format";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
 
@@ -248,7 +249,7 @@ export default function ExpenseDetailPage() {
       setCurrentItem({
         categoryId: expense.category.id,
         itemName: expense.itemName,
-        unitPrice: expense.unitPrice.toLocaleString("id-ID"),
+        unitPrice: formatNumberID(expense.unitPrice),
         quantity: expense.quantity.toString(),
         notes: expense.notes || "",
       });
@@ -316,7 +317,7 @@ export default function ExpenseDetailPage() {
         unitPrice: parseNumber(currentItem.unitPrice),
         quantity: parseInt(currentItem.quantity) || 1,
         notes: currentItem.notes || null,
-        expenseDate: expenseDate ? `${expenseDate}-01T00:00:00Z` : null,
+        expenseDate: expenseDate ? toRFC3339(expenseDate) : null,
       };
       updateExpense({ variables: { id, input } });
       return;
@@ -340,7 +341,7 @@ export default function ExpenseDetailPage() {
                 unitPrice: item.unitPrice,
                 quantity: item.quantity,
                 notes: item.notes || null,
-                expenseDate: expenseDate ? `${expenseDate}-01T00:00:00Z` : null,
+                expenseDate: expenseDate ? toRFC3339(expenseDate) : null,
               },
             },
           })
@@ -762,7 +763,7 @@ export default function ExpenseDetailPage() {
                     </TableCell>
                     <TableCell>
                       <Input
-                        value={item.unitPrice ? item.unitPrice.toLocaleString("id-ID") : ""}
+                        value={item.unitPrice ? formatNumberID(item.unitPrice) : ""}
                         onChange={(e) => {
                           const val = parseNumber(e.target.value);
                           setItems(prev => prev.map(i => 

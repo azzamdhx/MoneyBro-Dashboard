@@ -3,6 +3,7 @@
 import { useQuery } from "@apollo/client/react";
 import { gql } from "@apollo/client/core";
 import { Bell, Mail, CreditCard, Wallet, Inbox } from "lucide-react";
+import { formatDateShortID } from "@/lib/utils/format";
 import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
 
@@ -49,11 +50,7 @@ function formatDate(dateStr: string) {
   } else if (days < 7) {
     return `${days} hari lalu`;
   } else {
-    return date.toLocaleDateString("id-ID", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-    });
+    return formatDateShortID(date);
   }
 }
 

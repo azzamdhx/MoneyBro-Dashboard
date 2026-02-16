@@ -41,6 +41,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatIDR } from "@/lib/utils/currency";
+import { formatNumberID } from "@/lib/utils/format";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
 
@@ -197,7 +198,7 @@ export default function RecurringIncomeDetailPage() {
       setFormData({
         categoryId: recurring.category.id,
         sourceName: recurring.sourceName,
-        amount: recurring.amount.toLocaleString("id-ID"),
+        amount: formatNumberID(recurring.amount),
         incomeType: recurring.incomeType,
         recurringDay: recurring.recurringDay.toString(),
         isActive: recurring.isActive,
@@ -796,7 +797,7 @@ export default function RecurringIncomeDetailPage() {
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <Input
-                            value={item.amount ? item.amount.toLocaleString("id-ID") : ""}
+                            value={item.amount ? formatNumberID(item.amount) : ""}
                             onChange={(e) => {
                               const val = parseNumber(e.target.value);
                               setItems((prev) =>

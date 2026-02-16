@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { formatIDR } from "@/lib/utils/currency";
+import { formatNumberID, toRFC3339 } from "@/lib/utils/format";
 import { GET_CATEGORIES } from "@/lib/graphql/queries";
 import { CREATE_EXPENSE, UPDATE_EXPENSE, DELETE_EXPENSE } from "@/lib/graphql/mutations";
 import { toast } from "sonner";
@@ -224,9 +225,6 @@ export function EditableExpenseTable({ expenses, monthKey, onRefetch }: Editable
       return;
     }
 
-    const [year, month] = monthKey.split("-");
-    const expenseDate = `${year}-${month}-01`;
-
     await createExpense({
       variables: {
         input: {
@@ -234,7 +232,7 @@ export function EditableExpenseTable({ expenses, monthKey, onRefetch }: Editable
           categoryId: newRow.categoryId,
           unitPrice,
           quantity,
-          expenseDate,
+          expenseDate: toRFC3339(monthKey),
         },
       },
     });
@@ -361,7 +359,7 @@ export function EditableExpenseTable({ expenses, monthKey, onRefetch }: Editable
               <TableCell>
                 <Input
                   placeholder="Harga"
-                  value={newRow.unitPrice}
+                  value={newRow.unitPrice ? formatNumberID(parseInt(newRow.unitPrice)) : ""}
                   onChange={(e) => {
                     const value = e.target.value.replace(/\D/g, "");
                     setNewRow({ ...newRow, unitPrice: value });

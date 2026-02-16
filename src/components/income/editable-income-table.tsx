@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { formatIDR } from "@/lib/utils/currency";
+import { formatNumberID, toRFC3339 } from "@/lib/utils/format";
 import { GET_INCOME_CATEGORIES } from "@/lib/graphql/queries";
 import { CREATE_INCOME, UPDATE_INCOME, DELETE_INCOME } from "@/lib/graphql/mutations";
 import { toast } from "sonner";
@@ -244,9 +245,6 @@ export function EditableIncomeTable({ incomes, monthKey, onRefetch }: EditableIn
       return;
     }
 
-    const [year, month] = monthKey.split("-");
-    const incomeDate = `${year}-${month}-01`;
-
     await createIncome({
       variables: {
         input: {
@@ -254,7 +252,7 @@ export function EditableIncomeTable({ incomes, monthKey, onRefetch }: EditableIn
           categoryId: newRow.categoryId,
           amount,
           incomeType: newRow.incomeType,
-          incomeDate,
+          incomeDate: toRFC3339(monthKey),
         },
       },
     });
@@ -409,7 +407,7 @@ export function EditableIncomeTable({ incomes, monthKey, onRefetch }: EditableIn
               <TableCell>
                 <Input
                   placeholder="Jumlah"
-                  value={newRow.amount}
+                  value={newRow.amount ? formatNumberID(parseInt(newRow.amount)) : ""}
                   onChange={(e) => {
                     const value = e.target.value.replace(/\D/g, "");
                     setNewRow({ ...newRow, amount: value });

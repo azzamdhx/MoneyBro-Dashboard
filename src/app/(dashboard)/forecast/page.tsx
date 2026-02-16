@@ -5,6 +5,7 @@ import { useQuery } from "@apollo/client/react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { HighlightCard } from "@/components/ui/highlight-card";
 import { formatIDR } from "@/lib/utils/currency";
+import { formatMonthYear } from "@/lib/utils/format";
 import { GET_INCOMES, GET_EXPENSES, GET_DEBTS, GET_INSTALLMENTS, GET_UPCOMING_PAYMENTS } from "@/lib/graphql/queries";
 import {
   Wallet,
@@ -215,7 +216,7 @@ function getAvailableFutureMonths(
     const date = new Date(year, month - 1, 1);
     return {
       value: monthKey,
-      label: date.toLocaleDateString("id-ID", { month: "long", year: "numeric" }),
+      label: formatMonthYear(date),
     };
   });
 }
@@ -506,7 +507,7 @@ export default function ForecastPage() {
             <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mb-4">
               <CalendarClock className="h-8 w-8 text-muted-foreground" />
             </div>
-            <h3 className="text-lg font-medium">Belum ada data untuk {selectedMonth ? new Date(selectedMonth).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' }) : "bulan ini"}</h3>
+            <h3 className="text-lg font-medium">Belum ada data untuk {selectedMonth ? formatMonthYear(`${selectedMonth}-01`) : "bulan ini"}</h3>
             <p className="text-sm text-muted-foreground mt-1 text-center max-w-sm">
               Tambahkan pemasukan atau pengeluaran yang dijadwalkan untuk bulan ini untuk melihat proyeksi.
             </p>
@@ -519,7 +520,7 @@ export default function ForecastPage() {
             gradientColor={getBalanceGradientBg()}
             balanceLabel={
               <p className="text-xs sm:text-sm font-medium text-white/70">
-                Proyeksi Saldo {selectedMonth ? new Date(selectedMonth).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' }) : ""}
+                Proyeksi Saldo {selectedMonth ? formatMonthYear(`${selectedMonth}-01`) : ""}
               </p>
             }
             balanceValue={
