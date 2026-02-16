@@ -346,7 +346,7 @@ export default function ProfilePage() {
         </Button>
         <div>
           <h1 className="text-2xl font-bold">Profil Saya</h1>
-          <p className="text-muted-foreground">Kelola informasi akun kamu</p>
+          <p className="text-muted-foreground hidden sm:block">Kelola informasi akun kamu</p>
         </div>
       </div>
 
@@ -435,7 +435,7 @@ export default function ProfilePage() {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-medium">Ubah Password</p>
-                <p className="text-sm text-muted-foreground">Perbarui password akun kamu</p>
+                <p className="text-sm text-muted-foreground hidden sm:block">Perbarui password akun kamu</p>
               </div>
               <ChevronRight className="h-5 w-5 text-muted-foreground" />
             </button>
@@ -448,7 +448,7 @@ export default function ProfilePage() {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-medium">Autentikasi Dua Faktor</p>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-muted-foreground hidden sm:block">
                   {user?.twoFAEnabled ? "Nonaktifkan 2FA" : "Aktifkan lapisan keamanan ekstra"}
                 </p>
               </div>
@@ -470,7 +470,7 @@ export default function ProfilePage() {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-medium text-destructive">Hapus Akun</p>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-muted-foreground hidden sm:block">
                   Hapus akun dan semua data secara permanen
                 </p>
               </div>

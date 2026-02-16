@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
-  LayoutDashboard,
+  House,
   TrendingUp,
   Receipt,
   CreditCard,
@@ -120,7 +120,7 @@ export function MobileNav() {
               : "text-muted-foreground"
           )}
         >
-          <LayoutDashboard className="h-5 w-5" />
+          <House className="h-5 w-5" />
           <span>Home</span>
         </Link>
 

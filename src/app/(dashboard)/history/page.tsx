@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import Link from "next/link";
 import { useQuery } from "@apollo/client/react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { HighlightCard } from "@/components/ui/highlight-card";
@@ -468,7 +469,6 @@ export default function HistoryPage() {
           </div>
           <div>
             <h1 className="text-2xl font-bold">History</h1>
-            <p className="text-muted-foreground">Riwayat keuangan bulan sebelumnya</p>
           </div>
         </div>
         <Select value={selectedMonth} onValueChange={setSelectedMonth}>
@@ -490,7 +490,7 @@ export default function HistoryPage() {
         gradientColor={getBalanceGradientBg()}
         balanceLabel={
           <p className="text-xs sm:text-sm font-medium text-white/70">
-            Saldo Bersih {selectedMonth ? formatMonthYear(`${selectedMonth}-01`) : ""}
+            {selectedMonth ? formatMonthYear(`${selectedMonth}-01`) : ""}
           </p>
         }
         balanceValue={
@@ -502,11 +502,11 @@ export default function HistoryPage() {
         breakdown={
           <div className="grid grid-cols-2 gap-3 sm:gap-4">
             <div className="space-y-0.5">
-              <p className="text-[10px] sm:text-xs text-white/70">Total Pemasukan</p>
+              <p className="text-[10px] sm:text-xs text-white/70">Credit</p>
               <p className="text-sm sm:text-base font-semibold text-white break-all">{formatIDR(totalIncome)}</p>
             </div>
             <div className="space-y-0.5">
-              <p className="text-[10px] sm:text-xs text-white/70">Total Pengeluaran</p>
+              <p className="text-[10px] sm:text-xs text-white/70">Debit</p>
               <p className="text-sm sm:text-base font-semibold text-white break-all">{formatIDR(totalOutflow)}</p>
             </div>
           </div>
@@ -514,58 +514,62 @@ export default function HistoryPage() {
       />
 
       {/* Monthly Cash Flow Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pemasukan</CardTitle>
-            <BadgeDollarSign className="h-4 w-4 text-income" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-income">
-              {formatIDR(incomeSummary?.total || 0)}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">{incomeSummary?.count || 0} transaksi</p>
-          </CardContent>
-        </Card>
+      <div className="flex gap-4 overflow-x-auto pb-2 md:grid md:grid-cols-2 lg:grid-cols-4 md:overflow-x-visible md:pb-0">
+        <Link href="/incomes" className="min-w-[200px] flex-shrink-0 md:min-w-0 md:flex-shrink">
+          <Card className="h-full transition-colors hover:bg-muted/50">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Pemasukan</CardTitle>
+              <BadgeDollarSign className="h-4 w-4 text-income" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-income">
+                {formatIDR(incomeSummary?.total || 0)}
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pengeluaran</CardTitle>
-            <Wallet className="h-4 w-4 text-expense" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-expense">
-              {formatIDR(expenseSummary?.total || 0)}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">{expenseSummary?.count || 0} transaksi</p>
-          </CardContent>
-        </Card>
+        <Link href="/expenses" className="min-w-[200px] flex-shrink-0 md:min-w-0 md:flex-shrink">
+          <Card className="h-full transition-colors hover:bg-muted/50">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Pengeluaran</CardTitle>
+              <Wallet className="h-4 w-4 text-expense" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-expense">
+                {formatIDR(expenseSummary?.total || 0)}
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Cicilan</CardTitle>
-            <CreditCard className="h-4 w-4 text-installment" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-installment">
-              {formatIDR(actualPaymentsData?.actualPayments?.totalInstallment || 0)}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">{actualPaymentsData?.actualPayments?.installments?.length || 0} pembayaran</p>
-          </CardContent>
-        </Card>
+        <Link href="/installments" className="min-w-[200px] flex-shrink-0 md:min-w-0 md:flex-shrink">
+          <Card className="h-full transition-colors hover:bg-muted/50">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Cicilan</CardTitle>
+              <CreditCard className="h-4 w-4 text-installment" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-installment">
+                {formatIDR(actualPaymentsData?.actualPayments?.totalInstallment || 0)}
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Hutang</CardTitle>
-            <Receipt className="h-4 w-4 text-debt" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-debt">
-              {formatIDR(actualPaymentsData?.actualPayments?.totalDebt || 0)}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">{actualPaymentsData?.actualPayments?.debts?.length || 0} pembayaran</p>
-          </CardContent>
-        </Card>
+        <Link href="/debts" className="min-w-[200px] flex-shrink-0 md:min-w-0 md:flex-shrink">
+          <Card className="h-full transition-colors hover:bg-muted/50">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Hutang</CardTitle>
+              <Receipt className="h-4 w-4 text-debt" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-debt">
+                {formatIDR(actualPaymentsData?.actualPayments?.totalDebt || 0)}
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
       </div>
 
       <div className="grid gap-4 md:grid-cols-1 lg:grid-cols-2">

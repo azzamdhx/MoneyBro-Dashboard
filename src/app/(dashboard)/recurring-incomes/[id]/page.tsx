@@ -31,15 +31,7 @@ import {
   CREATE_INCOME_CATEGORY,
 } from "@/lib/graphql/mutations";
 import { toast } from "sonner";
-import { Loader2, ArrowLeft, FolderPlus, RefreshCw, Plus, Trash2 } from "lucide-react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Loader2, ArrowLeft, FolderPlus, Trash2 } from "lucide-react";
 import { formatIDR } from "@/lib/utils/currency";
 import { formatNumberID } from "@/lib/utils/format";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -87,18 +79,6 @@ interface RecurringIncomeData {
   recurringIncome: RecurringIncome;
 }
 
-interface RecurringIncomeItem {
-  id: string;
-  categoryId: string;
-  categoryName: string;
-  sourceName: string;
-  amount: number;
-  incomeType: string;
-  recurringDay: number;
-  isActive: boolean;
-  notes: string;
-}
-
 const INCOME_TYPES = [
   { value: "SALARY", label: "Gaji" },
   { value: "FREELANCE", label: "Freelance" },
@@ -121,11 +101,10 @@ export default function RecurringIncomeDetailPage() {
   const isNew = id === "new";
 
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
-  const [items, setItems] = useState<RecurringIncomeItem[]>([]);
   const [newCategory, setNewCategory] = useState("");
   const [editingRecurring, setEditingRecurring] = useState<RecurringIncome | null>(null);
   
-  // For edit mode only
+  // Form data for both New and Edit modes
   const [formData, setFormData] = useState({
     categoryId: "",
     sourceName: "",
@@ -135,37 +114,6 @@ export default function RecurringIncomeDetailPage() {
     isActive: true,
     notes: "",
   });
-  
-  // Check if last row is empty (for preventing multiple empty rows)
-  const lastItem = items[items.length - 1];
-  const isLastRowEmpty = lastItem && !lastItem.categoryId && !lastItem.sourceName && !lastItem.amount;
-  
-  // Add new empty row
-  const handleAddEmptyRow = () => {
-    if (isLastRowEmpty) {
-      toast.error("Lengkapi item sebelumnya terlebih dahulu");
-      return;
-    }
-    
-    const newItem: RecurringIncomeItem = {
-      id: Date.now().toString(),
-      categoryId: "",
-      categoryName: "",
-      sourceName: "",
-      amount: 0,
-      incomeType: "SALARY",
-      recurringDay: 1,
-      isActive: true,
-      notes: "",
-    };
-    
-    setItems((prev) => [...prev, newItem]);
-  };
-  
-  // Remove item
-  const handleRemoveItem = (itemId: string) => {
-    setItems((prev) => prev.filter((item) => item.id !== itemId));
-  };
   
   // Inline editing state
   const [editingField, setEditingField] = useState<string | null>(null);
@@ -274,36 +222,28 @@ export default function RecurringIncomeDetailPage() {
     e.preventDefault();
 
     if (isNew) {
-      // Filter out empty items
-      const validItems = items.filter(
-        (item) => item.categoryId && item.sourceName && item.amount
-      );
-
-      if (validItems.length === 0) {
-        toast.error("Mohon tambahkan minimal satu pemasukkan tetap");
+      // Validate form data
+      if (!formData.categoryId || !formData.sourceName || !formData.amount) {
+        toast.error("Mohon lengkapi kategori, sumber, dan jumlah");
         return;
       }
 
-      // Validate recurring days
-      for (const item of validItems) {
-        if (item.recurringDay < 1 || item.recurringDay > 31) {
-          toast.error("Tanggal income tetap harus antara 1-31");
-          return;
-        }
+      const recurringDay = parseInt(formData.recurringDay);
+      if (recurringDay < 1 || recurringDay > 31) {
+        toast.error("Tanggal income tetap harus antara 1-31");
+        return;
       }
 
-      // Create all recurring incomes
-      for (const item of validItems) {
-        const input = {
-          categoryId: item.categoryId,
-          sourceName: item.sourceName,
-          amount: item.amount,
-          incomeType: item.incomeType,
-          recurringDay: item.recurringDay,
-          notes: item.notes || null,
-        };
-        await createRecurring({ variables: { input } });
-      }
+      const input = {
+        categoryId: formData.categoryId,
+        sourceName: formData.sourceName,
+        amount: parseNumber(formData.amount),
+        incomeType: formData.incomeType,
+        recurringDay: recurringDay,
+        notes: formData.notes || null,
+      };
+
+      await createRecurring({ variables: { input } });
     } else {
       // Edit mode - use formData
       if (!formData.categoryId || !formData.sourceName || !formData.amount) {
@@ -497,14 +437,11 @@ export default function RecurringIncomeDetailPage() {
           <Button variant="ghost" size="icon" onClick={() => router.back()} className="shrink-0">
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <div className="h-10 w-10 rounded-lg bg-income/10 flex items-center justify-center shrink-0">
-            <RefreshCw className="h-5 w-5 text-income" />
-          </div>
           <div className="min-w-0">
             <h1 className="text-lg sm:text-2xl font-bold truncate">
-              {isNew ? "Tambah Pemasukkan Tetap" : "Edit Pemasukkan Tetap"}
+              {isNew ? "Tambah" : "Edit"}
             </h1>
-            <p className="text-muted-foreground text-sm truncate">
+            <p className="text-muted-foreground text-sm truncate hidden sm:block">
               {isNew ? "Buat pemasukan berulang baru" : "Ubah detail pemasukkan tetap"}
             </p>
           </div>
@@ -515,6 +452,12 @@ export default function RecurringIncomeDetailPage() {
             description="Apakah kamu yakin ingin menghapus pemasukkan tetap ini?"
             onConfirm={handleDelete}
             loading={deleting}
+            trigger={
+              <Button variant="destructive" size="sm" className="w-fit self-end">
+                <Trash2 className="h-4 w-4 mr-2" />
+                Hapus
+              </Button>
+            }
           />
         )}
       </div>
@@ -524,7 +467,7 @@ export default function RecurringIncomeDetailPage() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              Detail Pemasukkan Tetap
+              Detail
               {isSaving && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
             </CardTitle>
           </CardHeader>
@@ -664,191 +607,139 @@ export default function RecurringIncomeDetailPage() {
         </Card>
       )}
 
-      {/* New Mode - Editable Table */}
+      {/* New Mode - Form */}
       {isNew && (
         <>
-          <Card>
-            <CardHeader>
-              <CardTitle>Detail Pemasukkan Tetap</CardTitle>
-            </CardHeader>
-            <CardContent className="p-0 overflow-x-auto">
-              <Table className="min-w-[750px]">
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="min-w-[180px]">Kategori</TableHead>
-                    <TableHead className="min-w-[150px]">Sumber</TableHead>
-                    <TableHead className="min-w-[100px]">Tipe</TableHead>
-                    <TableHead className="min-w-[70px]">Tgl</TableHead>
-                    <TableHead className="min-w-[180px] text-right">Jumlah</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {/* Render all items */}
-                  {items.map((item) => (
-                    <TableRow key={item.id} className="bg-muted/30">
-                      <TableCell>
-                        <div className="flex gap-1">
-                          <Select
-                            value={item.categoryId}
-                            onValueChange={(value) => {
-                              const cat = categories.find((c) => c.id === value);
-                              setItems((prev) =>
-                                prev.map((i) =>
-                                  i.id === item.id
-                                    ? { ...i, categoryId: value, categoryName: cat?.name || "" }
-                                    : i
-                                )
-                              );
-                            }}
-                          >
-                            <SelectTrigger className="h-9 min-w-[140px]">
-                              <SelectValue placeholder="Kategori" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {categories.map((cat) => (
-                                <SelectItem key={cat.id} value={cat.id}>
-                                  {cat.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <Dialog open={isCategoryOpen} onOpenChange={setIsCategoryOpen}>
-                            <DialogTrigger asChild>
-                              <Button type="button" variant="outline" size="icon" className="h-9 w-9 shrink-0">
-                                <FolderPlus className="h-3 w-3" />
-                              </Button>
-                            </DialogTrigger>
-                            <DialogContent>
-                              <DialogHeader>
-                                <DialogTitle>Tambah Kategori Pemasukan</DialogTitle>
-                              </DialogHeader>
-                              <form onSubmit={handleCreateCategory} className="space-y-4">
-                                <div className="space-y-2">
-                                  <Label>Nama Kategori</Label>
-                                  <Input
-                                    value={newCategory}
-                                    onChange={(e) => setNewCategory(e.target.value)}
-                                    placeholder="Contoh: Pekerjaan Utama"
-                                  />
-                                </div>
-                                <Button type="submit" className="w-full" disabled={creatingCategory}>
-                                  {creatingCategory && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                                  Simpan
-                                </Button>
-                              </form>
-                            </DialogContent>
-                          </Dialog>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          value={item.sourceName}
-                          onChange={(e) =>
-                            setItems((prev) =>
-                              prev.map((i) =>
-                                i.id === item.id ? { ...i, sourceName: e.target.value } : i
-                              )
-                            )
-                          }
-                          className="h-9 min-w-[120px]"
-                          placeholder="Sumber pemasukan"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Select
-                          value={item.incomeType}
-                          onValueChange={(value) =>
-                            setItems((prev) =>
-                              prev.map((i) =>
-                                i.id === item.id ? { ...i, incomeType: value } : i
-                              )
-                            )
-                          }
-                        >
-                          <SelectTrigger className="h-9 min-w-[90px]">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {INCOME_TYPES.map((type) => (
-                              <SelectItem key={type.value} value={type.value}>
-                                {type.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          type="number"
-                          min="1"
-                          max="31"
-                          value={item.recurringDay}
-                          onChange={(e) =>
-                            setItems((prev) =>
-                              prev.map((i) =>
-                                i.id === item.id ? { ...i, recurringDay: parseInt(e.target.value) || 1 } : i
-                              )
-                            )
-                          }
-                          className="h-9 text-center min-w-[60px]"
-                          placeholder="1-31"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Input
-                            value={item.amount ? formatNumberID(item.amount) : ""}
-                            onChange={(e) => {
-                              const val = parseNumber(e.target.value);
-                              setItems((prev) =>
-                                prev.map((i) =>
-                                  i.id === item.id ? { ...i, amount: val } : i
-                                )
-                              );
-                            }}
-                            className="h-9 text-right font-bold text-income min-w-[120px]"
-                            placeholder="0"
-                          />
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            className="h-9 w-9 shrink-0 text-muted-foreground hover:text-destructive"
-                            onClick={() => handleRemoveItem(item.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
+        <Card>
+          <CardHeader>
+            <CardTitle>Detail Pemasukkan Tetap</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form id="recurring-income-form" onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-muted-foreground text-xs">Kategori</Label>
+                  <div className="flex gap-1">
+                    <Select
+                      value={formData.categoryId}
+                      onValueChange={(value) => setFormData((prev) => ({ ...prev, categoryId: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Pilih kategori" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.map((cat) => (
+                          <SelectItem key={cat.id} value={cat.id}>
+                            {cat.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Dialog open={isCategoryOpen} onOpenChange={setIsCategoryOpen}>
+                      <DialogTrigger asChild>
+                        <Button type="button" variant="outline" size="icon" className="shrink-0">
+                          <FolderPlus className="h-4 w-4" />
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Tambah Kategori Pemasukan</DialogTitle>
+                        </DialogHeader>
+                        <form onSubmit={handleCreateCategory} className="space-y-4">
+                          <div className="space-y-2">
+                            <Label>Nama Kategori</Label>
+                            <Input
+                              value={newCategory}
+                              onChange={(e) => setNewCategory(e.target.value)}
+                              placeholder="Contoh: Pekerjaan Utama"
+                            />
+                          </div>
+                          <Button type="submit" className="w-full" disabled={creatingCategory}>
+                            {creatingCategory && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                            Simpan
                           </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  {/* Add new row button - ALWAYS visible */}
-                  <TableRow
-                    className="cursor-pointer hover:bg-muted/30"
-                    onClick={handleAddEmptyRow}
-                  >
-                    <TableCell colSpan={5} className="text-center text-muted-foreground py-4">
-                      <div className="flex items-center justify-center gap-2">
-                        <Plus className="h-4 w-4" />
-                        <span>Tambah pemasukkan tetap baru</span>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
+                        </form>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+                </div>
 
-          <Card className="mt-4">
-            <CardContent className="pt-6">
-              <form onSubmit={handleSubmit}>
-                <Button type="submit" className="w-fit" disabled={isLoading || items.filter(i => i.categoryId && i.sourceName && i.amount).length === 0}>
-                  {isLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                  Simpan {items.filter(i => i.categoryId && i.sourceName && i.amount).length} Pemasukkan Tetap
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
+                <div className="space-y-2">
+                  <Label className="text-muted-foreground text-xs">Tipe Pemasukan</Label>
+                  <Select
+                    value={formData.incomeType}
+                    onValueChange={(value) => setFormData((prev) => ({ ...prev, incomeType: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {INCOME_TYPES.map((type) => (
+                        <SelectItem key={type.value} value={type.value}>
+                          {type.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-muted-foreground text-xs">Sumber Pemasukan</Label>
+                  <Input
+                    value={formData.sourceName}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, sourceName: e.target.value }))}
+                    placeholder="Contoh: Gaji PT ABC"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-muted-foreground text-xs">Tanggal (1-31)</Label>
+                  <Input
+                    type="number"
+                    min="1"
+                    max="31"
+                    value={formData.recurringDay}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, recurringDay: e.target.value }))}
+                    placeholder="Contoh: 25"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-muted-foreground text-xs">Jumlah per Bulan</Label>
+                  <Input
+                    value={formData.amount}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, amount: e.target.value.replace(/\D/g, "") }))}
+                    placeholder="0"
+                    className="font-bold text-income"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-muted-foreground text-xs">Catatan (Opsional)</Label>
+                  <Input
+                    value={formData.notes}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, notes: e.target.value }))}
+                    placeholder="Catatan tambahan"
+                  />
+                </div>
+              </div>
+
+            </form>
+          </CardContent>
+        </Card>
+
+        <div className="md:static md:mt-6 p-5 pb-8 md:rounded-lg md:border fixed bottom-0 left-0 right-0 z-50 rounded-t-3xl border-t border-x border-border bg-card">
+          <div className="flex items-end justify-end">
+            <Button type="submit" form="recurring-income-form" className="w-fit" disabled={isLoading}>
+              {isLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Simpan Pemasukkan Tetap
+            </Button>
+          </div>
+        </div>
         </>
       )}
     </div>

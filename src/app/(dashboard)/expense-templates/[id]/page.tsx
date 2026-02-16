@@ -33,7 +33,7 @@ import {
   CREATE_CATEGORY,
 } from "@/lib/graphql/mutations";
 import { toast } from "sonner";
-import { Loader2, ArrowLeft, FolderPlus, Plus, Trash2, FileText } from "lucide-react";
+import { Loader2, ArrowLeft, FolderPlus, Plus, Trash2 } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -404,8 +404,49 @@ export default function ExpenseTemplateDetailPage() {
 
   const isLoading = creating || updating || deleting;
 
-  // Suppress unused variable warnings
-  void addItem;
+  // State for adding new item in edit mode
+  const [newEditItem, setNewEditItem] = useState<NewItemForm | null>(null);
+
+  const handleAddEditItem = () => {
+    if (newEditItem) {
+      toast.error("Lengkapi item baru terlebih dahulu");
+      return;
+    }
+    setNewEditItem({
+      id: crypto.randomUUID(),
+      categoryId: "",
+      itemName: "",
+      unitPrice: 0,
+      quantity: 1,
+    });
+  };
+
+  const handleSaveNewEditItem = async () => {
+    if (!newEditItem || !newEditItem.categoryId || !newEditItem.itemName || !newEditItem.unitPrice) {
+      toast.error("Lengkapi semua field item");
+      return;
+    }
+    await addItem({
+      variables: {
+        groupId: id,
+        input: {
+          categoryId: newEditItem.categoryId,
+          itemName: newEditItem.itemName,
+          unitPrice: newEditItem.unitPrice,
+          quantity: newEditItem.quantity,
+        },
+      },
+    });
+    setNewEditItem(null);
+  };
+
+  // Group by category for Per Kategori card
+  const categoryTotals = group?.items.reduce((acc, item) => {
+    const catName = item.category.name;
+    if (!acc[catName]) acc[catName] = 0;
+    acc[catName] += item.total;
+    return acc;
+  }, {} as Record<string, number>) || {};
 
   if (!isNew && loadingGroup) {
     return (
@@ -433,18 +474,15 @@ export default function ExpenseTemplateDetailPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => router.back()} className="shrink-0">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" onClick={() => router.back()}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <div className="h-10 w-10 rounded-lg bg-expense/10 flex items-center justify-center shrink-0">
-            <FileText className="h-5 w-5 text-expense" />
-          </div>
-          <div className="min-w-0">
-            <h1 className="text-lg sm:text-2xl font-bold truncate">
+          <div>
+            <h1 className="text-2xl font-bold">
               {isNew ? "Tambah Template" : "Edit Template"}
             </h1>
-            <p className="text-muted-foreground text-sm truncate">
+            <p className="text-muted-foreground hidden sm:block">
               {isNew ? "Buat template pengeluaran baru" : "Ubah detail template"}
             </p>
           </div>
@@ -455,6 +493,12 @@ export default function ExpenseTemplateDetailPage() {
             description="Apakah kamu yakin ingin menghapus template ini?"
             onConfirm={handleDelete}
             loading={deleting}
+            trigger={
+              <Button variant="destructive" size="sm" className="w-fit self-end">
+                <Trash2 className="h-4 w-4 mr-2" />
+                Hapus
+              </Button>
+            }
           />
         )}
       </div>
@@ -533,43 +577,89 @@ export default function ExpenseTemplateDetailPage() {
             </CardContent>
           </Card>
 
+          {/* Per Kategori Card */}
+          {Object.keys(categoryTotals).length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Per Kategori</CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <div className="space-y-2">
+                  {Object.entries(categoryTotals).map(([category, catTotal]) => (
+                    <div key={category} className="flex items-center justify-between text-sm">
+                      <span className="text-primary">{category}</span>
+                      <span className="font-bold">{formatIDR(catTotal)}</span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Items Table for Edit Mode */}
           <Card>
             <CardHeader>
               <CardTitle>Daftar Item</CardTitle>
             </CardHeader>
-            <CardContent className="p-0 overflow-x-auto">
+            <CardContent className="px-6 overflow-x-auto">
               <Table className="min-w-[700px]">
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="min-w-[150px]">Kategori</TableHead>
-                    <TableHead className="min-w-[150px]">Nama Item</TableHead>
-                    <TableHead className="min-w-[100px]">Harga</TableHead>
+                    <TableHead className="min-w-[180px]">Kategori</TableHead>
+                    <TableHead className="min-w-[150px]">Item</TableHead>
+                    <TableHead className="min-w-[120px]">Harga</TableHead>
                     <TableHead className="min-w-[70px]">Qty</TableHead>
-                    <TableHead className="min-w-[100px] text-right">Total</TableHead>
-                    <TableHead className="min-w-[50px]"></TableHead>
+                    <TableHead className="min-w-[120px] text-right">Subtotal</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {group.items.map((item) => (
-                    <TableRow key={item.id}>
+                    <TableRow key={item.id} className="bg-muted/30">
                       <TableCell>
-                        <Select
-                          value={item.category.id}
-                          onValueChange={(value) => handleItemCategoryChange(item.id, value)}
-                          disabled={isSaving}
-                        >
-                          <SelectTrigger className="h-9">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {categories.map((cat) => (
-                              <SelectItem key={cat.id} value={cat.id}>
-                                {cat.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <div className="flex gap-1">
+                          <Select
+                            value={item.category.id}
+                            onValueChange={(value) => handleItemCategoryChange(item.id, value)}
+                            disabled={isSaving}
+                          >
+                            <SelectTrigger className="h-9 min-w-[140px]">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {categories.map((cat) => (
+                                <SelectItem key={cat.id} value={cat.id}>
+                                  {cat.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <Dialog open={isCategoryOpen} onOpenChange={setIsCategoryOpen}>
+                            <DialogTrigger asChild>
+                              <Button type="button" variant="outline" size="icon" className="h-9 w-9 shrink-0">
+                                <FolderPlus className="h-3 w-3" />
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent>
+                              <DialogHeader>
+                                <DialogTitle>Tambah Kategori Pengeluaran</DialogTitle>
+                              </DialogHeader>
+                              <form onSubmit={handleCreateCategory} className="space-y-4">
+                                <div className="space-y-2">
+                                  <Label>Nama Kategori</Label>
+                                  <Input
+                                    value={newCategory}
+                                    onChange={(e) => setNewCategory(e.target.value)}
+                                    placeholder="Contoh: Tagihan Bulanan"
+                                  />
+                                </div>
+                                <Button type="submit" className="w-full" disabled={creatingCategory}>
+                                  {creatingCategory && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                                  Simpan
+                                </Button>
+                              </form>
+                            </DialogContent>
+                          </Dialog>
+                        </div>
                       </TableCell>
                       <TableCell>
                         {editingField === `itemName-${item.id}` ? (
@@ -579,7 +669,7 @@ export default function ExpenseTemplateDetailPage() {
                             onChange={(e) => setEditValue(e.target.value)}
                             onBlur={() => saveItemField(item.id, "itemName")}
                             onKeyDown={(e) => handleKeyDown(e, "itemName", item.id)}
-                            className="h-9"
+                            className="h-9 min-w-[120px]"
                             disabled={isSaving}
                           />
                         ) : (
@@ -599,7 +689,7 @@ export default function ExpenseTemplateDetailPage() {
                             onChange={(e) => setEditValue(e.target.value.replace(/\D/g, ""))}
                             onBlur={() => saveItemField(item.id, "unitPrice")}
                             onKeyDown={(e) => handleKeyDown(e, "unitPrice", item.id)}
-                            className="h-9 text-right"
+                            className="h-9 text-right min-w-[100px]"
                             disabled={isSaving}
                           />
                         ) : (
@@ -621,7 +711,7 @@ export default function ExpenseTemplateDetailPage() {
                             onChange={(e) => setEditValue(e.target.value)}
                             onBlur={() => saveItemField(item.id, "quantity")}
                             onKeyDown={(e) => handleKeyDown(e, "quantity", item.id)}
-                            className="h-9 text-center"
+                            className="h-9 text-center min-w-[60px]"
                             disabled={isSaving}
                           />
                         ) : (
@@ -633,27 +723,164 @@ export default function ExpenseTemplateDetailPage() {
                           </div>
                         )}
                       </TableCell>
-                      <TableCell className="text-right font-bold text-expense">
-                        {formatIDR(item.total)}
-                      </TableCell>
                       <TableCell>
-                        <DeleteConfirmDialog
-                          title="Hapus Item"
-                          description={`Apakah kamu yakin ingin menghapus item "${item.itemName}"?`}
-                          onConfirm={() => handleDeleteItem(item.id)}
-                          trigger={
-                            <Button variant="ghost" size="icon" className="h-9 w-9">
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
-                          }
-                        />
+                        <div className="flex items-center gap-2">
+                          <Input
+                            value={formatIDR(item.total)}
+                            className="h-9 text-right font-bold text-expense min-w-[120px]"
+                            disabled
+                          />
+                          <DeleteConfirmDialog
+                            title="Hapus Item"
+                            description={`Apakah kamu yakin ingin menghapus item "${item.itemName}"?`}
+                            onConfirm={() => handleDeleteItem(item.id)}
+                            trigger={
+                              <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0 text-muted-foreground hover:text-destructive">
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            }
+                          />
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
+                  {/* New item row in edit mode */}
+                  {newEditItem && (
+                    <TableRow className="bg-muted/30">
+                      <TableCell>
+                        <div className="flex gap-1">
+                          <Select
+                            value={newEditItem.categoryId}
+                            onValueChange={(value) => setNewEditItem(prev => prev ? { ...prev, categoryId: value } : null)}
+                          >
+                            <SelectTrigger className="h-9 min-w-[140px]">
+                              <SelectValue placeholder="Kategori" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {categories.map((cat) => (
+                                <SelectItem key={cat.id} value={cat.id}>
+                                  {cat.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <Dialog open={isCategoryOpen} onOpenChange={setIsCategoryOpen}>
+                            <DialogTrigger asChild>
+                              <Button type="button" variant="outline" size="icon" className="h-9 w-9 shrink-0">
+                                <FolderPlus className="h-3 w-3" />
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent>
+                              <DialogHeader>
+                                <DialogTitle>Tambah Kategori Pengeluaran</DialogTitle>
+                              </DialogHeader>
+                              <form onSubmit={handleCreateCategory} className="space-y-4">
+                                <div className="space-y-2">
+                                  <Label>Nama Kategori</Label>
+                                  <Input
+                                    value={newCategory}
+                                    onChange={(e) => setNewCategory(e.target.value)}
+                                    placeholder="Contoh: Tagihan Bulanan"
+                                  />
+                                </div>
+                                <Button type="submit" className="w-full" disabled={creatingCategory}>
+                                  {creatingCategory && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                                  Simpan
+                                </Button>
+                              </form>
+                            </DialogContent>
+                          </Dialog>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          value={newEditItem.itemName}
+                          onChange={(e) => setNewEditItem(prev => prev ? { ...prev, itemName: e.target.value } : null)}
+                          className="h-9 min-w-[120px]"
+                          placeholder="Nama item"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          value={newEditItem.unitPrice ? formatNumberID(newEditItem.unitPrice) : ""}
+                          onChange={(e) => {
+                            const val = parseNumber(e.target.value);
+                            setNewEditItem(prev => prev ? { ...prev, unitPrice: val } : null);
+                          }}
+                          className="h-9 text-right min-w-[100px]"
+                          placeholder="0"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          type="number"
+                          min="1"
+                          value={newEditItem.quantity}
+                          onChange={(e) => setNewEditItem(prev => prev ? { ...prev, quantity: parseInt(e.target.value) || 1 } : null)}
+                          className="h-9 text-center min-w-[60px]"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Input
+                            value={formatIDR(newEditItem.unitPrice * newEditItem.quantity)}
+                            className="h-9 text-right font-bold text-expense min-w-[120px]"
+                            disabled
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="h-9 w-9 shrink-0 text-muted-foreground hover:text-destructive"
+                            onClick={() => setNewEditItem(null)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                  {/* Add new row button */}
+                  {!newEditItem && (
+                    <TableRow
+                      className="cursor-pointer hover:bg-muted/30"
+                      onClick={handleAddEditItem}
+                    >
+                      <TableCell colSpan={5} className="text-center text-muted-foreground py-4">
+                        <div className="flex items-center justify-center gap-2">
+                          <Plus className="h-4 w-4" />
+                          <span>Tambah item baru</span>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )}
                 </TableBody>
               </Table>
             </CardContent>
           </Card>
+
+          {/* Save new item card */}
+          {newEditItem && (
+            <Card>
+              <CardContent className="px-6">
+                <div className="flex flex-col-reverse sm:flex-row items-center justify-between gap-4">
+                  <Button
+                    onClick={handleSaveNewEditItem}
+                    className="w-full sm:w-fit"
+                    disabled={!newEditItem.categoryId || !newEditItem.itemName || !newEditItem.unitPrice}
+                  >
+                    Simpan Item Baru
+                  </Button>
+                  <div className="text-start sm:text-right w-full sm:w-auto">
+                    <p className="text-sm text-muted-foreground">Subtotal Item Baru</p>
+                    <p className="text-2xl font-bold text-expense">
+                      {formatIDR(newEditItem.unitPrice * newEditItem.quantity)}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </>
       )}
 
@@ -701,16 +928,15 @@ export default function ExpenseTemplateDetailPage() {
             <CardHeader>
               <CardTitle>Daftar Item</CardTitle>
             </CardHeader>
-            <CardContent className="p-0 overflow-x-auto">
+            <CardContent className="px-6 overflow-x-auto">
               <Table className="min-w-[700px]">
                 <TableHeader>
                   <TableRow>
                     <TableHead className="min-w-[180px]">Kategori</TableHead>
-                    <TableHead className="min-w-[150px]">Nama Item</TableHead>
+                    <TableHead className="min-w-[150px]">Item</TableHead>
                     <TableHead className="min-w-[120px]">Harga</TableHead>
                     <TableHead className="min-w-[70px]">Qty</TableHead>
-                    <TableHead className="min-w-[120px] text-right">Total</TableHead>
-                    <TableHead className="min-w-[50px]"></TableHead>
+                    <TableHead className="min-w-[120px] text-right">Subtotal</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -747,7 +973,7 @@ export default function ExpenseTemplateDetailPage() {
                             </DialogTrigger>
                             <DialogContent>
                               <DialogHeader>
-                                <DialogTitle>Tambah Kategori</DialogTitle>
+                                <DialogTitle>Tambah Kategori Pengeluaran</DialogTitle>
                               </DialogHeader>
                               <form onSubmit={handleCreateCategory} className="space-y-4">
                                 <div className="space-y-2">
@@ -811,19 +1037,23 @@ export default function ExpenseTemplateDetailPage() {
                           className="h-9 text-center min-w-[60px]"
                         />
                       </TableCell>
-                      <TableCell className="text-right font-bold text-expense">
-                        {formatIDR(item.unitPrice * item.quantity)}
-                      </TableCell>
                       <TableCell>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="h-9 w-9 text-muted-foreground hover:text-destructive"
-                          onClick={() => handleRemoveItem(item.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <div className="flex items-center gap-2">
+                          <Input
+                            value={formatIDR(item.unitPrice * item.quantity)}
+                            className="h-9 text-right font-bold text-expense min-w-[120px]"
+                            disabled
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="h-9 w-9 shrink-0 text-muted-foreground hover:text-destructive"
+                            onClick={() => handleRemoveItem(item.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -831,7 +1061,7 @@ export default function ExpenseTemplateDetailPage() {
                     className="cursor-pointer hover:bg-muted/30"
                     onClick={handleAddEmptyRow}
                   >
-                    <TableCell colSpan={6} className="text-center text-muted-foreground py-4">
+                    <TableCell colSpan={5} className="text-center text-muted-foreground py-4">
                       <div className="flex items-center justify-center gap-2">
                         <Plus className="h-4 w-4" />
                         <span>Tambah item baru</span>
@@ -843,22 +1073,20 @@ export default function ExpenseTemplateDetailPage() {
             </CardContent>
           </Card>
 
-          <Card className="mt-4">
-            <CardContent className="pt-6">
-              <div className="flex flex-col-reverse sm:flex-row items-center justify-between gap-4">
-                <Button type="submit" className="w-full sm:w-fit" disabled={isLoading || !groupName.trim() || items.filter(i => i.categoryId && i.itemName && i.unitPrice).length === 0}>
-                  {isLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                  Simpan Template
-                </Button>
-                <div className="text-center sm:text-right w-full sm:w-auto">
-                  <p className="text-sm text-muted-foreground">Total</p>
-                  <p className="text-2xl font-bold text-expense">
-                    {formatIDR(items.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0))}
-                  </p>
-                </div>
+          <div className="md:static md:mt-6 p-5 pb-8 md:rounded-lg md:border fixed bottom-0 left-0 right-0 z-50 rounded-t-3xl border-t border-x border-border bg-card">
+            <div className="flex items-end justify-between gap-4">
+              <div>
+                <p className="text-sm text-muted-foreground">Total</p>
+                <p className="text-2xl font-bold text-expense">
+                  {formatIDR(items.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0))}
+                </p>
               </div>
-            </CardContent>
-          </Card>
+              <Button type="submit" className="w-fit" disabled={isLoading || !groupName.trim() || items.filter(i => i.categoryId && i.itemName && i.unitPrice).length === 0}>
+                {isLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                Simpan Template
+              </Button>
+            </div>
+          </div>
         </form>
       )}
     </div>

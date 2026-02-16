@@ -1,26 +1,18 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useQuery, useMutation } from "@apollo/client/react";
+import { useQuery } from "@apollo/client/react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { formatIDR } from "@/lib/utils/currency";
 import { GET_RECURRING_INCOMES } from "@/lib/graphql/queries";
-import { DELETE_RECURRING_INCOME } from "@/lib/graphql/mutations";
-import { Plus, RefreshCw, Calendar, Trash2, Edit } from "lucide-react";
+import { Plus, RefreshCw, X } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { toast } from "sonner";
-import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 
 interface RecurringIncome {
   id: string;
@@ -54,27 +46,13 @@ const INCOME_TYPE_LABELS: Record<string, string> = {
 
 export default function RecurringIncomesPage() {
   const router = useRouter();
-  const { data, loading, refetch } = useQuery<RecurringIncomesData>(GET_RECURRING_INCOMES);
-
-  const [deleteRecurring, { loading: deleting }] = useMutation(DELETE_RECURRING_INCOME, {
-    onCompleted: () => {
-      toast.success("Income tetap berhasil dihapus");
-      refetch();
-    },
-    onError: (error) => {
-      toast.error(error.message);
-    },
-  });
-
-  const handleDelete = (id: string) => {
-    deleteRecurring({ variables: { id } });
-  };
+  const { data, loading } = useQuery<RecurringIncomesData>(GET_RECURRING_INCOMES);
+  const [fabOpen, setFabOpen] = useState(false);
 
   const recurringIncomes = data?.recurringIncomes || [];
   const totalMonthly = recurringIncomes
     .filter(r => r.isActive)
     .reduce((sum, r) => sum + r.amount, 0);
-  const activeCount = recurringIncomes.filter(r => r.isActive).length;
 
   if (loading) {
     return (
@@ -86,20 +64,28 @@ export default function RecurringIncomesPage() {
           </div>
           <Skeleton className="h-10 w-32" />
         </div>
-        <div className="grid gap-4 md:grid-cols-2">
-          <Skeleton className="h-24" />
-          <Skeleton className="h-24" />
+        <Skeleton className="h-20" />
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {[...Array(6)].map((_, i) => (
+            <Card key={i}>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <Skeleton className="h-10 w-10 rounded-lg" />
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-5 w-32" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
-        <Card>
-          <CardContent className="pt-6">
-            <Skeleton className="h-[300px]" />
-          </CardContent>
-        </Card>
       </div>
     );
   }
 
   return (
+    <>
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
@@ -108,132 +94,106 @@ export default function RecurringIncomesPage() {
           </div>
           <div>
             <h1 className="text-xl sm:text-2xl font-bold">Pemasukkan Tetap</h1>
-            <p className="text-muted-foreground text-sm">Kelola pemasukan tetap bulanan</p>
+            <p className="text-muted-foreground text-sm hidden sm:block">Kelola pemasukan tetap bulanan</p>
           </div>
         </div>
-        <Button asChild size="sm" className="w-full sm:w-fit">
+        <Button asChild size="sm" className="hidden md:inline-flex">
           <Link href="/recurring-incomes/new">
             <Plus className="h-4 w-4 mr-2" />
-            <span className="sm:hidden">Tambah</span>
-            <span className="hidden sm:inline">Tambah Pemasukkan Tetap</span>
+            Tambah Pemasukkan Tetap
           </Link>
         </Button>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Bulanan</CardTitle>
-            <RefreshCw className="h-4 w-4 text-income" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-income">
-              {formatIDR(totalMonthly)}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Dari {activeCount} income tetap aktif
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Income Tetap</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {recurringIncomes.length}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              {activeCount} aktif, {recurringIncomes.length - activeCount} nonaktif
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Income Tetap List */}
-      <Card>
+      <Card className="bg-card border-1">
         <CardHeader>
-          <CardTitle>Daftar Income Tetap</CardTitle>
+          <CardTitle className="flex flex-col items-start gap-4">
+            <span className="text-primary">Total Bulanan</span>
+            <span className="text-2xl text-income">{formatIDR(totalMonthly)}</span>
+          </CardTitle>
         </CardHeader>
-        <CardContent>
-          {recurringIncomes.length === 0 ? (
-            <div className="text-center py-12">
-              <RefreshCw className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium">Belum ada income tetap</h3>
-              <p className="text-sm text-muted-foreground mt-1 mb-4">
-                Buat income tetap untuk pemasukan rutin seperti gaji bulanan
-              </p>
-              <Button asChild>
-                <Link href="/recurring-incomes/new">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Tambah Income Tetap
-                </Link>
-              </Button>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Sumber</TableHead>
-                    <TableHead>Kategori</TableHead>
-                    <TableHead>Tipe</TableHead>
-                    <TableHead className="text-center">Tanggal</TableHead>
-                    <TableHead className="text-right">Jumlah</TableHead>
-                    <TableHead className="text-center">Status</TableHead>
-                    <TableHead className="text-right">Aksi</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {recurringIncomes.map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell className="font-medium">{item.sourceName}</TableCell>
-                      <TableCell>{item.category.name}</TableCell>
-                      <TableCell>{INCOME_TYPE_LABELS[item.incomeType] || item.incomeType}</TableCell>
-                      <TableCell className="text-center">
-                        <Badge variant="outline">Tgl {item.recurringDay}</Badge>
-                      </TableCell>
-                      <TableCell className="text-right font-medium text-income">
-                        {formatIDR(item.amount)}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <Badge variant={item.isActive ? "default" : "secondary"}>
-                          {item.isActive ? "Aktif" : "Nonaktif"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => router.push(`/recurring-incomes/${item.id}`)}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <DeleteConfirmDialog
-                            title="Hapus Recurring Income"
-                            description={`Apakah kamu yakin ingin menghapus recurring "${item.sourceName}"?`}
-                            onConfirm={() => handleDelete(item.id)}
-                            loading={deleting}
-                            trigger={
-                              <Button variant="ghost" size="icon">
-                                <Trash2 className="h-4 w-4 text-destructive" />
-                              </Button>
-                            }
-                          />
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </CardContent>
       </Card>
+
+      {recurringIncomes.length > 0 ? (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {recurringIncomes.map((item) => (
+            <Card
+              key={item.id}
+              className="cursor-pointer hover:border-accent transition-colors py-0"
+              onClick={() => router.push(`/recurring-incomes/${item.id}`)}
+            >
+              <CardContent className="p-4">
+                <div className="flex items-start justify-between mb-2">
+                  <div className="h-8 w-8 rounded-lg bg-income/10 flex items-center justify-center">
+                    <RefreshCw className="h-4 w-4 text-income" />
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Badge variant={item.isActive ? "default" : "secondary"} className="text-xs">
+                      {item.isActive ? "Aktif" : "Nonaktif"}
+                    </Badge>
+                  </div>
+                </div>
+                <div>
+                  <h3 className="font-semibold">{item.sourceName}</h3>
+                  <p className="text-lg font-bold text-income">{formatIDR(item.amount)}</p>
+                </div>
+                <div className="flex flex-wrap gap-1 mt-2">
+                  <Badge variant="outline" className="text-xs">{item.category.name}</Badge>
+                  <Badge variant="outline" className="text-xs">{INCOME_TYPE_LABELS[item.incomeType] || item.incomeType}</Badge>
+                  <Badge variant="outline" className="text-xs">Tgl {item.recurringDay}</Badge>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <Card>
+          <CardContent className="py-12 flex flex-col items-center justify-center text-muted-foreground">
+            <RefreshCw className="h-12 w-12 mb-4 opacity-50" />
+            <p className="text-sm">Belum ada income tetap</p>
+            <p className="text-xs mt-1">Klik tombol Tambah untuk membuat income tetap baru</p>
+          </CardContent>
+        </Card>
+      )}
     </div>
+
+    {/* Floating Action Button - Mobile Only */}
+    <div className="fixed bottom-28 right-6 z-[60] md:hidden">
+      <Popover open={fabOpen} onOpenChange={setFabOpen}>
+        <PopoverTrigger asChild>
+          <button
+            className={cn(
+              "flex items-center justify-center w-14 h-14 rounded-full shadow-lg transition-all duration-200",
+              fabOpen
+                ? "bg-destructive text-destructive-foreground scale-95"
+                : "bg-primary text-primary-foreground"
+            )}
+          >
+            {fabOpen ? (
+              <X className="h-6 w-6" />
+            ) : (
+              <Plus className="h-6 w-6" />
+            )}
+          </button>
+        </PopoverTrigger>
+        <PopoverContent
+          className="w-52 p-2 mb-2 border-border/50 shadow-2xl backdrop-blur-xl bg-gradient-to-b from-card/95 to-background/95"
+          align="end"
+          side="top"
+        >
+          <div className="grid gap-1">
+            <Link
+              href="/recurring-incomes/new"
+              onClick={() => setFabOpen(false)}
+              className="flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors text-muted-foreground hover:bg-muted"
+            >
+              <Plus className="h-4 w-4" />
+              <span>Tambah</span>
+            </Link>
+          </div>
+        </PopoverContent>
+      </Popover>
+    </div>
+    </>
   );
 }

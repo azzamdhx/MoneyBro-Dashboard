@@ -13,7 +13,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   Table,
@@ -33,10 +32,12 @@ import {
   MARK_INSTALLMENT_COMPLETE,
 } from "@/lib/graphql/mutations";
 import { toast } from "sonner";
-import { Loader2, ArrowLeft, Plus, CheckCircle2 } from "lucide-react";
+import { Loader2, ArrowLeft, Plus, CheckCircle2, Trash2, X } from "lucide-react";
 import { DatePicker } from "@/components/ui/date-picker";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 
 const GET_INSTALLMENT = gql`
   query GetInstallment($id: UUID!) {
@@ -113,6 +114,7 @@ export default function InstallmentDetailPage() {
   const isNew = id === "new";
 
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
+  const [fabOpen, setFabOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     actualAmount: "",
@@ -307,8 +309,9 @@ export default function InstallmentDetailPage() {
   }
 
   return (
+    <>
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => router.back()}>
             <ArrowLeft className="h-5 w-5" />
@@ -317,67 +320,78 @@ export default function InstallmentDetailPage() {
             <h1 className="text-2xl font-bold">
               {isNew ? "Tambah Cicilan" : installment?.name}
             </h1>
-            <p className="text-muted-foreground">
+            <p className="text-muted-foreground hidden sm:block">
               {isNew ? "Catat cicilan baru" : "Detail cicilan"}
             </p>
           </div>
         </div>
-        {!isNew && installment?.status === "ACTIVE" && (
-          <div className="flex gap-2 w-fit">
-            <Dialog open={isPaymentOpen} onOpenChange={setIsPaymentOpen}>
-              <DialogTrigger asChild>
-                <Button className="bg-green-600 hover:bg-green-700 text-primary">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Bayar Cicilan
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Konfirmasi Pembayaran</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div className="p-4 bg-card rounded-lg">
-                    <p className="text-sm text-primary">Jumlah Pembayaran</p>
-                    <p className="text-2xl font-bold text-income">
-                      {formatIDR(installment?.monthlyPayment || 0)}
-                    </p>
-                    <p className="text-sm text-primary mt-2">
-                      Pembayaran ke-{(installment?.paidCount || 0) + 1} dari {installment?.tenor}
-                    </p>
-                  </div>
-                  <Button
-                    className="w-full bg-primary text-background"
-                    onClick={handleRecordPayment}
-                    disabled={recordingPayment}
-                  >
-                    {recordingPayment && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                    Konfirmasi Pembayaran
-                  </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
-            <Button
-              variant="outline"
-              onClick={() => markComplete({ variables: { id } })}
-              disabled={markingComplete}
-            >
-              {markingComplete ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle2 className="h-4 w-4 mr-2" />}
-              Tandai Lunas
+        <div className="flex flex-wrap gap-2 justify-end">
+          {(isNew || installment?.status === "ACTIVE") && (
+            <Button type="submit" form="installment-form" className="w-fit hidden md:inline-flex" disabled={isLoading}>
+              {isLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              {isNew ? "Simpan" : "Perbarui"}
             </Button>
-            <DeleteConfirmDialog
-              title="Hapus Cicilan"
-              description="Apakah kamu yakin ingin menghapus cicilan ini? Semua riwayat pembayaran juga akan dihapus."
-              onConfirm={handleDelete}
-              loading={deleting}
-            />
-          </div>
-        )}
+          )}
+          {!isNew && installment?.status === "ACTIVE" && (
+            <>
+              <Button
+                variant="outline"
+                onClick={() => markComplete({ variables: { id } })}
+                disabled={markingComplete}
+                className="hidden md:inline-flex"
+              >
+                {markingComplete ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle2 className="h-4 w-4 mr-2" />}
+                Tandai Lunas
+              </Button>
+              <DeleteConfirmDialog
+                title="Hapus Cicilan"
+                description="Apakah kamu yakin ingin menghapus cicilan ini? Semua riwayat pembayaran juga akan dihapus."
+                onConfirm={handleDelete}
+                loading={deleting}
+                trigger={
+                  <Button variant="destructive" size="sm" className="w-fit">
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Hapus
+                  </Button>
+                }
+              />
+            </>
+          )}
+        </div>
       </div>
+
+      {/* Payment Dialog */}
+      <Dialog open={isPaymentOpen} onOpenChange={setIsPaymentOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Konfirmasi Pembayaran</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="p-4 bg-card rounded-lg">
+              <p className="text-sm text-primary">Jumlah Pembayaran</p>
+              <p className="text-2xl font-bold text-income">
+                {formatIDR(installment?.monthlyPayment || 0)}
+              </p>
+              <p className="text-sm text-primary mt-2">
+                Pembayaran ke-{(installment?.paidCount || 0) + 1} dari {installment?.tenor}
+              </p>
+            </div>
+            <Button
+              className="w-full bg-primary text-background"
+              onClick={handleRecordPayment}
+              disabled={recordingPayment}
+            >
+              {recordingPayment && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Konfirmasi Pembayaran
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {!isNew && installment && (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Card>
-            <CardContent className="pt-6">
+            <CardContent className="pt-0">
               <p className="text-sm text-muted-foreground">Cicilan Bulanan</p>
               <p className="text-2xl font-bold text-primary">
                 {formatIDR(installment.monthlyPayment)}
@@ -385,7 +399,7 @@ export default function InstallmentDetailPage() {
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="pt-6">
+            <CardContent className="pt-0">
               <p className="text-sm text-muted-foreground">Progress</p>
               <p className="text-2xl font-bold">
                 {installment.paidCount}/{installment.tenor}
@@ -393,7 +407,7 @@ export default function InstallmentDetailPage() {
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="pt-6">
+            <CardContent className="pt-0">
               <p className="text-sm text-muted-foreground">Sisa Cicilan</p>
               <p className="text-2xl font-bold text-destructive">
                 {formatIDR(installment.remainingAmount)}
@@ -401,7 +415,7 @@ export default function InstallmentDetailPage() {
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="pt-6">
+            <CardContent className="pt-0">
               <p className="text-sm text-muted-foreground">Jatuh Tempo</p>
               <p className="text-2xl font-bold">Tanggal {installment.dueDay}</p>
             </CardContent>
@@ -414,7 +428,7 @@ export default function InstallmentDetailPage() {
           <CardHeader>
             <CardTitle>Riwayat Pembayaran</CardTitle>
           </CardHeader>
-          <CardContent className="p-0">
+          <CardContent className="px-6">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -447,7 +461,7 @@ export default function InstallmentDetailPage() {
       )}
 
       {(isNew || installment?.status === "ACTIVE") && (
-        <form onSubmit={handleSubmit}>
+        <form id="installment-form" onSubmit={handleSubmit}>
           <Card>
             <CardHeader>
               <CardTitle>{isNew ? "Detail Cicilan" : "Edit Cicilan"}</CardTitle>
@@ -551,16 +565,89 @@ export default function InstallmentDetailPage() {
             </CardContent>
           </Card>
 
-          <Card className="mt-4">
-            <CardContent className="pt-6">
-              <Button type="submit" className="w-fit" disabled={isLoading}>
-                {isLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                {isNew ? "Simpan Cicilan" : "Perbarui Cicilan"}
-              </Button>
-            </CardContent>
-          </Card>
+          <div className="md:static md:mt-6 p-5 pb-8 md:p-6 md:rounded-lg md:border fixed bottom-0 left-0 right-0 z-50 rounded-t-3xl border-t border-x border-border bg-card">
+            {isNew ? (
+              <div className="flex items-end justify-between gap-4">
+                <div>
+                  <p className="text-sm text-muted-foreground">Cicilan per bulan</p>
+                  <p className="text-2xl font-bold text-primary">
+                    {formatIDR(monthlyPayment)}
+                  </p>
+                </div>
+                <Button type="submit" form="installment-form" className="w-fit" disabled={isLoading}>
+                  {isLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                  Simpan
+                </Button>
+              </div>
+            ) : installment?.status === "ACTIVE" && (
+              <div className="flex items-end justify-between gap-4">
+                <div>
+                  <p className="text-sm text-muted-foreground">Cicilan Bulanan</p>
+                  <p className="text-2xl font-bold text-primary">
+                    {formatIDR(installment?.monthlyPayment || 0)}
+                  </p>
+                </div>
+                <Button
+                  className="w-fit bg-green-600 text-primary hover:bg-green-700"
+                  type="button"
+                  onClick={() => setIsPaymentOpen(true)}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Bayar Cicilan
+                </Button>
+              </div>
+            )}
+          </div>
         </form>
       )}
     </div>
+
+    {/* Floating Action Button - Mobile Only */}
+    {!isNew && installment?.status === "ACTIVE" && (
+      <div className="fixed bottom-28 right-6 z-[60] md:hidden">
+        <Popover open={fabOpen} onOpenChange={setFabOpen}>
+          <PopoverTrigger asChild>
+            <button
+              className={cn(
+                "flex items-center justify-center w-14 h-14 rounded-full shadow-lg transition-all duration-200",
+                fabOpen
+                  ? "bg-destructive text-destructive-foreground scale-95"
+                  : "bg-primary text-primary-foreground"
+              )}
+            >
+              {fabOpen ? (
+                <X className="h-6 w-6" />
+              ) : (
+                <Plus className="h-6 w-6" />
+              )}
+            </button>
+          </PopoverTrigger>
+          <PopoverContent
+            className="w-52 p-2 mb-2 border-border/50 shadow-2xl backdrop-blur-xl bg-gradient-to-b from-card/95 to-background/95"
+            align="end"
+            side="top"
+          >
+            <div className="grid gap-1">
+              <button
+                onClick={() => {
+                  markComplete({ variables: { id } });
+                  setFabOpen(false);
+                }}
+                disabled={markingComplete}
+                className="flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors text-muted-foreground hover:bg-muted disabled:opacity-50"
+              >
+                {markingComplete ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <CheckCircle2 className="h-4 w-4" />
+                )}
+                <span>Tandai Lunas</span>
+              </button>
+            </div>
+          </PopoverContent>
+        </Popover>
+      </div>
+    )}
+    </>
   );
 }

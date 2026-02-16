@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@apollo/client/react";
@@ -8,8 +9,10 @@ import { Button } from "@/components/ui/button";
 import { formatIDR } from "@/lib/utils/currency";
 import { formatMonthYear } from "@/lib/utils/format";
 import { GET_EXPENSES } from "@/lib/graphql/queries";
-import { Plus, Receipt, CalendarDays, FileText } from "lucide-react";
+import { Plus, Receipt, CalendarDays, FileText, X } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 
 interface Expense {
   id: string;
@@ -54,6 +57,7 @@ const getMonthKey = (dateStr: string): string => {
 export default function ExpensesPage() {
   const router = useRouter();
   const { data, loading } = useQuery<ExpensesData>(GET_EXPENSES);
+  const [fabOpen, setFabOpen] = useState(false);
 
   const expenses: Expense[] = data?.expenses.items || [];
   const totalAll = expenses.reduce((sum, e) => sum + e.total, 0);
@@ -86,24 +90,24 @@ export default function ExpensesPage() {
   ).sort((a, b) => b.monthKey.localeCompare(a.monthKey)); // Sort by newest first
 
   return (
+    <>
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold">Pengeluaran</h1>
-          <p className="text-muted-foreground">Perencanaan pengeluaran bulanan</p>
+          <p className="text-muted-foreground hidden sm:block">Pengeluaran bulanan</p>
         </div>
-        <div className="grid grid-cols-2 sm:flex sm:flex-row gap-2 w-full sm:w-auto">
-          <Button asChild variant="outline" size="sm" className="w-full sm:w-fit">
+        <div className="hidden md:flex md:flex-row gap-2">
+          <Button asChild variant="outline" size="sm">
             <Link href="/expense-templates">
-              <FileText className="h-4 w-4 sm:mr-2" />
-              <span>Template</span>
+              <FileText className="h-4 w-4 mr-2" />
+              Template
             </Link>
           </Button>
-          <Button asChild size="sm" className="w-full sm:w-fit">
+          <Button asChild size="sm">
             <Link href="/expenses/new">
-              <Plus className="h-4 w-4 sm:mr-2" />
-              <span className="hidden sm:inline">Rencana Baru</span>
-              <span className="sm:hidden">Tambah</span>
+              <Plus className="h-4 w-4 mr-2" />
+              Pengeluaran Baru
             </Link>
           </Button>
         </div>
@@ -112,7 +116,7 @@ export default function ExpensesPage() {
       <Card className="bg-card border-1">
         <CardHeader>
           <CardTitle className="flex flex-col gap-4 items-start">
-            <span className="text-primary">Total Semua Pengeluaran</span>
+            <span className="text-primary">Total Pengeluaran</span>
             <span className="text-2xl text-expense">{formatIDR(totalAll)}</span>
           </CardTitle>
         </CardHeader>
@@ -160,11 +164,58 @@ export default function ExpensesPage() {
         <Card>
           <CardContent className="py-12 flex flex-col items-center justify-center text-muted-foreground">
             <Receipt className="h-12 w-12 mb-4 opacity-50" />
-            <p className="text-sm">Belum ada perencanaan pengeluaran</p>
-            <p className="text-xs mt-1">Klik tombol Rencana Baru untuk membuat perencanaan</p>
+            <p className="text-sm">Belum ada pengeluaran</p>
+            <p className="text-xs mt-1">Klik tombol Tambah untuk membuat</p>
           </CardContent>
         </Card>
       )}
     </div>
+
+    {/* Floating Action Button - Mobile Only */}
+    <div className="fixed bottom-28 right-6 z-[60] md:hidden">
+      <Popover open={fabOpen} onOpenChange={setFabOpen}>
+        <PopoverTrigger asChild>
+          <button
+            className={cn(
+              "flex items-center justify-center w-14 h-14 rounded-full shadow-lg transition-all duration-200",
+              fabOpen
+                ? "bg-destructive text-destructive-foreground scale-95"
+                : "bg-primary text-primary-foreground"
+            )}
+          >
+            {fabOpen ? (
+              <X className="h-6 w-6" />
+            ) : (
+              <Plus className="h-6 w-6" />
+            )}
+          </button>
+        </PopoverTrigger>
+        <PopoverContent
+          className="w-52 p-2 mb-2 border-border/50 shadow-2xl backdrop-blur-xl bg-gradient-to-b from-card/95 to-background/95"
+          align="end"
+          side="top"
+        >
+          <div className="grid gap-1">
+            <Link
+              href="/expenses/new"
+              onClick={() => setFabOpen(false)}
+              className="flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors text-muted-foreground hover:bg-muted"
+            >
+              <Plus className="h-4 w-4" />
+              <span>Pengeluaran Baru</span>
+            </Link>
+            <Link
+              href="/expense-templates"
+              onClick={() => setFabOpen(false)}
+              className="flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors text-muted-foreground hover:bg-muted"
+            >
+              <FileText className="h-4 w-4" />
+              <span>Template</span>
+            </Link>
+          </div>
+        </PopoverContent>
+      </Popover>
+    </div>
+    </>
   );
 }

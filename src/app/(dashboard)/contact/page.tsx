@@ -49,7 +49,7 @@ export default function ContactPage() {
         </Button>
         <div>
           <h1 className="text-2xl font-bold">Hubungi Kami</h1>
-          <p className="text-muted-foreground">Ada pertanyaan atau masukan? Kami siap membantu</p>
+          <p className="text-muted-foreground hidden sm:block">Ada pertanyaan atau masukan? Kami siap membantu</p>
         </div>
       </div>
 
@@ -73,12 +73,6 @@ export default function ContactPage() {
       <div className="rounded-xl border bg-card p-6 space-y-4">
         <h2 className="font-semibold">FAQ</h2>
         <Accordion type="single" collapsible className="w-full">
-          <AccordionItem value="2fa">
-            <AccordionTrigger>Bagaimana cara mengaktifkan 2FA?</AccordionTrigger>
-            <AccordionContent>
-              Buka halaman Profile, scroll ke bagian Keamanan, lalu aktifkan Two-Factor Authentication. Setiap login akan memerlukan kode OTP yang dikirim ke email.
-            </AccordionContent>
-          </AccordionItem>
           <AccordionItem value="notifikasi">
             <AccordionTrigger>Bagaimana cara kerja notifikasi pengingat?</AccordionTrigger>
             <AccordionContent>
@@ -86,9 +80,9 @@ export default function ContactPage() {
             </AccordionContent>
           </AccordionItem>
           <AccordionItem value="lunas">
-            <AccordionTrigger>Bagaimana menkamui cicilan/hutang sudah lunas?</AccordionTrigger>
+            <AccordionTrigger>Bagaimana menandai cicilan/hutang sudah lunas?</AccordionTrigger>
             <AccordionContent>
-              Buka detail cicilan atau hutang, lalu klik tombol &quot;Tkamui Lunas&quot;. Status akan berubah menjadi Completed dan tidak akan menerima pengingat lagi.
+              Buka detail cicilan atau hutang, lalu klik tombol &quot;Lunas&quot;. Status akan berubah menjadi Completed dan tidak akan menerima pengingat lagi.
             </AccordionContent>
           </AccordionItem>
           <AccordionItem value="keamanan">

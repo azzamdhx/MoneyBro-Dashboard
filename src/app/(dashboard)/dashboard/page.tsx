@@ -1,11 +1,12 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import { useQuery } from "@apollo/client/react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { HighlightCard } from "@/components/ui/highlight-card";
 import { formatIDR } from "@/lib/utils/currency";
-import { GET_DASHBOARD, GET_UPCOMING_PAYMENTS } from "@/lib/graphql/queries";
+import { GET_DASHBOARD } from "@/lib/graphql/queries";
 import {
   Wallet,
   Receipt,
@@ -80,47 +81,10 @@ interface DashboardData {
   };
 }
 
-interface UpcomingPaymentsData {
-  upcomingPayments: {
-    installments: {
-      installmentId: string;
-      name: string;
-      monthlyPayment: number;
-      dueDay: number;
-      dueDate: string;
-      remainingAmount: number;
-      remainingPayments: number;
-    }[];
-    debts: {
-      debtId: string;
-      personName: string;
-      monthlyPayment: number;
-      dueDate: string;
-      remainingAmount: number;
-      paymentType: string;
-    }[];
-    totalInstallment: number;
-    totalDebt: number;
-    totalPayments: number;
-  };
-}
 
 export default function DashboardPage() {
   const { data, loading, error } = useQuery<DashboardData>(GET_DASHBOARD);
   
-  const now = new Date();
-  const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-  const { data: upcomingPaymentsData } = useQuery<UpcomingPaymentsData>(
-    GET_UPCOMING_PAYMENTS,
-    {
-      variables: {
-        filter: {
-          month: nextMonth.getMonth() + 1,
-          year: nextMonth.getFullYear(),
-        },
-      },
-    }
-  );
 
   if (loading) {
     return (
@@ -305,11 +269,11 @@ export default function DashboardPage() {
         breakdown={
           <div className="grid grid-cols-2 gap-3 sm:gap-4">
             <div className="space-y-0.5">
-              <p className="text-[10px] sm:text-xs text-white/70">Total Pemasukan</p>
+              <p className="text-[10px] sm:text-xs text-white/70">Credit</p>
               <p className="text-sm sm:text-base font-semibold text-white break-all">{formatIDR(totalIncome)}</p>
             </div>
             <div className="space-y-0.5">
-              <p className="text-[10px] sm:text-xs text-white/70">Total Pengeluaran</p>
+              <p className="text-[10px] sm:text-xs text-white/70">Debit</p>
               <p className="text-sm sm:text-base font-semibold text-white break-all">{formatIDR(totalOutflow)}</p>
             </div>
           </div>
@@ -317,107 +281,63 @@ export default function DashboardPage() {
       />
 
       {/* Monthly Cash Flow Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pemasukan</CardTitle>
-            <BadgeDollarSign className="h-4 w-4 text-income" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-income">
-              {formatIDR(balanceSummary?.totalIncome || 0)}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">Total income bulan ini</p>
-          </CardContent>
-        </Card>
+      <div className="flex gap-4 overflow-x-auto pb-2 md:grid md:grid-cols-2 lg:grid-cols-4 md:overflow-x-visible md:pb-0">
+        <Link href="/incomes" className="min-w-[200px] flex-shrink-0 md:min-w-0 md:flex-shrink">
+          <Card className="h-full transition-colors hover:bg-muted/50">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Pemasukan</CardTitle>
+              <BadgeDollarSign className="h-4 w-4 text-income" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-income">
+                {formatIDR(balanceSummary?.totalIncome || 0)}
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pengeluaran</CardTitle>
-            <Wallet className="h-4 w-4 text-expense" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-expense">
-              {formatIDR(balanceSummary?.totalExpense || 0)}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">Belanja & kebutuhan</p>
-          </CardContent>
-        </Card>
+        <Link href="/expenses" className="min-w-[200px] flex-shrink-0 md:min-w-0 md:flex-shrink">
+          <Card className="h-full transition-colors hover:bg-muted/50">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Pengeluaran</CardTitle>
+              <Wallet className="h-4 w-4 text-expense" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-expense">
+                {formatIDR(balanceSummary?.totalExpense || 0)}
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Cicilan</CardTitle>
-            <CreditCard className="h-4 w-4 text-installment" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-installment">
-              {formatIDR(balanceSummary?.totalInstallmentPayment || 0)}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">Pembayaran aktual</p>
-          </CardContent>
-        </Card>
+        <Link href="/installments" className="min-w-[200px] flex-shrink-0 md:min-w-0 md:flex-shrink">
+          <Card className="h-full transition-colors hover:bg-muted/50">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Cicilan</CardTitle>
+              <CreditCard className="h-4 w-4 text-installment" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-installment">
+                {formatIDR(balanceSummary?.totalInstallmentPayment || 0)}
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Hutang</CardTitle>
-            <Receipt className="h-4 w-4 text-debt" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-debt">
-              {formatIDR(balanceSummary?.totalDebtPayment || 0)}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">Pembayaran aktual</p>
-          </CardContent>
-        </Card>
+        <Link href="/debts" className="min-w-[200px] flex-shrink-0 md:min-w-0 md:flex-shrink">
+          <Card className="h-full transition-colors hover:bg-muted/50">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Hutang</CardTitle>
+              <Receipt className="h-4 w-4 text-debt" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-debt">
+                {formatIDR(balanceSummary?.totalDebtPayment || 0)}
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
       </div>
-
-      {/* Upcoming Payments Cards - Conditional Rendering */}
-      {(() => {
-        const hasInstallment = (upcomingPaymentsData?.upcomingPayments?.totalInstallment || 0) > 0;
-        const hasDebt = (upcomingPaymentsData?.upcomingPayments?.totalDebt || 0) > 0;
-        const visibleCount = (hasInstallment ? 1 : 0) + (hasDebt ? 1 : 0);
-        
-        if (visibleCount === 0) return null;
-        
-        return (
-          <div className={`grid gap-4 ${visibleCount === 2 ? 'md:grid-cols-2' : ''}`}>
-            {hasInstallment && (
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Tagihan Cicilan Bulan Depan</CardTitle>
-                  <CreditCard className="h-4 w-4 text-installment" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-installment">
-                    {formatIDR(upcomingPaymentsData?.upcomingPayments?.totalInstallment || 0)}
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {upcomingPaymentsData?.upcomingPayments?.installments?.length || 0} upcoming payments
-                  </p>
-                </CardContent>
-              </Card>
-            )}
-
-            {hasDebt && (
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Tagihan Hutang Bulan Depan</CardTitle>
-                  <Receipt className="h-4 w-4 text-debt" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-debt">
-                    {formatIDR(upcomingPaymentsData?.upcomingPayments?.totalDebt || 0)}
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {upcomingPaymentsData?.upcomingPayments?.debts?.length || 0} upcoming payments
-                  </p>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-        );
-      })()}
-
       {/* Charts — lazy loaded */}
       <LazyCharts
         cashFlowData={cashFlowData}

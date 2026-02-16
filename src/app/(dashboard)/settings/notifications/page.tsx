@@ -139,9 +139,17 @@ export default function NotificationSettingsPage() {
         </Link>
         <div>
           <h1 className="text-2xl font-bold">Pengaturan Notifikasi</h1>
-          <p className="text-muted-foreground">Kelola pengingat email untuk cicilan dan hutang</p>
+          <p className="text-muted-foreground hidden sm:block">Kelola pengingat email untuk cicilan dan hutang</p>
         </div>
       </div>
+
+      <Card>
+        <CardContent className="px-6">
+          <p className="text-sm text-muted-foreground text-center">
+            Email akan dikirim ke alamat email akun kamu pada pukul 08:00 WIB
+          </p>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
@@ -149,7 +157,7 @@ export default function NotificationSettingsPage() {
             <Bell className="h-5 w-5" />
             Email Pengingat
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="hidden sm:block">
             Kami akan mengirim email pengingat sebelum tanggal jatuh tempo
           </CardDescription>
         </CardHeader>
@@ -159,7 +167,7 @@ export default function NotificationSettingsPage() {
               <Label htmlFor="notify-installment" className="text-base font-medium">
                 Pengingat Cicilan
               </Label>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground hidden sm:block">
                 Terima email sebelum cicilan jatuh tempo
               </p>
             </div>
@@ -176,7 +184,7 @@ export default function NotificationSettingsPage() {
               <Label htmlFor="notify-debt" className="text-base font-medium">
                 Pengingat Hutang/Piutang
               </Label>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground hidden sm:block">
                 Terima email sebelum hutang/piutang jatuh tempo
               </p>
             </div>
@@ -195,7 +203,7 @@ export default function NotificationSettingsPage() {
                   <Calendar className="h-4 w-4" />
                   Waktu Pengingat
                 </Label>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-muted-foreground hidden sm:block">
                   Berapa hari sebelum jatuh tempo ingin diingatkan
                 </p>
               </div>
@@ -218,14 +226,6 @@ export default function NotificationSettingsPage() {
               </Select>
             </div>
           </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardContent className="pt-6">
-          <p className="text-sm text-muted-foreground text-center">
-            Email akan dikirim ke alamat email akun kamu pada pukul 08:00 WIB
-          </p>
         </CardContent>
       </Card>
     </div>

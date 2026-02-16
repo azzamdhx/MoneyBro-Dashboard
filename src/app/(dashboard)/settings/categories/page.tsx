@@ -77,7 +77,7 @@ function CategoryItem({
 }) {
   if (isEditing) {
     return (
-      <div className="flex items-center gap-2 p-3">
+      <div className="flex items-center gap-2 pb-3">
         <Input
           value={editValue}
           onChange={(e) => onEditChange(e.target.value)}
@@ -100,12 +100,12 @@ function CategoryItem({
   }
 
   return (
-    <div className="flex items-center gap-3 p-3 group">
+    <div className="flex items-center gap-3 p-0 pb-3 group">
       <div className="flex-1 min-w-0">
         <p className="font-medium truncate">{name}</p>
         {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
       </div>
-      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="flex items-center gap-1">
         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onStartEdit}>
           <Pencil className="h-3.5 w-3.5" />
         </Button>
@@ -283,14 +283,14 @@ export default function CategoriesPage() {
         </Button>
         <div>
           <h1 className="text-2xl font-bold">Kelola Kategori</h1>
-          <p className="text-muted-foreground">Atur kategori pemasukan dan pengeluaran</p>
+          <p className="text-muted-foreground hidden sm:block">Atur kategori pemasukan dan pengeluaran</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Expense Categories */}
         <Card>
-          <CardHeader className="pb-3">
+          <CardHeader className="pb-0">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Receipt className="h-5 w-5 text-expense" />
@@ -310,10 +310,10 @@ export default function CategoriesPage() {
               </Button>
             </div>
           </CardHeader>
-          <CardContent className="pt-0">
-            <div className="rounded-lg border divide-y divide-border">
+          <CardContent className="p-0">
+            <div className="px-6">
               {showNewExpense && (
-                <div className="flex items-center gap-2 p-3 bg-muted/30">
+                <div className="flex items-center gap-2 pb-3">
                   <Input
                     value={newExpenseName}
                     onChange={(e) => setNewExpenseName(e.target.value)}
@@ -378,7 +378,7 @@ export default function CategoriesPage() {
 
         {/* Income Categories */}
         <Card>
-          <CardHeader className="pb-3">
+          <CardHeader className="pb-0">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Wallet className="h-5 w-5 text-income" />
@@ -399,9 +399,9 @@ export default function CategoriesPage() {
             </div>
           </CardHeader>
           <CardContent className="pt-0">
-            <div className="rounded-lg border divide-y divide-border">
+            <div>
               {showNewIncome && (
-                <div className="flex items-center gap-2 p-3 bg-muted/30">
+                <div className="flex items-center gap-2 pb-3">
                   <Input
                     value={newIncomeName}
                     onChange={(e) => setNewIncomeName(e.target.value)}

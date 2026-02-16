@@ -43,7 +43,7 @@ function SettingItem({ icon, title, description, trailing, disabled, href }: Set
       </div>
       <div className="flex-1 min-w-0">
         <p className="font-medium">{title}</p>
-        {description && <p className="text-sm text-muted-foreground">{description}</p>}
+        {description && <p className="text-sm text-muted-foreground hidden sm:block">{description}</p>}
       </div>
       <div className="flex-shrink-0">
         {trailing || <ChevronRight className="h-5 w-5 text-muted-foreground" />}
@@ -140,7 +140,7 @@ export default function SettingsPage() {
     <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-bold">Pengaturan</h1>
-        <p className="text-muted-foreground">Kelola akun dan preferensi kamu</p>
+        <p className="text-muted-foreground hidden sm:block">Kelola akun dan preferensi kamu</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

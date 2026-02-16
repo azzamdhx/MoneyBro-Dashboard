@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@apollo/client/react";
@@ -7,8 +8,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { formatIDR } from "@/lib/utils/currency";
 import { GET_INSTALLMENTS } from "@/lib/graphql/queries";
-import { Plus, CreditCard, CheckCircle2, Clock } from "lucide-react";
+import { Plus, CreditCard, CheckCircle2, Clock, X } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 
 interface InstallmentPayment {
   id: string;
@@ -44,6 +47,7 @@ interface InstallmentsData {
 export default function InstallmentsPage() {
   const router = useRouter();
   const { data, loading } = useQuery<InstallmentsData>(GET_INSTALLMENTS);
+  const [fabOpen, setFabOpen] = useState(false);
 
   const installments: Installment[] = data?.installments || [];
   const activeInstallments = installments.filter((i) => i.status === "ACTIVE");
@@ -59,13 +63,14 @@ export default function InstallmentsPage() {
   );
 
   return (
+    <>
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold">Cicilan</h1>
-          <p className="text-muted-foreground">Kelola cicilan kamu</p>
+          <p className="text-muted-foreground hidden sm:block">Kelola cicilan kamu</p>
         </div>
-        <Button asChild className="w-fit">
+        <Button asChild className="w-fit hidden md:inline-flex">
           <Link href="/installments/new">
             <Plus className="h-4 w-4 mr-2" />
             Tambah Cicilan
@@ -227,5 +232,44 @@ export default function InstallmentsPage() {
         </Card>
       )}
     </div>
+
+    {/* Floating Action Button - Mobile Only */}
+    <div className="fixed bottom-28 right-6 z-[60] md:hidden">
+      <Popover open={fabOpen} onOpenChange={setFabOpen}>
+        <PopoverTrigger asChild>
+          <button
+            className={cn(
+              "flex items-center justify-center w-14 h-14 rounded-full shadow-lg transition-all duration-200",
+              fabOpen
+                ? "bg-destructive text-destructive-foreground scale-95"
+                : "bg-primary text-primary-foreground"
+            )}
+          >
+            {fabOpen ? (
+              <X className="h-6 w-6" />
+            ) : (
+              <Plus className="h-6 w-6" />
+            )}
+          </button>
+        </PopoverTrigger>
+        <PopoverContent
+          className="w-52 p-2 mb-2 border-border/50 shadow-2xl backdrop-blur-xl bg-gradient-to-b from-card/95 to-background/95"
+          align="end"
+          side="top"
+        >
+          <div className="grid gap-1">
+            <Link
+              href="/installments/new"
+              onClick={() => setFabOpen(false)}
+              className="flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors text-muted-foreground hover:bg-muted"
+            >
+              <Plus className="h-4 w-4" />
+              <span>Tambah</span>
+            </Link>
+          </div>
+        </PopoverContent>
+      </Popover>
+    </div>
+    </>
   );
 }

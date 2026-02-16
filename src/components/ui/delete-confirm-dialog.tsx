@@ -44,7 +44,7 @@ export function DeleteConfirmDialog({
       <Button
         variant="ghost"
         size="icon"
-        className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+        className="text-destructive hover:text-destructive hover:bg-destructive/10"
       >
         <Trash2 className="h-4 w-4" />
       </Button>
@@ -61,13 +61,17 @@ export function DeleteConfirmDialog({
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>{trigger || defaultTrigger}</AlertDialogTrigger>
-      <AlertDialogContent>
+      <AlertDialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-lg rounded-lg border">
         <AlertDialogHeader>
           <AlertDialogTitle>{title}</AlertDialogTitle>
           <AlertDialogDescription>{description}</AlertDialogDescription>
         </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel disabled={loading}>Batal</AlertDialogCancel>
+        <AlertDialogFooter className="grid grid-cols-2 gap-2">
+          <AlertDialogCancel 
+          disabled={loading}
+          className="m-0"
+          >Batal
+          </AlertDialogCancel>
           <AlertDialogAction
             onClick={handleConfirm}
             disabled={loading}

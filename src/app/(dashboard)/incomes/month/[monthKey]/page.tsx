@@ -10,7 +10,7 @@ import { GET_INCOMES } from "@/lib/graphql/queries";
 import { DELETE_INCOME } from "@/lib/graphql/mutations";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
 import { toast } from "sonner";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft, Trash2 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EditableIncomeTable } from "@/components/income/editable-income-table";
 
@@ -65,8 +65,7 @@ export default function MonthlyIncomesPage() {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h1 className="text-2xl font-bold">Pemasukan {monthLabel}</h1>
-            <p className="text-muted-foreground">{incomes.length} transaksi</p>
+            <h1 className="text-2xl font-bold">{monthLabel}</h1>
           </div>
         </div>
         {incomes.length > 0 && (
@@ -86,9 +85,9 @@ export default function MonthlyIncomesPage() {
             }}
             loading={deleting}
             trigger={
-              <Button variant="destructive" disabled={deleting}>
-                {deleting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                Hapus Bulan Ini
+              <Button variant="destructive" size="sm" className="w-fit self-end">
+                <Trash2 className="h-4 w-4 mr-2" />
+                Hapus
               </Button>
             }
           />
@@ -98,7 +97,7 @@ export default function MonthlyIncomesPage() {
       <Card className="bg-card border-1">
         <CardHeader>
           <CardTitle className="flex flex-col gap-4 items-start">
-            <span className="text-primary">Total Pemasukan</span>
+            <span className="text-primary">Pemasukan</span>
             <span className="text-2xl text-income">{formatIDR(total)}</span>
           </CardTitle>
         </CardHeader>
@@ -108,7 +107,7 @@ export default function MonthlyIncomesPage() {
         <CardHeader>
           <CardTitle>Daftar Pemasukan ({incomes.length})</CardTitle>
         </CardHeader>
-        <CardContent className="p-0">
+        <CardContent className="px-6">
           {loading ? (
             <div className="p-4 space-y-3">
               {[...Array(5)].map((_, i) => (

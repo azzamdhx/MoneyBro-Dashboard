@@ -13,7 +13,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   Select,
@@ -41,10 +40,12 @@ import {
   MARK_DEBT_COMPLETE,
 } from "@/lib/graphql/mutations";
 import { toast } from "sonner";
-import { Loader2, ArrowLeft, Plus, CheckCircle2 } from "lucide-react";
+import { Loader2, ArrowLeft, Plus, CheckCircle2, X, Trash2 } from "lucide-react";
 import { DatePicker } from "@/components/ui/date-picker";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 
 const GET_DEBT = gql`
   query GetDebt($id: UUID!) {
@@ -129,7 +130,8 @@ export default function DebtDetailPage() {
 
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
   const [paymentAmount, setPaymentAmount] = useState("");
-  const [paymentDate, setPaymentDate] = useState("");
+  const [paymentDate, setPaymentDate] = useState(new Date().toISOString().split("T")[0]);
+  const [fabOpen, setFabOpen] = useState(false);
   const [formData, setFormData] = useState({
     personName: "",
     actualAmount: "",
@@ -198,7 +200,7 @@ export default function DebtDetailPage() {
       toast.success("Pembayaran berhasil dicatat");
       setIsPaymentOpen(false);
       setPaymentAmount("");
-      setPaymentDate("");  // Reset tanggal
+      setPaymentDate(new Date().toISOString().split("T")[0]);  // Reset tanggal
       refetch();
     },
     onError: (error) => {
@@ -330,8 +332,9 @@ export default function DebtDetailPage() {
   }
 
   return (
+    <>
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => router.back()}>
             <ArrowLeft className="h-5 w-5" />
@@ -340,85 +343,96 @@ export default function DebtDetailPage() {
             <h1 className="text-2xl font-bold">
               {isNew ? "Tambah Hutang" : debt?.personName}
             </h1>
-            <p className="text-muted-foreground">
+            <p className="text-muted-foreground hidden sm:block">
               {isNew ? "Catat hutang baru" : "Detail hutang"}
             </p>
           </div>
         </div>
-        {!isNew && debt?.status === "ACTIVE" && (
-          <div className="flex gap-2">
-            <Dialog open={isPaymentOpen} onOpenChange={setIsPaymentOpen}>
-              <DialogTrigger asChild>
-                <Button className="bg-green-600 hover:bg-green-700">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Bayar Hutang
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Bayar Hutang</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>Tanggal Pembayaran</Label>
-                    <DatePicker
-                      value={paymentDate}
-                      onChange={setPaymentDate}
-                      className="w-full"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Jumlah Pembayaran</Label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
-                        Rp
-                      </span>
-                      <Input
-                        value={paymentAmount}
-                        onChange={(e) => setPaymentAmount(formatNumber(e.target.value))}
-                        placeholder={debt?.monthlyPayment ? formatNumberID(debt.monthlyPayment) : "0"}
-                        className="pl-10"
-                      />
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      Sisa hutang: {formatIDR(debt?.remainingAmount || 0)}
-                    </p>
-                  </div>
-
-                  <Button
-                    className="w-full bg-green-600 hover:bg-green-700"
-                    onClick={handleRecordPayment}
-                    disabled={recordingPayment || !paymentDate}  // Validasi tanggal
-                  >
-                    {recordingPayment && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                    Konfirmasi Pembayaran
-                  </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
-            <Button
-              variant="outline"
-              onClick={() => markComplete({ variables: { id } })}
-              disabled={markingComplete}
-            >
-              {markingComplete ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle2 className="h-4 w-4 mr-2" />}
-              Tandai Lunas
+        <div className="flex flex-wrap gap-2 justify-end">
+          {(isNew || debt?.status === "ACTIVE") && (
+            <Button type="submit" form="debt-form" className="w-fit hidden md:inline-flex" disabled={isLoading}>
+              {isLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              {isNew ? "Simpan" : "Perbarui"}
             </Button>
-            <DeleteConfirmDialog
-              title="Hapus Hutang"
-              description="Apakah kamu yakin ingin menghapus hutang ini? Semua riwayat pembayaran juga akan dihapus."
-              onConfirm={handleDelete}
-              loading={deleting}
-            />
-          </div>
-        )}
+          )}
+          {!isNew && debt?.status === "ACTIVE" && (
+            <>
+              <Button
+                variant="outline"
+                onClick={() => markComplete({ variables: { id } })}
+                disabled={markingComplete}
+                className="hidden md:inline-flex"
+              >
+                {markingComplete ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle2 className="h-4 w-4 mr-2" />}
+                Tandai Lunas
+              </Button>
+              <DeleteConfirmDialog
+                title="Hapus Hutang"
+                description="Apakah kamu yakin ingin menghapus hutang ini? Semua riwayat pembayaran juga akan dihapus."
+                onConfirm={handleDelete}
+                loading={deleting}
+                trigger={
+                  <Button variant="destructive" size="sm" className="w-fit">
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Hapus
+                  </Button>
+                }
+              />
+            </>
+          )}
+        </div>
       </div>
+
+      {/* Payment Dialog */}
+      <Dialog open={isPaymentOpen} onOpenChange={setIsPaymentOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Bayar Hutang</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Tanggal Pembayaran</Label>
+              <DatePicker
+                value={paymentDate}
+                onChange={setPaymentDate}
+                className="w-full"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Jumlah Pembayaran</Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
+                  Rp
+                </span>
+                <Input
+                  value={paymentAmount}
+                  onChange={(e) => setPaymentAmount(formatNumber(e.target.value))}
+                  placeholder={debt?.monthlyPayment ? formatNumberID(debt.monthlyPayment) : "0"}
+                  className="pl-10"
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Sisa hutang: {formatIDR(debt?.remainingAmount || 0)}
+              </p>
+            </div>
+
+            <Button
+              className="w-full bg-green-600 hover:bg-green-700"
+              onClick={handleRecordPayment}
+              disabled={recordingPayment || !paymentDate}
+            >
+              {recordingPayment && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Konfirmasi Pembayaran
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {!isNew && debt && (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Card>
-            <CardContent className="pt-6">
+            <CardContent className="pt-0">
               <p className="text-sm text-muted-foreground">
                 {debt.paymentType === "INSTALLMENT" ? "Cicilan Bulanan" : "Total Hutang"}
               </p>
@@ -428,7 +442,7 @@ export default function DebtDetailPage() {
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="pt-6">
+            <CardContent className="pt-0">
               <p className="text-sm text-muted-foreground">Sudah Dibayar</p>
               <p className="text-2xl font-bold text-primary">
                 {formatIDR(debt.paidAmount)}
@@ -441,7 +455,7 @@ export default function DebtDetailPage() {
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="pt-6">
+            <CardContent className="pt-0">
               <p className="text-sm text-muted-foreground">Sisa Hutang</p>
               <p className="text-2xl font-bold text-debt">
                 {formatIDR(debt.remainingAmount)}
@@ -454,7 +468,7 @@ export default function DebtDetailPage() {
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="pt-6">
+            <CardContent className="pt-0">
               <p className="text-sm text-muted-foreground">Jatuh Tempo</p>
               <p className="text-2xl font-bold">
                 {debt.dueDate
@@ -471,7 +485,7 @@ export default function DebtDetailPage() {
           <CardHeader>
             <CardTitle>Riwayat Pembayaran</CardTitle>
           </CardHeader>
-          <CardContent className="p-0">
+          <CardContent className="px-6">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -504,7 +518,7 @@ export default function DebtDetailPage() {
       )}
 
       {(isNew || debt?.status === "ACTIVE") && (
-        <form onSubmit={handleSubmit}>
+        <form id="debt-form" onSubmit={handleSubmit}>
           <Card>
             <CardHeader>
               <CardTitle>{isNew ? "Detail Hutang" : "Edit Hutang"}</CardTitle>
@@ -617,16 +631,93 @@ export default function DebtDetailPage() {
             </CardContent>
           </Card>
 
-          <Card className="mt-4">
-            <CardContent className="pt-6">
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                {isNew ? "Simpan Hutang" : "Perbarui Hutang"}
-              </Button>
-            </CardContent>
-          </Card>
+          <div className="md:static md:mt-6 p-5 pb-8 md:rounded-lg md:border fixed bottom-0 left-0 right-0 z-50 rounded-t-3xl border-t border-x border-border bg-card">
+            {isNew ? (
+              <div className="flex items-end justify-between gap-4">
+                <div>
+                  <p className="text-sm text-muted-foreground">
+                    {formData.paymentType === "INSTALLMENT" ? "Cicilan per bulan" : "Total bayar"}
+                  </p>
+                  <p className="text-2xl font-bold text-primary">
+                    {formatIDR(monthlyPayment)}
+                  </p>
+                </div>
+                <Button type="submit" form="debt-form" className="w-fit" disabled={isLoading}>
+                  {isLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                  Simpan
+                </Button>
+              </div>
+            ) : debt?.status === "ACTIVE" && (
+              <div className="flex items-end justify-between gap-4">
+                <div>
+                  <p className="text-sm text-muted-foreground">
+                    {debt.paymentType === "INSTALLMENT" ? "Cicilan Bulanan" : "Sisa Hutang"}
+                  </p>
+                  <p className="text-2xl font-bold text-primary">
+                    {formatIDR(debt.paymentType === "INSTALLMENT" ? (debt.monthlyPayment || 0) : debt.remainingAmount)}
+                  </p>
+                </div>
+                <Button
+                  className="w-fit bg-green-600 text-primary hover:bg-green-700"
+                  type="button"
+                  onClick={() => setIsPaymentOpen(true)}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Bayar Hutang
+                </Button>
+              </div>
+            )}
+          </div>
         </form>
       )}
     </div>
+
+    {/* Floating Action Button - Mobile Only */}
+    {!isNew && debt?.status === "ACTIVE" && (
+      <div className="fixed bottom-28 right-6 z-[60] md:hidden">
+        <Popover open={fabOpen} onOpenChange={setFabOpen}>
+          <PopoverTrigger asChild>
+            <button
+              className={cn(
+                "flex items-center justify-center w-14 h-14 rounded-full shadow-lg transition-all duration-200",
+                fabOpen
+                  ? "bg-destructive text-destructive-foreground scale-95"
+                  : "bg-primary text-primary-foreground"
+              )}
+            >
+              {fabOpen ? (
+                <X className="h-6 w-6" />
+              ) : (
+                <Plus className="h-6 w-6" />
+              )}
+            </button>
+          </PopoverTrigger>
+          <PopoverContent
+            className="w-52 p-2 mb-2 border-border/50 shadow-2xl backdrop-blur-xl bg-gradient-to-b from-card/95 to-background/95"
+            align="end"
+            side="top"
+          >
+            <div className="grid gap-1">
+              <button
+                onClick={() => {
+                  markComplete({ variables: { id } });
+                  setFabOpen(false);
+                }}
+                disabled={markingComplete}
+                className="flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors text-muted-foreground hover:bg-muted disabled:opacity-50"
+              >
+                {markingComplete ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <CheckCircle2 className="h-4 w-4" />
+                )}
+                <span>Tandai Lunas</span>
+              </button>
+            </div>
+          </PopoverContent>
+        </Popover>
+      </div>
+    )}
+    </>
   );
 }

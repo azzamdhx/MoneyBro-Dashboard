@@ -1,26 +1,18 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useQuery, useMutation } from "@apollo/client/react";
+import { useQuery } from "@apollo/client/react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { formatIDR } from "@/lib/utils/currency";
 import { GET_EXPENSE_TEMPLATE_GROUPS } from "@/lib/graphql/queries";
-import { DELETE_EXPENSE_TEMPLATE_GROUP } from "@/lib/graphql/mutations";
-import { Plus, FileText, Calendar, Trash2, Edit } from "lucide-react";
+import { Plus, FileText, X } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { toast } from "sonner";
-import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 
 interface ExpenseTemplateItem {
   id: string;
@@ -50,24 +42,11 @@ interface ExpenseTemplateGroupsData {
 
 export default function ExpenseTemplatesPage() {
   const router = useRouter();
-  const { data, loading, refetch } = useQuery<ExpenseTemplateGroupsData>(GET_EXPENSE_TEMPLATE_GROUPS);
-
-  const [deleteGroup, { loading: deleting }] = useMutation(DELETE_EXPENSE_TEMPLATE_GROUP, {
-    onCompleted: () => {
-      toast.success("Template berhasil dihapus");
-      refetch();
-    },
-    onError: (error) => {
-      toast.error(error.message);
-    },
-  });
-
-  const handleDelete = (id: string) => {
-    deleteGroup({ variables: { id } });
-  };
+  const { data, loading } = useQuery<ExpenseTemplateGroupsData>(GET_EXPENSE_TEMPLATE_GROUPS);
+  const [fabOpen, setFabOpen] = useState(false);
 
   const groups = data?.expenseTemplateGroups || [];
-  const recurringCount = groups.filter(g => g.recurringDay !== null).length;
+  const totalAmount = groups.reduce((sum, g) => sum + g.total, 0);
 
   if (loading) {
     return (
@@ -79,20 +58,28 @@ export default function ExpenseTemplatesPage() {
           </div>
           <Skeleton className="h-10 w-32" />
         </div>
-        <div className="grid gap-4 md:grid-cols-2">
-          <Skeleton className="h-24" />
-          <Skeleton className="h-24" />
+        <Skeleton className="h-20" />
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {[...Array(6)].map((_, i) => (
+            <Card key={i}>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <Skeleton className="h-10 w-10 rounded-lg" />
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-5 w-32" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
-        <Card>
-          <CardContent className="pt-6">
-            <Skeleton className="h-[300px]" />
-          </CardContent>
-        </Card>
       </div>
     );
   }
 
   return (
+    <>
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
@@ -101,128 +88,104 @@ export default function ExpenseTemplatesPage() {
           </div>
           <div>
             <h1 className="text-xl sm:text-2xl font-bold">Template Pengeluaran</h1>
-            <p className="text-muted-foreground text-sm">Kelola template untuk input cepat</p>
+            <p className="text-muted-foreground text-sm hidden sm:block">Kelola template untuk input cepat</p>
           </div>
         </div>
-        <Button asChild size="sm" className="w-full sm:w-fit">
+        <Button asChild size="sm" className="hidden md:inline-flex">
           <Link href="/expense-templates/new">
             <Plus className="h-4 w-4 mr-2" />
-            <span className="sm:hidden">Tambah</span>
-            <span className="hidden sm:inline">Tambah Template</span>
+            Tambah Template
           </Link>
         </Button>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Template</CardTitle>
-            <FileText className="h-4 w-4 text-expense" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {groups.length}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Template tersedia untuk input cepat
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Dengan Jadwal Bulanan</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {recurringCount}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Template dengan jadwal bulanan
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Template List */}
-      <Card>
+      <Card className="bg-card border-1">
         <CardHeader>
-          <CardTitle>Daftar Template</CardTitle>
+          <CardTitle className="flex flex-col items-start gap-4">
+            <span className="text-primary">Total Template</span>
+            <span className="text-2xl text-expense">{formatIDR(totalAmount)}</span>
+          </CardTitle>
         </CardHeader>
-        <CardContent>
-          {groups.length === 0 ? (
-            <div className="text-center py-12">
-              <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium">Belum ada template</h3>
-              <p className="text-sm text-muted-foreground mt-1 mb-4">
-                Buat template untuk pengeluaran rutin seperti listrik, air, internet
-              </p>
-              <Button asChild>
-                <Link href="/expense-templates/new">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Tambah Template
-                </Link>
-              </Button>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Nama Template</TableHead>
-                    <TableHead className="text-center">Jumlah Item</TableHead>
-                    <TableHead className="text-right">Total</TableHead>
-                    <TableHead className="text-center">Jadwal</TableHead>
-                    <TableHead className="text-right">Aksi</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {groups.map((group) => (
-                    <TableRow key={group.id}>
-                      <TableCell className="font-medium">{group.name}</TableCell>
-                      <TableCell className="text-center">{group.items.length} item</TableCell>
-                      <TableCell className="text-right font-medium text-expense">
-                        {formatIDR(group.total)}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {group.recurringDay ? (
-                          <Badge variant="outline">Tgl {group.recurringDay}</Badge>
-                        ) : (
-                          <span className="text-muted-foreground">-</span>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => router.push(`/expense-templates/${group.id}`)}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <DeleteConfirmDialog
-                            title="Hapus Template"
-                            description={`Apakah kamu yakin ingin menghapus template "${group.name}"?`}
-                            onConfirm={() => handleDelete(group.id)}
-                            loading={deleting}
-                            trigger={
-                              <Button variant="ghost" size="icon">
-                                <Trash2 className="h-4 w-4 text-destructive" />
-                              </Button>
-                            }
-                          />
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </CardContent>
       </Card>
+
+      {groups.length > 0 ? (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {groups.map((group) => (
+            <Card
+              key={group.id}
+              className="cursor-pointer hover:border-accent transition-colors py-0"
+              onClick={() => router.push(`/expense-templates/${group.id}`)}
+            >
+              <CardContent className="p-4">
+                <div className="flex items-start justify-between mb-2">
+                  <div className="h-8 w-8 rounded-lg bg-expense/10 flex items-center justify-center">
+                    <FileText className="h-4 w-4 text-expense" />
+                  </div>
+                  <Badge variant="outline" className="text-xs">
+                    {group.items.length} item
+                  </Badge>
+                </div>
+                <div>
+                  <h3 className="font-semibold">{group.name}</h3>
+                  <p className="text-lg font-bold text-expense">{formatIDR(group.total)}</p>
+                </div>
+                {group.recurringDay && (
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    <Badge variant="outline" className="text-xs">Tgl {group.recurringDay}</Badge>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <Card>
+          <CardContent className="py-12 flex flex-col items-center justify-center text-muted-foreground">
+            <FileText className="h-12 w-12 mb-4 opacity-50" />
+            <p className="text-sm">Belum ada template</p>
+            <p className="text-xs mt-1">Klik tombol Tambah untuk membuat template baru</p>
+          </CardContent>
+        </Card>
+      )}
     </div>
+
+    {/* Floating Action Button - Mobile Only */}
+    <div className="fixed bottom-28 right-6 z-[60] md:hidden">
+      <Popover open={fabOpen} onOpenChange={setFabOpen}>
+        <PopoverTrigger asChild>
+          <button
+            className={cn(
+              "flex items-center justify-center w-14 h-14 rounded-full shadow-lg transition-all duration-200",
+              fabOpen
+                ? "bg-destructive text-destructive-foreground scale-95"
+                : "bg-primary text-primary-foreground"
+            )}
+          >
+            {fabOpen ? (
+              <X className="h-6 w-6" />
+            ) : (
+              <Plus className="h-6 w-6" />
+            )}
+          </button>
+        </PopoverTrigger>
+        <PopoverContent
+          className="w-52 p-2 mb-2 border-border/50 shadow-2xl backdrop-blur-xl bg-gradient-to-b from-card/95 to-background/95"
+          align="end"
+          side="top"
+        >
+          <div className="grid gap-1">
+            <Link
+              href="/expense-templates/new"
+              onClick={() => setFabOpen(false)}
+              className="flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors text-muted-foreground hover:bg-muted"
+            >
+              <Plus className="h-4 w-4" />
+              <span>Tambah</span>
+            </Link>
+          </div>
+        </PopoverContent>
+      </Popover>
+    </div>
+    </>
   );
 }
