@@ -5,9 +5,9 @@ import { useQuery, useMutation } from "@apollo/client/react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { formatIDR } from "@/lib/utils/currency";
-import { formatMonthYear } from "@/lib/utils/format";
+import { formatMonthYear, toRFC3339 } from "@/lib/utils/format";
 import { GET_INCOMES } from "@/lib/graphql/queries";
-import { DELETE_INCOME } from "@/lib/graphql/mutations";
+import { CREATE_INCOME, UPDATE_INCOME, DELETE_INCOME } from "@/lib/graphql/mutations";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
 import { toast } from "sonner";
 import { ArrowLeft, Trash2 } from "lucide-react";
@@ -45,6 +45,8 @@ export default function MonthlyIncomesPage() {
 
   const { data, loading, refetch } = useQuery<IncomesData>(GET_INCOMES);
 
+  const [createIncome] = useMutation(CREATE_INCOME);
+  const [updateIncome] = useMutation(UPDATE_INCOME);
   const [deleteIncome, { loading: deleting }] = useMutation(DELETE_INCOME);
 
   const allIncomes: Income[] = data?.incomes.items || [];
@@ -122,9 +124,18 @@ export default function MonthlyIncomesPage() {
             </div>
           ) : (
             <EditableIncomeTable
-              incomes={incomes}
-              monthKey={monthKey}
-              onRefetch={refetch}
+              items={incomes}
+              onCreateItem={async (input) => {
+                await createIncome({ variables: { input: { ...input, incomeDate: toRFC3339(monthKey) } } });
+                refetch();
+              }}
+              onUpdateItem={async (id, input) => {
+                await updateIncome({ variables: { id, input } });
+              }}
+              onDeleteItem={async (id) => {
+                await deleteIncome({ variables: { id } });
+              }}
+              onSaveComplete={() => refetch()}
             />
           )}
         </CardContent>

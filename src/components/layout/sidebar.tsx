@@ -68,7 +68,7 @@ const navItems: NavItem[] = [
     icon: TrendingUp,
     children: [
       {
-        title: "Income Tetap",
+        title: "Tetap",
         href: "/recurring-incomes",
         icon: RefreshCw,
       },

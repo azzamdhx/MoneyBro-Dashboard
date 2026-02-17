@@ -46,6 +46,7 @@ import { formatIDR } from "@/lib/utils/currency";
 import { formatNumberID } from "@/lib/utils/format";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
+import { EditableExpenseTable } from "@/components/expense/editable-expense-table";
 
 const GET_EXPENSE_TEMPLATE_GROUP = gql`
   query GetExpenseTemplateGroup($id: UUID!) {
@@ -187,38 +188,9 @@ export default function ExpenseTemplateDetailPage() {
     },
   });
 
-  const [addItem] = useMutation(ADD_EXPENSE_TEMPLATE_ITEM, {
-    onCompleted: () => {
-      toast.success("Item berhasil ditambahkan");
-      refetchGroup();
-    },
-    onError: (error) => {
-      toast.error(error.message);
-    },
-  });
-
-  const [updateItem] = useMutation(UPDATE_EXPENSE_TEMPLATE_ITEM, {
-    onCompleted: () => {
-      toast.success("Item berhasil diupdate");
-      setIsSaving(false);
-      setEditingField(null);
-      refetchGroup();
-    },
-    onError: (error) => {
-      toast.error(error.message);
-      setIsSaving(false);
-    },
-  });
-
-  const [deleteItem] = useMutation(DELETE_EXPENSE_TEMPLATE_ITEM, {
-    onCompleted: () => {
-      toast.success("Item berhasil dihapus");
-      refetchGroup();
-    },
-    onError: (error) => {
-      toast.error(error.message);
-    },
-  });
+  const [addItem] = useMutation(ADD_EXPENSE_TEMPLATE_ITEM);
+  const [updateItem] = useMutation(UPDATE_EXPENSE_TEMPLATE_ITEM);
+  const [deleteItem] = useMutation(DELETE_EXPENSE_TEMPLATE_ITEM);
 
   const [createCategory, { loading: creatingCategory }] = useMutation(
     CREATE_CATEGORY,
@@ -340,50 +312,9 @@ export default function ExpenseTemplateDetailPage() {
     await updateGroup({ variables: { id, input } });
   };
 
-  const saveItemField = async (itemId: string, field: string) => {
-    let newValue: string | number | null = editValue;
-    
-    if (field === "unitPrice" || field === "quantity") {
-      newValue = parseInt(editValue.replace(/\D/g, "")) || 0;
-      if (newValue <= 0) {
-        setEditingField(null);
-        return;
-      }
-    }
-    
-    if (field === "itemName" && !editValue.trim()) {
-      setEditingField(null);
-      return;
-    }
-    
-    setIsSaving(true);
-    setEditingField(null);
-    
-    const input: Record<string, unknown> = {};
-    if (field === "itemName") input.itemName = editValue.trim();
-    if (field === "unitPrice") input.unitPrice = newValue;
-    if (field === "quantity") input.quantity = newValue;
-    
-    await updateItem({ variables: { itemId, input } });
-  };
-
-  const handleItemCategoryChange = async (itemId: string, categoryId: string) => {
-    setIsSaving(true);
-    await updateItem({ variables: { itemId, input: { categoryId } } });
-    setIsSaving(false);
-  };
-
-  const handleDeleteItem = async (itemId: string) => {
-    await deleteItem({ variables: { itemId } });
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent, field: string, itemId?: string) => {
+  const handleKeyDown = (e: React.KeyboardEvent, field: string) => {
     if (e.key === "Enter") {
-      if (itemId) {
-        saveItemField(itemId, field);
-      } else {
-        saveGroupField(field);
-      }
+      saveGroupField(field);
     } else if (e.key === "Escape") {
       setEditingField(null);
     }
@@ -404,42 +335,6 @@ export default function ExpenseTemplateDetailPage() {
 
   const isLoading = creating || updating || deleting;
 
-  // State for adding new item in edit mode
-  const [newEditItem, setNewEditItem] = useState<NewItemForm | null>(null);
-
-  const handleAddEditItem = () => {
-    if (newEditItem) {
-      toast.error("Lengkapi item baru terlebih dahulu");
-      return;
-    }
-    setNewEditItem({
-      id: crypto.randomUUID(),
-      categoryId: "",
-      itemName: "",
-      unitPrice: 0,
-      quantity: 1,
-    });
-  };
-
-  const handleSaveNewEditItem = async () => {
-    if (!newEditItem || !newEditItem.categoryId || !newEditItem.itemName || !newEditItem.unitPrice) {
-      toast.error("Lengkapi semua field item");
-      return;
-    }
-    await addItem({
-      variables: {
-        groupId: id,
-        input: {
-          categoryId: newEditItem.categoryId,
-          itemName: newEditItem.itemName,
-          unitPrice: newEditItem.unitPrice,
-          quantity: newEditItem.quantity,
-        },
-      },
-    });
-    setNewEditItem(null);
-  };
-
   // Group by category for Per Kategori card
   const categoryTotals = group?.items.reduce((acc, item) => {
     const catName = item.category.name;
@@ -447,6 +342,16 @@ export default function ExpenseTemplateDetailPage() {
     acc[catName] += item.total;
     return acc;
   }, {} as Record<string, number>) || {};
+
+  // Group by category for new mode
+  const newModeCategoryTotals = items.reduce((acc, item) => {
+    if (!item.categoryId || !item.unitPrice) return acc;
+    const cat = categories.find(c => c.id === item.categoryId);
+    const catName = cat?.name || "Tidak Berkategori";
+    if (!acc[catName]) acc[catName] = 0;
+    acc[catName] += item.unitPrice * item.quantity;
+    return acc;
+  }, {} as Record<string, number>);
 
   if (!isNew && loadingGroup) {
     return (
@@ -506,6 +411,7 @@ export default function ExpenseTemplateDetailPage() {
       {/* Edit Mode */}
       {!isNew && group && (
         <>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -595,298 +501,37 @@ export default function ExpenseTemplateDetailPage() {
               </CardContent>
             </Card>
           )}
+          </div>
 
           {/* Items Table for Edit Mode */}
           <Card>
             <CardHeader>
               <CardTitle>Daftar Item</CardTitle>
             </CardHeader>
-            <CardContent className="px-6 overflow-x-auto">
-              <Table className="min-w-[700px]">
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="min-w-[180px]">Kategori</TableHead>
-                    <TableHead className="min-w-[150px]">Item</TableHead>
-                    <TableHead className="min-w-[120px]">Harga</TableHead>
-                    <TableHead className="min-w-[70px]">Qty</TableHead>
-                    <TableHead className="min-w-[120px] text-right">Subtotal</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {group.items.map((item) => (
-                    <TableRow key={item.id} className="bg-muted/30">
-                      <TableCell>
-                        <div className="flex gap-1">
-                          <Select
-                            value={item.category.id}
-                            onValueChange={(value) => handleItemCategoryChange(item.id, value)}
-                            disabled={isSaving}
-                          >
-                            <SelectTrigger className="h-9 min-w-[140px]">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {categories.map((cat) => (
-                                <SelectItem key={cat.id} value={cat.id}>
-                                  {cat.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <Dialog open={isCategoryOpen} onOpenChange={setIsCategoryOpen}>
-                            <DialogTrigger asChild>
-                              <Button type="button" variant="outline" size="icon" className="h-9 w-9 shrink-0">
-                                <FolderPlus className="h-3 w-3" />
-                              </Button>
-                            </DialogTrigger>
-                            <DialogContent>
-                              <DialogHeader>
-                                <DialogTitle>Tambah Kategori Pengeluaran</DialogTitle>
-                              </DialogHeader>
-                              <form onSubmit={handleCreateCategory} className="space-y-4">
-                                <div className="space-y-2">
-                                  <Label>Nama Kategori</Label>
-                                  <Input
-                                    value={newCategory}
-                                    onChange={(e) => setNewCategory(e.target.value)}
-                                    placeholder="Contoh: Tagihan Bulanan"
-                                  />
-                                </div>
-                                <Button type="submit" className="w-full" disabled={creatingCategory}>
-                                  {creatingCategory && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                                  Simpan
-                                </Button>
-                              </form>
-                            </DialogContent>
-                          </Dialog>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        {editingField === `itemName-${item.id}` ? (
-                          <Input
-                            ref={inputRef}
-                            value={editValue}
-                            onChange={(e) => setEditValue(e.target.value)}
-                            onBlur={() => saveItemField(item.id, "itemName")}
-                            onKeyDown={(e) => handleKeyDown(e, "itemName", item.id)}
-                            className="h-9 min-w-[120px]"
-                            disabled={isSaving}
-                          />
-                        ) : (
-                          <div
-                            className="h-9 px-3 flex items-center border rounded-md cursor-pointer hover:bg-muted/50"
-                            onClick={() => { setEditingField(`itemName-${item.id}`); setEditValue(item.itemName); }}
-                          >
-                            {item.itemName}
-                          </div>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {editingField === `unitPrice-${item.id}` ? (
-                          <Input
-                            ref={inputRef}
-                            value={editValue}
-                            onChange={(e) => setEditValue(e.target.value.replace(/\D/g, ""))}
-                            onBlur={() => saveItemField(item.id, "unitPrice")}
-                            onKeyDown={(e) => handleKeyDown(e, "unitPrice", item.id)}
-                            className="h-9 text-right min-w-[100px]"
-                            disabled={isSaving}
-                          />
-                        ) : (
-                          <div
-                            className="h-9 px-3 flex items-center justify-end border rounded-md cursor-pointer hover:bg-muted/50"
-                            onClick={() => { setEditingField(`unitPrice-${item.id}`); setEditValue(item.unitPrice.toString()); }}
-                          >
-                            {formatIDR(item.unitPrice)}
-                          </div>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {editingField === `quantity-${item.id}` ? (
-                          <Input
-                            ref={inputRef}
-                            type="number"
-                            min="1"
-                            value={editValue}
-                            onChange={(e) => setEditValue(e.target.value)}
-                            onBlur={() => saveItemField(item.id, "quantity")}
-                            onKeyDown={(e) => handleKeyDown(e, "quantity", item.id)}
-                            className="h-9 text-center min-w-[60px]"
-                            disabled={isSaving}
-                          />
-                        ) : (
-                          <div
-                            className="h-9 px-3 flex items-center justify-center border rounded-md cursor-pointer hover:bg-muted/50"
-                            onClick={() => { setEditingField(`quantity-${item.id}`); setEditValue(item.quantity.toString()); }}
-                          >
-                            {item.quantity}
-                          </div>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Input
-                            value={formatIDR(item.total)}
-                            className="h-9 text-right font-bold text-expense min-w-[120px]"
-                            disabled
-                          />
-                          <DeleteConfirmDialog
-                            title="Hapus Item"
-                            description={`Apakah kamu yakin ingin menghapus item "${item.itemName}"?`}
-                            onConfirm={() => handleDeleteItem(item.id)}
-                            trigger={
-                              <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0 text-muted-foreground hover:text-destructive">
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            }
-                          />
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  {/* New item row in edit mode */}
-                  {newEditItem && (
-                    <TableRow className="bg-muted/30">
-                      <TableCell>
-                        <div className="flex gap-1">
-                          <Select
-                            value={newEditItem.categoryId}
-                            onValueChange={(value) => setNewEditItem(prev => prev ? { ...prev, categoryId: value } : null)}
-                          >
-                            <SelectTrigger className="h-9 min-w-[140px]">
-                              <SelectValue placeholder="Kategori" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {categories.map((cat) => (
-                                <SelectItem key={cat.id} value={cat.id}>
-                                  {cat.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <Dialog open={isCategoryOpen} onOpenChange={setIsCategoryOpen}>
-                            <DialogTrigger asChild>
-                              <Button type="button" variant="outline" size="icon" className="h-9 w-9 shrink-0">
-                                <FolderPlus className="h-3 w-3" />
-                              </Button>
-                            </DialogTrigger>
-                            <DialogContent>
-                              <DialogHeader>
-                                <DialogTitle>Tambah Kategori Pengeluaran</DialogTitle>
-                              </DialogHeader>
-                              <form onSubmit={handleCreateCategory} className="space-y-4">
-                                <div className="space-y-2">
-                                  <Label>Nama Kategori</Label>
-                                  <Input
-                                    value={newCategory}
-                                    onChange={(e) => setNewCategory(e.target.value)}
-                                    placeholder="Contoh: Tagihan Bulanan"
-                                  />
-                                </div>
-                                <Button type="submit" className="w-full" disabled={creatingCategory}>
-                                  {creatingCategory && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                                  Simpan
-                                </Button>
-                              </form>
-                            </DialogContent>
-                          </Dialog>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          value={newEditItem.itemName}
-                          onChange={(e) => setNewEditItem(prev => prev ? { ...prev, itemName: e.target.value } : null)}
-                          className="h-9 min-w-[120px]"
-                          placeholder="Nama item"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          value={newEditItem.unitPrice ? formatNumberID(newEditItem.unitPrice) : ""}
-                          onChange={(e) => {
-                            const val = parseNumber(e.target.value);
-                            setNewEditItem(prev => prev ? { ...prev, unitPrice: val } : null);
-                          }}
-                          className="h-9 text-right min-w-[100px]"
-                          placeholder="0"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          type="number"
-                          min="1"
-                          value={newEditItem.quantity}
-                          onChange={(e) => setNewEditItem(prev => prev ? { ...prev, quantity: parseInt(e.target.value) || 1 } : null)}
-                          className="h-9 text-center min-w-[60px]"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Input
-                            value={formatIDR(newEditItem.unitPrice * newEditItem.quantity)}
-                            className="h-9 text-right font-bold text-expense min-w-[120px]"
-                            disabled
-                          />
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            className="h-9 w-9 shrink-0 text-muted-foreground hover:text-destructive"
-                            onClick={() => setNewEditItem(null)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  )}
-                  {/* Add new row button */}
-                  {!newEditItem && (
-                    <TableRow
-                      className="cursor-pointer hover:bg-muted/30"
-                      onClick={handleAddEditItem}
-                    >
-                      <TableCell colSpan={5} className="text-center text-muted-foreground py-4">
-                        <div className="flex items-center justify-center gap-2">
-                          <Plus className="h-4 w-4" />
-                          <span>Tambah item baru</span>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
+            <CardContent className="px-6">
+              <EditableExpenseTable
+                items={group.items}
+                onCreateItem={async (input) => {
+                  await addItem({ variables: { groupId: id, input } });
+                  refetchGroup();
+                }}
+                onUpdateItem={async (itemId, input) => {
+                  await updateItem({ variables: { itemId, input } });
+                }}
+                onDeleteItem={async (itemId) => {
+                  await deleteItem({ variables: { itemId } });
+                }}
+                onSaveComplete={() => refetchGroup()}
+              />
             </CardContent>
           </Card>
-
-          {/* Save new item card */}
-          {newEditItem && (
-            <Card>
-              <CardContent className="px-6">
-                <div className="flex flex-col-reverse sm:flex-row items-center justify-between gap-4">
-                  <Button
-                    onClick={handleSaveNewEditItem}
-                    className="w-full sm:w-fit"
-                    disabled={!newEditItem.categoryId || !newEditItem.itemName || !newEditItem.unitPrice}
-                  >
-                    Simpan Item Baru
-                  </Button>
-                  <div className="text-start sm:text-right w-full sm:w-auto">
-                    <p className="text-sm text-muted-foreground">Subtotal Item Baru</p>
-                    <p className="text-2xl font-bold text-expense">
-                      {formatIDR(newEditItem.unitPrice * newEditItem.quantity)}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
         </>
       )}
 
       {/* New Mode */}
       {isNew && (
         <form onSubmit={handleSubmit}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
           <Card>
             <CardHeader>
               <CardTitle>Info Template</CardTitle>
@@ -924,7 +569,27 @@ export default function ExpenseTemplateDetailPage() {
             </CardContent>
           </Card>
 
-          <Card className="mt-4">
+          {/* Per Kategori Card - New Mode */}
+          {Object.keys(newModeCategoryTotals).length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Per Kategori</CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <div className="space-y-2">
+                  {Object.entries(newModeCategoryTotals).map(([category, catTotal]) => (
+                    <div key={category} className="flex items-center justify-between text-sm">
+                      <span className="text-primary">{category}</span>
+                      <span className="font-bold">{formatIDR(catTotal)}</span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+          </div>
+
+          <Card>
             <CardHeader>
               <CardTitle>Daftar Item</CardTitle>
             </CardHeader>

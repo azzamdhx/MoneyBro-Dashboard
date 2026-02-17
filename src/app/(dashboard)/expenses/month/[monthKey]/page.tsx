@@ -5,9 +5,9 @@ import { useQuery, useMutation } from "@apollo/client/react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { formatIDR } from "@/lib/utils/currency";
-import { formatMonthYear } from "@/lib/utils/format";
+import { formatMonthYear, toRFC3339 } from "@/lib/utils/format";
 import { GET_EXPENSES } from "@/lib/graphql/queries";
-import { DELETE_EXPENSE } from "@/lib/graphql/mutations";
+import { CREATE_EXPENSE, UPDATE_EXPENSE, DELETE_EXPENSE } from "@/lib/graphql/mutations";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
 import { toast } from "sonner";
 import { ArrowLeft, Trash2 } from "lucide-react";
@@ -45,6 +45,8 @@ export default function MonthlyExpensesPage() {
 
   const { data, loading, refetch } = useQuery<ExpensesData>(GET_EXPENSES);
 
+  const [createExpense] = useMutation(CREATE_EXPENSE);
+  const [updateExpense] = useMutation(UPDATE_EXPENSE);
   const [deleteExpense, { loading: deleting }] = useMutation(DELETE_EXPENSE);
 
   const allExpenses: Expense[] = data?.expenses.items || [];
@@ -152,9 +154,18 @@ export default function MonthlyExpensesPage() {
             </div>
           ) : (
             <EditableExpenseTable
-              expenses={expenses}
-              monthKey={monthKey}
-              onRefetch={refetch}
+              items={expenses}
+              onCreateItem={async (input) => {
+                await createExpense({ variables: { input: { ...input, expenseDate: toRFC3339(monthKey) } } });
+                refetch();
+              }}
+              onUpdateItem={async (id, input) => {
+                await updateExpense({ variables: { id, input } });
+              }}
+              onDeleteItem={async (id) => {
+                await deleteExpense({ variables: { id } });
+              }}
+              onSaveComplete={() => refetch()}
             />
           )}
         </CardContent>
