@@ -191,10 +191,11 @@ export default function DashboardPage() {
 
   const totalOutflow = (balanceSummary?.totalExpense || 0) +
     (balanceSummary?.totalInstallmentPayment || 0) +
-    (balanceSummary?.totalDebtPayment || 0);
+    (balanceSummary?.totalDebtPayment || 0) +
+    (dashboard?.totalSavingsContributionThisMonth || 0);
 
   const totalIncome = balanceSummary?.totalIncome || 0;
-  const netBalance = balanceSummary?.netBalance || 0;
+  const netBalance = totalIncome - totalOutflow;
   const balancePercentage = totalIncome > 0 ? Math.round((netBalance / totalIncome) * 100) : 0;
 
   const cashFlowData = [

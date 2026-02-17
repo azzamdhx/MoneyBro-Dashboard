@@ -191,10 +191,11 @@ export default function ForecastPage() {
   const projectedInstallment = payments?.totalInstallment || 0;
   const projectedDebt = payments?.totalDebt || 0;
   const projectedExpense = expenseSummary?.total || 0;
+  const projectedSavings = summary?.totalSavingsContribution || 0;
 
-  const hasData = (incomeSummary?.total || 0) > 0 || projectedExpense > 0 || projectedInstallment > 0 || projectedDebt > 0;
+  const hasData = (incomeSummary?.total || 0) > 0 || projectedExpense > 0 || projectedInstallment > 0 || projectedDebt > 0 || projectedSavings > 0;
 
-  const totalOutflow = projectedExpense + projectedInstallment + projectedDebt;
+  const totalOutflow = projectedExpense + projectedInstallment + projectedDebt + projectedSavings;
   const totalIncome = incomeSummary?.total || 0;
   const netBalance = totalIncome - totalOutflow;
   const balancePercentage = totalIncome > 0 ? Math.round((netBalance / totalIncome) * 100) : 0;

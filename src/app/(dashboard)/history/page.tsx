@@ -187,7 +187,8 @@ export default function HistoryPage() {
 
   const totalOutflow = (expenseSummary?.total || 0) +
     (payments?.totalInstallment || 0) +
-    (payments?.totalDebt || 0);
+    (payments?.totalDebt || 0) +
+    (summary?.totalSavingsContribution || 0);
 
   const totalIncome = incomeSummary?.total || 0;
   const netBalance = totalIncome - totalOutflow;
