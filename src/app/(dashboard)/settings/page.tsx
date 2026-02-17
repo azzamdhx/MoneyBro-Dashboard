@@ -1,12 +1,12 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@apollo/client/react";
 import Cookies from "js-cookie";
 import { GET_ME } from "@/lib/graphql/queries";
 import {
-  User,
   Bell,
   Mail,
   Tags,
@@ -22,6 +22,7 @@ interface UserData {
     id: string;
     email: string;
     name: string;
+    profileImage: string;
     createdAt: string;
   };
 }
@@ -148,9 +149,14 @@ export default function SettingsPage() {
         <div className="space-y-4">
           <SettingSection title="Profil">
             <Link href="/profile" className="flex flex-col items-center gap-3 p-6 transition-colors hover:bg-muted/50">
-              <div className="h-16 w-16 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
-                <User className="h-8 w-8 text-primary" />
-              </div>
+              <Image
+                src={`/profile-pics/${user?.profileImage || "BRO-1-B"}.webp`}
+                alt="Profile"
+                width={80}
+                height={80}
+                unoptimized
+                className="h-20 w-20 rounded-full object-cover border border-border"
+              />
               <div className="text-center space-y-1">
                 <h3 className="text-lg font-semibold">{user?.name || "User"}</h3>
                 <p className="text-sm text-muted-foreground">{user?.email}</p>

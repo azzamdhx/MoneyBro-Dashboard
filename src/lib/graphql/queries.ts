@@ -61,6 +61,7 @@ export const GET_ME = gql`
       id
       email
       name
+      profileImage
       twoFAEnabled
       notifyInstallment
       notifyDebt

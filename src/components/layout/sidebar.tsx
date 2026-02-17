@@ -11,7 +11,6 @@ import {
   Wallet,
   TrendingUp,
   Bell,
-  Settings,
   LogOut,
   PanelRightOpen,
   PanelRightClose,
@@ -21,10 +20,12 @@ import {
   FileText,
   ChevronDown,
 } from "lucide-react";
+import { useQuery } from "@apollo/client/react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import Cookies from "js-cookie";
 import Image from "next/image";
+import { GET_ME } from "@/lib/graphql/queries";
 
 interface NavChild {
   title: string;
@@ -117,11 +118,19 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
+interface UserData {
+  me: {
+    profileImage: string;
+  };
+}
+
 export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const { collapsed, setCollapsed } = useSidebar();
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
+  const { data } = useQuery<UserData>(GET_ME);
+  const profileImage = data?.me?.profileImage || "BRO-1-B";
 
   const toggleExpand = (href: string) => {
     setExpandedItems(prev => 
@@ -277,12 +286,24 @@ export function Sidebar() {
             className={cn(
               "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
               collapsed && "justify-center px-0",
-              pathname === "/settings"
+              pathname === "/settings" || pathname === "/profile"
                 ? "bg-secondary text-primary"
                 : "text-muted-foreground hover:bg-secondary hover:text-primary"
             )}
           >
-            <Settings className="h-5 w-5 flex-shrink-0" />
+            <Image
+              src={`/profile-pics/${profileImage}.webp`}
+              alt="Profile"
+              width={20}
+              height={20}
+              unoptimized
+              className={cn(
+                "h-5 w-5 rounded-full object-cover flex-shrink-0 ring-1",
+                pathname === "/settings" || pathname === "/profile"
+                  ? "ring-primary"
+                  : "ring-muted-foreground/30"
+              )}
+            />
             {!collapsed && "Settings"}
           </Link>
           <Button

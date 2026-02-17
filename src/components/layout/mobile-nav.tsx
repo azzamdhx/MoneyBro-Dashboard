@@ -1,16 +1,18 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useQuery } from "@apollo/client/react";
 import { cn } from "@/lib/utils";
+import { GET_ME } from "@/lib/graphql/queries";
 import {
   House,
   TrendingUp,
   Receipt,
   CreditCard,
   Wallet,
-  User,
   History,
   Bell,
   CalendarClock,
@@ -93,9 +95,17 @@ const allowedRoutes = [
   "/notifications",
 ];
 
+interface UserData {
+  me: {
+    profileImage: string;
+  };
+}
+
 export function MobileNav() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+  const { data } = useQuery<UserData>(GET_ME);
+  const profileImage = data?.me?.profileImage || "BRO-1-B";
 
   // Check if current path is in allowed routes (exact match only)
   const shouldShowNav = allowedRoutes.includes(pathname);
@@ -114,28 +124,26 @@ export function MobileNav() {
         <Link
           href="/dashboard"
           className={cn(
-            "flex flex-col items-center gap-1 px-3 py-2 text-xs transition-colors",
+            "flex items-center justify-center px-3 py-2 transition-colors",
             pathname === "/dashboard" || pathname.startsWith("/dashboard/")
               ? "text-primary"
               : "text-muted-foreground"
           )}
         >
-          <House className="h-5 w-5" />
-          <span>Home</span>
+          <House className={cn("h-6 w-6", (pathname === "/dashboard" || pathname.startsWith("/dashboard/")) && "fill-current")} />
         </Link>
 
         {/* History */}
         <Link
           href="/history"
           className={cn(
-            "flex flex-col items-center gap-1 px-3 py-2 text-xs transition-colors",
+            "flex items-center justify-center px-3 py-2 transition-colors",
             pathname === "/history" || pathname.startsWith("/history/")
               ? "text-primary"
               : "text-muted-foreground"
           )}
         >
-          <History className="h-5 w-5" />
-          <span>History</span>
+          <History className="h-6 w-6" />
         </Link>
 
         {/* Menu Popover - Floating FAB */}
@@ -218,28 +226,38 @@ export function MobileNav() {
         <Link
           href="/notifications"
           className={cn(
-            "flex flex-col items-center gap-1 px-3 py-2 text-xs transition-colors",
+            "flex items-center justify-center px-3 py-2 transition-colors",
             pathname === "/notifications" || pathname.startsWith("/notifications/")
               ? "text-primary"
               : "text-muted-foreground"
           )}
         >
-          <Bell className="h-5 w-5" />
-          <span>Notifikasi</span>
+          <Bell className={cn("h-6 w-6", (pathname === "/notifications" || pathname.startsWith("/notifications/")) && "fill-current")} />
         </Link>
 
         {/* Profil */}
         <Link
           href="/settings"
           className={cn(
-            "flex flex-col items-center gap-1 px-3 py-2 text-xs transition-colors",
+            "flex items-center justify-center px-3 py-2 transition-colors",
             pathname === "/settings" || pathname.startsWith("/settings/") || pathname === "/profile" || pathname.startsWith("/profile/")
               ? "text-primary"
               : "text-muted-foreground"
           )}
         >
-          <User className="h-5 w-5" />
-          <span>Profil</span>
+          <Image
+            src={`/profile-pics/${profileImage}.webp`}
+            alt="Profile"
+            width={20}
+            height={20}
+            unoptimized
+            className={cn(
+              "h-6 w-6 rounded-full object-cover ring-1",
+              pathname === "/settings" || pathname.startsWith("/settings/") || pathname === "/profile" || pathname.startsWith("/profile/")
+                ? "ring-primary ring-2"
+                : "ring-muted-foreground/30"
+            )}
+          />
         </Link>
       </div>
     </nav>

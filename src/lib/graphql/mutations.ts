@@ -312,6 +312,7 @@ export const UPDATE_PROFILE = gql`
       id
       email
       name
+      profileImage
       createdAt
       updatedAt
     }
@@ -346,6 +347,7 @@ export const VERIFY_2FA = gql`
         id
         email
         name
+        profileImage
         twoFAEnabled
       }
     }

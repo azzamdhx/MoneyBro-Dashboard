@@ -1,13 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useQuery, useMutation, useLazyQuery } from "@apollo/client/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { GET_ME, CHECK_EMAIL_AVAILABILITY } from "@/lib/graphql/queries";
 import { UPDATE_PROFILE, CHANGE_PASSWORD, ENABLE_2FA, DISABLE_2FA, DELETE_ACCOUNT } from "@/lib/graphql/mutations";
-import { ChevronLeft, User, Loader2, Lock, Shield, Pencil, X, Check, Eye, EyeOff, ChevronRight } from "lucide-react";
+import { ChevronLeft, Loader2, Lock, Shield, Pencil, X, Check, Eye, EyeOff, ChevronRight } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDateID } from "@/lib/utils/format";
 import { Badge } from "@/components/ui/badge";
@@ -21,11 +22,23 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 
+const PROFILE_IMAGES = [
+  "BRO-1-A", "BRO-1-B", "BRO-1-C",
+  "BRO-2-A", "BRO-2-B", "BRO-2-C",
+  "BRO-3-A", "BRO-3-B", "BRO-3-C",
+  "BRO-4-A", "BRO-4-B", "BRO-4-C",
+  "BRO-5-A", "BRO-5-B", "BRO-5-C",
+  "BRO-6-A", "BRO-6-B", "BRO-6-C",
+  "BRO-7-A", "BRO-7-B", "BRO-7-C",
+  "BRO-8-A", "BRO-8-B", "BRO-8-C",
+];
+
 interface UserData {
   me: {
     id: string;
     email: string;
     name: string;
+    profileImage: string;
     twoFAEnabled: boolean;
     createdAt: string;
     updatedAt?: string;
@@ -53,6 +66,12 @@ export default function ProfilePage() {
   const [editEmail, setEditEmail] = useState("");
   const [emailError, setEmailError] = useState<string | null>(null);
   const [isCheckingEmail, setIsCheckingEmail] = useState(false);
+
+  // Avatar picker state
+  const [showAvatarPicker, setShowAvatarPicker] = useState(false);
+  const [savingAvatar, setSavingAvatar] = useState(false);
+  const [avatarPage, setAvatarPage] = useState(0);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
   
   // Password change state
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
@@ -272,6 +291,25 @@ export default function ProfilePage() {
     setShowDeletePassword(false);
   };
 
+  const handleSelectAvatar = async (image: string) => {
+    if (image === user?.profileImage) {
+      setShowAvatarPicker(false);
+      return;
+    }
+    setSavingAvatar(true);
+    try {
+      await updateProfile({
+        variables: { input: { profileImage: image } },
+      });
+      toast.success("Foto profil berhasil diperbarui");
+      setShowAvatarPicker(false);
+    } catch {
+      toast.error("Gagal memperbarui foto profil");
+    } finally {
+      setSavingAvatar(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="space-y-8">
@@ -357,9 +395,23 @@ export default function ProfilePage() {
             {isEditing ? (
               <div className="p-6 space-y-4">
                 <div className="flex flex-col items-center gap-3 pb-4">
-                  <div className="h-16 w-16 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
-                    <User className="h-8 w-8 text-primary" />
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowAvatarPicker(true)}
+                    className="relative group"
+                  >
+                    <Image
+                      src={`/profile-pics/${user?.profileImage || "BRO-1-B"}.webp`}
+                      alt="Profile"
+                      width={80}
+                      height={80}
+                      unoptimized
+                      className="h-20 w-20 rounded-full object-cover border border-border"
+                    />
+                    <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Pencil className="h-4 w-4 text-white" />
+                    </div>
+                  </button>
                 </div>
                 <div className="space-y-2">
                   <Label className="text-sm text-muted-foreground">Nama Lengkap</Label>
@@ -404,9 +456,23 @@ export default function ProfilePage() {
               </div>
             ) : (
               <div className="flex flex-col items-center gap-3 p-6">
-                <div className="h-16 w-16 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
-                  <User className="h-8 w-8 text-primary" />
-                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowAvatarPicker(true)}
+                  className="relative group"
+                >
+                  <Image
+                    src={`/profile-pics/${user?.profileImage || "BRO-1-B"}.webp`}
+                    alt="Profile"
+                    width={80}
+                    height={80}
+                    unoptimized
+                    className="h-20 w-20 rounded-full object-cover border border-border"
+                  />
+                  <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Pencil className="h-4 w-4 text-white" />
+                  </div>
+                </button>
                 <div className="text-center space-y-1">
                   <h3 className="text-lg font-semibold">{user?.name || "User"}</h3>
                   <p className="text-sm text-muted-foreground">{user?.email}</p>
@@ -479,6 +545,85 @@ export default function ProfilePage() {
           </ProfileSection>
         </div>
       </div>
+
+      {/* Avatar Picker Dialog */}
+      <Dialog open={showAvatarPicker} onOpenChange={(open) => { setShowAvatarPicker(open); if (!open) setAvatarPage(0); }}>
+        <DialogContent className="max-w-xs sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Pilih Foto Profil</DialogTitle>
+            <DialogDescription>
+              Pilih salah satu avatar di bawah ini.
+            </DialogDescription>
+          </DialogHeader>
+          <div
+            className="relative group/avatar py-4"
+            onTouchStart={(e) => setTouchStart(e.touches[0].clientX)}
+            onTouchEnd={(e) => {
+              if (touchStart === null) return;
+              const diff = touchStart - e.changedTouches[0].clientX;
+              if (diff > 50 && avatarPage < 1) setAvatarPage(1);
+              if (diff < -50 && avatarPage > 0) setAvatarPage(0);
+              setTouchStart(null);
+            }}
+          >
+            {avatarPage > 0 && (
+              <button
+                onClick={() => setAvatarPage(0)}
+                className="hidden sm:flex absolute left-0 top-1/2 -translate-y-1/2 z-10 h-8 w-8 items-center justify-center rounded-full bg-background/80 border shadow-sm opacity-0 group-hover/avatar:opacity-100 transition-opacity"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+            )}
+            {avatarPage < 1 && (
+              <button
+                onClick={() => setAvatarPage(1)}
+                className="hidden sm:flex absolute right-0 top-1/2 -translate-y-1/2 z-10 h-8 w-8 items-center justify-center rounded-full bg-background/80 border shadow-sm opacity-0 group-hover/avatar:opacity-100 transition-opacity"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            )}
+            <div className="grid grid-cols-3 gap-3">
+              {PROFILE_IMAGES.slice(avatarPage * 12, avatarPage * 12 + 12).map((image) => (
+                <button
+                  key={image}
+                  onClick={() => handleSelectAvatar(image)}
+                  disabled={savingAvatar}
+                  className={`relative rounded-full overflow-hidden aspect-square border-2 transition-all hover:scale-105 ${
+                    user?.profileImage === image
+                      ? "border-primary ring-2 ring-primary/20"
+                      : "border-transparent hover:border-muted-foreground/30"
+                  } ${savingAvatar ? "opacity-50" : ""}`}
+                >
+                  <Image
+                    src={`/profile-pics/${image}.webp`}
+                    alt={image}
+                    width={80}
+                    height={80}
+                    unoptimized
+                    className="w-full h-full object-cover"
+                  />
+                  {user?.profileImage === image && (
+                    <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
+                      <Check className="h-5 w-5 text-primary" />
+                    </div>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="flex items-center justify-center gap-2">
+            {[0, 1].map((page) => (
+              <button
+                key={page}
+                onClick={() => setAvatarPage(page)}
+                className={`h-2 rounded-full transition-all ${
+                  avatarPage === page ? "w-6 bg-primary" : "w-2 bg-muted-foreground/30"
+                }`}
+              />
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Password Change Dialog */}
       <Dialog open={showPasswordDialog} onOpenChange={handleClosePasswordDialog}>
