@@ -377,11 +377,19 @@ export const EditableIncomeTable = forwardRef<EditableIncomeTableRef, EditableIn
     const isPending = pendingUpdates.has(item.id) || pendingCreates.has(item.id);
 
     if (isEditing) {
+      const isNumeric = field === "amount";
       return (
         <Input
           ref={inputRef}
-          value={editValue}
-          onChange={(e) => setEditValue(e.target.value)}
+          value={isNumeric ? formatNumberID(parseInt(editValue.replace(/\D/g, "")) || 0) : editValue}
+          onChange={(e) => {
+            if (isNumeric) {
+              const raw = e.target.value.replace(/\D/g, "");
+              setEditValue(raw);
+            } else {
+              setEditValue(e.target.value);
+            }
+          }}
           onBlur={() => saveEdit(item)}
           onKeyDown={(e) => handleKeyDown(e, item)}
           className="h-8 w-full min-w-[80px]"
