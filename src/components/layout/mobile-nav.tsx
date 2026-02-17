@@ -19,6 +19,7 @@ import {
   RefreshCw,
   FileText,
   X,
+  PiggyBank,
 } from "lucide-react";
 import {
   Popover,
@@ -75,6 +76,11 @@ const menuItems: MenuItem[] = [
     icon: Wallet,
   },
   {
+    title: "Tabungan",
+    href: "/savings",
+    icon: PiggyBank,
+  },
+  {
     title: "Forecast",
     href: "/forecast",
     icon: CalendarClock,
@@ -92,6 +98,7 @@ const allowedRoutes = [
   "/settings",
   "/history",
   "/forecast",
+  "/savings",
   "/notifications",
 ];
 

@@ -19,6 +19,7 @@ import {
   RefreshCw,
   FileText,
   ChevronDown,
+  PiggyBank,
 } from "lucide-react";
 import { useQuery } from "@apollo/client/react";
 import { Button } from "@/components/ui/button";
@@ -94,6 +95,11 @@ const navItems: NavItem[] = [
     title: "Cicilan",
     href: "/installments",
     icon: CreditCard,
+  },
+  {
+    title: "Tabungan",
+    href: "/savings",
+    icon: PiggyBank,
   },
 ];
 

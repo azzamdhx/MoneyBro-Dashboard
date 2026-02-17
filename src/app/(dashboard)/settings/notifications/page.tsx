@@ -20,6 +20,7 @@ const UPDATE_NOTIFICATION_SETTINGS = gql`
       id
       notifyInstallment
       notifyDebt
+      notifySavingsGoal
       notifyDaysBefore
     }
   }
@@ -30,6 +31,7 @@ interface UserData {
     id: string;
     notifyInstallment: boolean;
     notifyDebt: boolean;
+    notifySavingsGoal: boolean;
     notifyDaysBefore: number;
   };
 }
@@ -192,6 +194,31 @@ export default function NotificationSettingsPage() {
               id="notify-debt"
               checked={user?.notifyDebt ?? true}
               onCheckedChange={handleToggleDebt}
+              disabled={updating}
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label htmlFor="notify-savings" className="text-base font-medium">
+                Pengingat Tabungan
+              </Label>
+              <p className="text-sm text-muted-foreground hidden sm:block">
+                Terima email sebelum deadline target tabungan
+              </p>
+            </div>
+            <Switch
+              id="notify-savings"
+              checked={user?.notifySavingsGoal ?? true}
+              onCheckedChange={async (checked) => {
+                try {
+                  await updateSettings({ variables: { input: { notifySavingsGoal: checked } } });
+                  refetch();
+                  toast.success("Pengaturan notifikasi diperbarui");
+                } catch {
+                  toast.error("Gagal memperbarui pengaturan");
+                }
+              }}
               disabled={updating}
             />
           </div>

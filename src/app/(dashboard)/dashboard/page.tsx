@@ -12,6 +12,7 @@ import {
   Receipt,
   CreditCard,
   BadgeDollarSign,
+  PiggyBank,
 } from "lucide-react";
 import { ValueChip } from "@/components/ui/value-chip";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -70,6 +71,17 @@ interface DashboardData {
       category: { id: string; name: string };
       totalAmount: number;
       expenseCount: number;
+    }[];
+    totalSavingsGoal: number;
+    activeSavingsGoals: {
+      id: string;
+      name: string;
+      targetAmount: number;
+      currentAmount: number;
+      targetDate: string;
+      progress: number;
+      remainingAmount: number;
+      monthlyTarget: number;
     }[];
     recentExpenses: {
       id: string;
@@ -333,6 +345,20 @@ export default function DashboardPage() {
             <CardContent>
               <div className="text-2xl font-bold text-debt">
                 {formatIDR(balanceSummary?.totalDebtPayment || 0)}
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
+
+        <Link href="/savings" className="min-w-[200px] flex-shrink-0 md:min-w-0 md:flex-shrink">
+          <Card className="h-full transition-colors hover:bg-muted/50">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Tabungan</CardTitle>
+              <PiggyBank className="h-4 w-4 text-savings" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-savings">
+                {formatIDR(dashboard?.totalSavingsGoal || 0)}
               </div>
             </CardContent>
           </Card>

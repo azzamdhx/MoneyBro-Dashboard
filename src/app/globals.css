@@ -25,6 +25,7 @@
   --color-expense: var(--expense);
   --color-debt: var(--debt);
   --color-installment: var(--installment);
+  --color-savings: var(--savings);
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
@@ -63,6 +64,7 @@
   --expense: #f97316;
   --debt: #ec4899;
   --installment: #6366f1;
+  --savings: #14b8a6;
   --card: #0A0A0A;
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
@@ -101,6 +103,7 @@
   --expense: #fb923c;
   --debt: #f472b6;
   --installment: #818cf8;
+  --savings: #2dd4bf;
   --card: #0A0A0A;
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.205 0 0);
@@ -165,6 +168,12 @@
   }
   .bg-installment {
     background-color: var(--installment);
+  }
+  .text-savings {
+    color: var(--savings);
+  }
+  .bg-savings {
+    background-color: var(--savings);
   }
 }
 

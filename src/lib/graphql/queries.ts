@@ -42,6 +42,18 @@ export const GET_DASHBOARD = gql`
         totalAmount
         expenseCount
       }
+      activeSavingsGoals {
+        id
+        name
+        targetAmount
+        currentAmount
+        targetDate
+        icon
+        status
+        progress
+        remainingAmount
+        monthlyTarget
+      }
       recentExpenses {
         id
         itemName
@@ -65,6 +77,7 @@ export const GET_ME = gql`
       twoFAEnabled
       notifyInstallment
       notifyDebt
+      notifySavingsGoal
       notifyDaysBefore
       createdAt
       updatedAt
@@ -342,6 +355,32 @@ export const GET_UPCOMING_PAYMENTS = gql`
       totalInstallment
       totalDebt
       totalPayments
+    }
+  }
+`;
+
+export const GET_SAVINGS_GOALS = gql`
+  query GetSavingsGoals($status: SavingsGoalStatus) {
+    savingsGoals(status: $status) {
+      id
+      name
+      targetAmount
+      currentAmount
+      targetDate
+      icon
+      status
+      notes
+      progress
+      remainingAmount
+      monthlyTarget
+      createdAt
+      contributions {
+        id
+        amount
+        contributionDate
+        notes
+        createdAt
+      }
     }
   }
 `;

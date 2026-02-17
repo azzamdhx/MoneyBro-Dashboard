@@ -617,17 +617,6 @@ export default function DebtDetailPage() {
                   placeholder="Catatan tambahan"
                 />
               </div>
-
-              {isNew && (
-                <div className="p-4 bg-input/30 rounded-lg">
-                  <p className="text-sm text-muted-foreground">
-                    {formData.paymentType === "INSTALLMENT" ? "Cicilan per bulan" : "Total bayar"}
-                  </p>
-                  <p className="text-2xl font-bold text-primary">
-                    {formatIDR(monthlyPayment)}
-                  </p>
-                </div>
-              )}
             </CardContent>
           </Card>
 

@@ -473,6 +473,72 @@ export const DELETE_EXPENSE_TEMPLATE_ITEM = gql`
   }
 `;
 
+export const CREATE_SAVINGS_GOAL = gql`
+  mutation CreateSavingsGoal($input: CreateSavingsGoalInput!) {
+    createSavingsGoal(input: $input) {
+      id
+      name
+      targetAmount
+      currentAmount
+      targetDate
+      icon
+      status
+      progress
+      remainingAmount
+      monthlyTarget
+    }
+  }
+`;
+
+export const UPDATE_SAVINGS_GOAL = gql`
+  mutation UpdateSavingsGoal($id: UUID!, $input: UpdateSavingsGoalInput!) {
+    updateSavingsGoal(id: $id, input: $input) {
+      id
+      name
+      targetAmount
+      currentAmount
+      targetDate
+      icon
+      status
+      progress
+      remainingAmount
+      monthlyTarget
+    }
+  }
+`;
+
+export const DELETE_SAVINGS_GOAL = gql`
+  mutation DeleteSavingsGoal($id: UUID!) {
+    deleteSavingsGoal(id: $id)
+  }
+`;
+
+export const ADD_SAVINGS_CONTRIBUTION = gql`
+  mutation AddSavingsContribution($input: AddSavingsContributionInput!) {
+    addSavingsContribution(input: $input) {
+      id
+      amount
+      contributionDate
+      notes
+    }
+  }
+`;
+
+export const WITHDRAW_SAVINGS_CONTRIBUTION = gql`
+  mutation WithdrawSavingsContribution($id: UUID!) {
+    withdrawSavingsContribution(id: $id)
+  }
+`;
+
+export const MARK_SAVINGS_GOAL_COMPLETE = gql`
+  mutation MarkSavingsGoalComplete($id: UUID!) {
+    markSavingsGoalComplete(id: $id) {
+      id
+      status
+    }
+  }
+`;
+
 export const CREATE_EXPENSES_FROM_TEMPLATE_GROUP = gql`
   mutation CreateExpensesFromTemplateGroup($groupId: UUID!, $expenseDate: Date) {
     createExpensesFromTemplateGroup(groupId: $groupId, expenseDate: $expenseDate) {

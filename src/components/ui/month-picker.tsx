@@ -20,14 +20,19 @@ interface MonthPickerProps {
   value: string; // Format: YYYY-MM
   onChange: (value: string) => void;
   disabledMonths?: Set<string>;
+  disablePast?: boolean;
   className?: string;
 }
 
-export function MonthPicker({ value, onChange, disabledMonths = new Set(), className }: MonthPickerProps) {
+export function MonthPicker({ value, onChange, disabledMonths = new Set(), disablePast = false, className }: MonthPickerProps) {
   const [open, setOpen] = React.useState(false);
   const [viewYear, setViewYear] = React.useState(() => {
     return value ? parseInt(value.slice(0, 4)) : new Date().getFullYear();
   });
+
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth();
 
   const selectedMonth = value ? parseInt(value.slice(5, 7)) - 1 : -1;
   const selectedYear = value ? parseInt(value.slice(0, 4)) : -1;
@@ -65,6 +70,7 @@ export function MonthPicker({ value, onChange, disabledMonths = new Set(), class
               size="icon"
               className="h-7 w-7"
               onClick={() => setViewYear(viewYear - 1)}
+              disabled={disablePast && viewYear <= currentYear}
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
@@ -83,7 +89,8 @@ export function MonthPicker({ value, onChange, disabledMonths = new Set(), class
           <div className="grid grid-cols-4 gap-2">
             {MONTHS.map((month, index) => {
               const monthValue = `${viewYear}-${String(index + 1).padStart(2, "0")}`;
-              const isDisabled = disabledMonths.has(monthValue);
+              const isPast = disablePast && (viewYear < currentYear || (viewYear === currentYear && index < currentMonth));
+              const isDisabled = isPast || disabledMonths.has(monthValue);
               const isSelected = selectedYear === viewYear && selectedMonth === index;
 
               return (

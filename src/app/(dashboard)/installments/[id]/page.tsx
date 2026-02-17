@@ -553,15 +553,6 @@ export default function InstallmentDetailPage() {
                   placeholder="Catatan tambahan"
                 />
               </div>
-
-              {isNew && (
-                <div className="p-4 bg-input/30 rounded-lg">
-                  <p className="text-sm text-muted-foreground">Cicilan per bulan</p>
-                  <p className="text-2xl font-bold text-primary">
-                    {formatIDR(monthlyPayment)}
-                  </p>
-                </div>
-              )}
             </CardContent>
           </Card>
 
