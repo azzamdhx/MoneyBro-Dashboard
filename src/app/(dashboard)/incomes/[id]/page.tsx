@@ -223,7 +223,7 @@ export default function CreateIncomePage() {
               onDeleteItem={async (id) => {
                 await deleteIncome({ variables: { id } });
               }}
-              onSaveComplete={() => router.push(`/incomes/month/${incomeDate}`)}
+              onSaveComplete={() => router.replace(`/incomes/month/${incomeDate}`)}
             />
           )}
         </CardContent>

@@ -18,7 +18,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
             collapsed ? "md:pl-[72px]" : "md:pl-64"
           )}
         >
-          <div className="p-4 md:p-8 pb-20 md:pb-8">{children}</div>
+          <div className="p-4 md:p-8 pb-42 md:pb-8">{children}</div>
         </main>
         <MobileNav />
       </div>

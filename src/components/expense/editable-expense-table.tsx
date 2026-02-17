@@ -91,6 +91,7 @@ export const EditableExpenseTable = forwardRef<EditableExpenseTableRef, Editable
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
   const [newCategory, setNewCategory] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
+  const blurTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Buffered create/edit/delete state
   const [pendingCreates, setPendingCreates] = useState<Map<string, { itemName: string; categoryId: string; unitPrice: number; quantity: number }>>(new Map());
@@ -156,28 +157,25 @@ export const EditableExpenseTable = forwardRef<EditableExpenseTableRef, Editable
     },
   });
 
-  // Buffer new row locally when all required fields are filled
-  useEffect(() => {
-    if (!isAddingNew) return;
+  const commitNewRow = (): boolean => {
     const unitPrice = parseInt(newRow.unitPrice.replace(/\D/g, "")) || 0;
     const quantity = parseInt(newRow.quantity) || 1;
-
-    if (newRow.itemName.trim() && newRow.categoryId && unitPrice > 0) {
-      const tempId = `new-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-      setPendingCreates(prev => {
-        const next = new Map(prev);
-        next.set(tempId, {
-          itemName: newRow.itemName.trim(),
-          categoryId: newRow.categoryId,
-          unitPrice,
-          quantity,
-        });
-        return next;
+    if (!newRow.itemName.trim() || !newRow.categoryId || unitPrice <= 0) return false;
+    const tempId = `new-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+    setPendingCreates(prev => {
+      const next = new Map(prev);
+      next.set(tempId, {
+        itemName: newRow.itemName.trim(),
+        categoryId: newRow.categoryId,
+        unitPrice,
+        quantity,
       });
-      setNewRow(initialNewRow);
-      setIsAddingNew(false);
-    }
-  }, [newRow, isAddingNew]);
+      return next;
+    });
+    setNewRow(initialNewRow);
+    setIsAddingNew(false);
+    return true;
+  };
 
   useEffect(() => {
     if (editingCell && inputRef.current) {
@@ -318,6 +316,13 @@ export const EditableExpenseTable = forwardRef<EditableExpenseTableRef, Editable
   };
 
   const handleSave = async () => {
+    if (isAddingNew) {
+      const committed = commitNewRow();
+      if (!committed) {
+        toast.error("Lengkapi item sebelumnya terlebih dahulu");
+        return;
+      }
+    }
     setSaving(true);
     try {
       await Promise.all(
@@ -345,6 +350,8 @@ export const EditableExpenseTable = forwardRef<EditableExpenseTableRef, Editable
     setPendingCreates(new Map());
     setPendingUpdates(new Map());
     setPendingDeletes(new Set());
+    setNewRow(initialNewRow);
+    setIsAddingNew(false);
   };
 
   const renderEditableCell = (item: Item, field: string, displayValue: string) => {
@@ -356,6 +363,7 @@ export const EditableExpenseTable = forwardRef<EditableExpenseTableRef, Editable
       return (
         <Input
           ref={inputRef}
+          autoFocus
           value={isNumeric ? formatNumberID(parseInt(editValue.replace(/\D/g, "")) || 0) : editValue}
           onChange={(e) => {
             if (isNumeric) {
@@ -365,7 +373,13 @@ export const EditableExpenseTable = forwardRef<EditableExpenseTableRef, Editable
               setEditValue(e.target.value);
             }
           }}
-          onBlur={() => saveEdit(item)}
+          onBlur={() => {
+            if (blurTimeoutRef.current) clearTimeout(blurTimeoutRef.current);
+            blurTimeoutRef.current = setTimeout(() => {
+              if (document.activeElement === inputRef.current) return;
+              saveEdit(item);
+            }, 0);
+          }}
           onKeyDown={(e) => handleKeyDown(e, item)}
           className="h-8 w-full min-w-[80px]"
         />
@@ -502,7 +516,7 @@ export const EditableExpenseTable = forwardRef<EditableExpenseTableRef, Editable
                   className="h-8 text-right w-16"
                 />
               </TableCell>
-              <TableCell className="text-right font-medium text-muted-foreground">
+              <TableCell className="text-right font-medium text-expense">
                 {formatIDR((parseInt(newRow.unitPrice) || 0) * (parseInt(newRow.quantity) || 1))}
               </TableCell>
               <TableCell>
@@ -515,7 +529,7 @@ export const EditableExpenseTable = forwardRef<EditableExpenseTableRef, Editable
                     setNewRow(initialNewRow);
                   }}
                 >
-                  <Trash2 className="h-4 w-4 text-muted-foreground" />
+                  <Trash2 className="h-4 w-4 text-destructive" />
                 </Button>
               </TableCell>
             </TableRow>
@@ -526,8 +540,11 @@ export const EditableExpenseTable = forwardRef<EditableExpenseTableRef, Editable
             className="cursor-pointer hover:bg-muted/30"
             onClick={() => {
               if (isAddingNew) {
-                toast.error("Lengkapi item sebelumnya terlebih dahulu");
-                return;
+                const committed = commitNewRow();
+                if (!committed) {
+                  toast.error("Lengkapi item sebelumnya terlebih dahulu");
+                  return;
+                }
               }
               setIsAddingNew(true);
             }}
@@ -552,7 +569,7 @@ export const EditableExpenseTable = forwardRef<EditableExpenseTableRef, Editable
         </div>
         <div className="flex gap-2">
           {hasPendingChanges && (
-            <Button variant="outline" onClick={handleDiscardChanges} disabled={saving}>
+            <Button variant="outline" onClick={handleDiscardChanges} disabled={saving} className="hidden sm:block">
               Batal
             </Button>
           )}

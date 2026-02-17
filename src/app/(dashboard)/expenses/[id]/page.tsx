@@ -223,7 +223,7 @@ export default function CreateExpensePage() {
               onDeleteItem={async (id) => {
                 await deleteExpense({ variables: { id } });
               }}
-              onSaveComplete={() => router.push(`/expenses/month/${expenseDate}`)}
+              onSaveComplete={() => router.replace(`/expenses/month/${expenseDate}`)}
             />
           )}
         </CardContent>

@@ -8,20 +8,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { GET_CATEGORIES } from "@/lib/graphql/queries";
 import {
   CREATE_EXPENSE_TEMPLATE_GROUP,
@@ -30,20 +16,10 @@ import {
   ADD_EXPENSE_TEMPLATE_ITEM,
   UPDATE_EXPENSE_TEMPLATE_ITEM,
   DELETE_EXPENSE_TEMPLATE_ITEM,
-  CREATE_CATEGORY,
 } from "@/lib/graphql/mutations";
 import { toast } from "sonner";
-import { Loader2, ArrowLeft, FolderPlus, Plus, Trash2 } from "lucide-react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Loader2, ArrowLeft, Trash2 } from "lucide-react";
 import { formatIDR } from "@/lib/utils/currency";
-import { formatNumberID } from "@/lib/utils/format";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
 import { EditableExpenseTable } from "@/components/expense/editable-expense-table";
@@ -102,17 +78,14 @@ interface ExpenseTemplateGroupData {
   expenseTemplateGroup: ExpenseTemplateGroup;
 }
 
-interface NewItemForm {
+interface DraftExpenseItem {
   id: string;
   categoryId: string;
   itemName: string;
   unitPrice: number;
   quantity: number;
+  category: Category;
 }
-
-const parseNumber = (value: string): number => {
-  return parseInt(value.replace(/\D/g, "")) || 0;
-};
 
 export default function ExpenseTemplateDetailPage() {
   const router = useRouter();
@@ -120,15 +93,13 @@ export default function ExpenseTemplateDetailPage() {
   const id = params.id as string;
   const isNew = id === "new";
 
-  const [isCategoryOpen, setIsCategoryOpen] = useState(false);
-  const [newCategory, setNewCategory] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   
   // Form state for new group
   const [groupName, setGroupName] = useState("");
   const [recurringDay, setRecurringDay] = useState("");
   const [notes, setNotes] = useState("");
-  const [items, setItems] = useState<NewItemForm[]>([]);
+  const [items, setItems] = useState<DraftExpenseItem[]>([]);
   
   // Inline editing state for edit mode
   const [editingField, setEditingField] = useState<string | null>(null);
@@ -142,8 +113,7 @@ export default function ExpenseTemplateDetailPage() {
     }
   }, [editingField]);
 
-  const { data: categoriesData, refetch: refetchCategories } =
-    useQuery<CategoriesData>(GET_CATEGORIES);
+  const { data: categoriesData } = useQuery<CategoriesData>(GET_CATEGORIES);
 
   const { data: groupData, loading: loadingGroup, refetch: refetchGroup } = useQuery<ExpenseTemplateGroupData>(
     GET_EXPENSE_TEMPLATE_GROUP,
@@ -192,46 +162,41 @@ export default function ExpenseTemplateDetailPage() {
   const [updateItem] = useMutation(UPDATE_EXPENSE_TEMPLATE_ITEM);
   const [deleteItem] = useMutation(DELETE_EXPENSE_TEMPLATE_ITEM);
 
-  const [createCategory, { loading: creatingCategory }] = useMutation(
-    CREATE_CATEGORY,
-    {
-      onCompleted: () => {
-        toast.success("Kategori berhasil ditambahkan");
-        setIsCategoryOpen(false);
-        setNewCategory("");
-        refetchCategories();
-      },
-      onError: (error) => {
-        toast.error(error.message);
-      },
-    }
-  );
-
   const categories: Category[] = categoriesData?.categories || [];
 
-  // Check if last row is empty
-  const lastItem = items[items.length - 1];
-  const isLastRowEmpty = lastItem && !lastItem.categoryId && !lastItem.itemName && !lastItem.unitPrice;
+  const resolveCategory = (categoryId: string) => categories.find(c => c.id === categoryId) || { id: categoryId, name: "" };
 
-  const handleAddEmptyRow = () => {
-    if (isLastRowEmpty) {
-      toast.error("Lengkapi item sebelumnya terlebih dahulu");
-      return;
-    }
-    
-    const newItem: NewItemForm = {
+  const handleLocalCreateItem = async (input: { itemName: string; categoryId: string; unitPrice: number; quantity: number }) => {
+    const newItem: DraftExpenseItem = {
       id: crypto.randomUUID(),
-      categoryId: "",
-      itemName: "",
-      unitPrice: 0,
-      quantity: 1,
+      itemName: input.itemName,
+      unitPrice: input.unitPrice,
+      quantity: input.quantity,
+      categoryId: input.categoryId,
+      category: resolveCategory(input.categoryId),
     };
-    
-    setItems((prev) => [...prev, newItem]);
+    setItems(prev => [...prev, newItem]);
   };
 
-  const handleRemoveItem = (itemId: string) => {
-    setItems((prev) => prev.filter((item) => item.id !== itemId));
+  const handleLocalUpdateItem = async (itemId: string, input: Record<string, unknown>) => {
+    setItems(prev =>
+      prev.map(item => {
+        if (item.id !== itemId) return item;
+        const updated: DraftExpenseItem = { ...item };
+        if (input.itemName !== undefined) updated.itemName = input.itemName as string;
+        if (input.unitPrice !== undefined) updated.unitPrice = input.unitPrice as number;
+        if (input.quantity !== undefined) updated.quantity = input.quantity as number;
+        if (input.categoryId !== undefined) {
+          updated.categoryId = input.categoryId as string;
+          updated.category = resolveCategory(input.categoryId as string);
+        }
+        return updated;
+      })
+    );
+  };
+
+  const handleLocalDeleteItem = async (itemId: string) => {
+    setItems(prev => prev.filter(item => item.id !== itemId));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -318,19 +283,6 @@ export default function ExpenseTemplateDetailPage() {
     } else if (e.key === "Escape") {
       setEditingField(null);
     }
-  };
-
-  const handleCreateCategory = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newCategory.trim()) {
-      toast.error("Nama kategori tidak boleh kosong");
-      return;
-    }
-    createCategory({
-      variables: {
-        input: { name: newCategory.trim() },
-      },
-    });
   };
 
   const isLoading = creating || updating || deleting;
@@ -593,148 +545,18 @@ export default function ExpenseTemplateDetailPage() {
             <CardHeader>
               <CardTitle>Daftar Item</CardTitle>
             </CardHeader>
-            <CardContent className="px-6 overflow-x-auto">
-              <Table className="min-w-[700px]">
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="min-w-[180px]">Kategori</TableHead>
-                    <TableHead className="min-w-[150px]">Item</TableHead>
-                    <TableHead className="min-w-[120px]">Harga</TableHead>
-                    <TableHead className="min-w-[70px]">Qty</TableHead>
-                    <TableHead className="min-w-[120px] text-right">Subtotal</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {items.map((item) => (
-                    <TableRow key={item.id} className="bg-muted/30">
-                      <TableCell>
-                        <div className="flex gap-1">
-                          <Select
-                            value={item.categoryId}
-                            onValueChange={(value) => {
-                              setItems((prev) =>
-                                prev.map((i) =>
-                                  i.id === item.id ? { ...i, categoryId: value } : i
-                                )
-                              );
-                            }}
-                          >
-                            <SelectTrigger className="h-9 min-w-[140px]">
-                              <SelectValue placeholder="Kategori" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {categories.map((cat) => (
-                                <SelectItem key={cat.id} value={cat.id}>
-                                  {cat.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <Dialog open={isCategoryOpen} onOpenChange={setIsCategoryOpen}>
-                            <DialogTrigger asChild>
-                              <Button type="button" variant="outline" size="icon" className="h-9 w-9 shrink-0">
-                                <FolderPlus className="h-3 w-3" />
-                              </Button>
-                            </DialogTrigger>
-                            <DialogContent>
-                              <DialogHeader>
-                                <DialogTitle>Tambah Kategori Pengeluaran</DialogTitle>
-                              </DialogHeader>
-                              <form onSubmit={handleCreateCategory} className="space-y-4">
-                                <div className="space-y-2">
-                                  <Label>Nama Kategori</Label>
-                                  <Input
-                                    value={newCategory}
-                                    onChange={(e) => setNewCategory(e.target.value)}
-                                    placeholder="Contoh: Tagihan Bulanan"
-                                  />
-                                </div>
-                                <Button type="submit" className="w-full" disabled={creatingCategory}>
-                                  {creatingCategory && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                                  Simpan
-                                </Button>
-                              </form>
-                            </DialogContent>
-                          </Dialog>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          value={item.itemName}
-                          onChange={(e) =>
-                            setItems((prev) =>
-                              prev.map((i) =>
-                                i.id === item.id ? { ...i, itemName: e.target.value } : i
-                              )
-                            )
-                          }
-                          className="h-9 min-w-[120px]"
-                          placeholder="Nama item"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          value={item.unitPrice ? formatNumberID(item.unitPrice) : ""}
-                          onChange={(e) => {
-                            const val = parseNumber(e.target.value);
-                            setItems((prev) =>
-                              prev.map((i) =>
-                                i.id === item.id ? { ...i, unitPrice: val } : i
-                              )
-                            );
-                          }}
-                          className="h-9 text-right min-w-[100px]"
-                          placeholder="0"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          type="number"
-                          min="1"
-                          value={item.quantity}
-                          onChange={(e) =>
-                            setItems((prev) =>
-                              prev.map((i) =>
-                                i.id === item.id ? { ...i, quantity: parseInt(e.target.value) || 1 } : i
-                              )
-                            )
-                          }
-                          className="h-9 text-center min-w-[60px]"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Input
-                            value={formatIDR(item.unitPrice * item.quantity)}
-                            className="h-9 text-right font-bold text-expense min-w-[120px]"
-                            disabled
-                          />
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            className="h-9 w-9 shrink-0 text-muted-foreground hover:text-destructive"
-                            onClick={() => handleRemoveItem(item.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  <TableRow
-                    className="cursor-pointer hover:bg-muted/30"
-                    onClick={handleAddEmptyRow}
-                  >
-                    <TableCell colSpan={5} className="text-center text-muted-foreground py-4">
-                      <div className="flex items-center justify-center gap-2">
-                        <Plus className="h-4 w-4" />
-                        <span>Tambah item baru</span>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
+            <CardContent className="px-6">
+              <EditableExpenseTable
+                items={items.map((item) => ({
+                  ...item,
+                  category: resolveCategory(item.categoryId),
+                  total: item.unitPrice * item.quantity,
+                }))}
+                onCreateItem={handleLocalCreateItem}
+                onUpdateItem={handleLocalUpdateItem}
+                onDeleteItem={handleLocalDeleteItem}
+                onSaveComplete={() => {}}
+              />
             </CardContent>
           </Card>
 
