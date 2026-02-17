@@ -7,6 +7,7 @@ export const GET_DASHBOARD = gql`
       totalActiveInstallment
       totalExpenseThisMonth
       totalIncomeThisMonth
+      totalSavingsContributionThisMonth
       balanceSummary {
         totalIncome
         totalExpense
@@ -14,25 +15,6 @@ export const GET_DASHBOARD = gql`
         totalDebtPayment
         netBalance
         status
-      }
-      upcomingInstallments {
-        id
-        name
-        monthlyPayment
-        dueDay
-        status
-        remainingAmount
-        remainingPayments
-      }
-      upcomingDebts {
-        id
-        personName
-        actualAmount
-        remainingAmount
-        dueDate
-        status
-        paymentType
-        monthlyPayment
       }
       expensesByCategory {
         category {
@@ -405,6 +387,125 @@ export const GET_ACTUAL_PAYMENTS = gql`
       totalInstallment
       totalDebt
       totalPayments
+    }
+  }
+`;
+
+export const GET_HISTORY_SUMMARY = gql`
+  query GetHistorySummary($filter: MonthYearInput) {
+    historySummary(filter: $filter) {
+      availableMonths
+      selectedMonth
+      incomeSummary {
+        total
+        count
+        byCategory {
+          category {
+            id
+            name
+          }
+          totalAmount
+          count
+        }
+        byType {
+          incomeType
+          totalAmount
+          count
+        }
+      }
+      expenseSummary {
+        total
+        count
+        byCategory {
+          category {
+            id
+            name
+          }
+          totalAmount
+          count
+        }
+      }
+      payments {
+        installments {
+          installmentId
+          name
+          amount
+          transactionDate
+          description
+        }
+        debts {
+          debtId
+          personName
+          amount
+          transactionDate
+          description
+        }
+        totalInstallment
+        totalDebt
+        totalPayments
+      }
+      totalSavingsContribution
+    }
+  }
+`;
+
+export const GET_FORECAST_SUMMARY = gql`
+  query GetForecastSummary($filter: MonthYearInput) {
+    forecastSummary(filter: $filter) {
+      availableMonths
+      selectedMonth
+      incomeSummary {
+        total
+        count
+        byCategory {
+          category {
+            id
+            name
+          }
+          totalAmount
+          count
+        }
+        byType {
+          incomeType
+          totalAmount
+          count
+        }
+      }
+      expenseSummary {
+        total
+        count
+        byCategory {
+          category {
+            id
+            name
+          }
+          totalAmount
+          count
+        }
+      }
+      payments {
+        installments {
+          installmentId
+          name
+          monthlyPayment
+          dueDay
+          dueDate
+          remainingAmount
+          remainingPayments
+        }
+        debts {
+          debtId
+          personName
+          monthlyPayment
+          dueDate
+          remainingAmount
+          paymentType
+        }
+        totalInstallment
+        totalDebt
+        totalPayments
+      }
+      totalSavingsContribution
     }
   }
 `;

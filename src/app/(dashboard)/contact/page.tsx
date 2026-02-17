@@ -24,7 +24,7 @@ function ContactItem({ icon, title, description, action, href }: ContactItemProp
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="flex items-center gap-4 p-4 rounded-lg hover:bg-muted/50 transition-colors"
+      className="flex items-center gap-4 p-4 hover:bg-muted/50 transition-colors"
     >
       <div className="flex-shrink-0 h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
         {icon}
@@ -33,7 +33,7 @@ function ContactItem({ icon, title, description, action, href }: ContactItemProp
         <h3 className="font-medium">{title}</h3>
         <p className="text-sm text-muted-foreground">{description}</p>
       </div>
-      <Button variant="outline" size="sm">{action}</Button>
+      <Button variant="outline" size="sm" className="hidden sm:block">{action}</Button>
     </a>
   );
 }
