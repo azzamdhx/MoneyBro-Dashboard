@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@apollo/client/react";
@@ -13,6 +13,7 @@ import { Plus, Wallet, CheckCircle2, Clock, X } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { getDebtEmoji } from "@/lib/utils/emoji-storage";
 
 interface DebtPayment {
   id: string;
@@ -59,8 +60,21 @@ export default function DebtsPage() {
   const router = useRouter();
   const { data, loading } = useQuery<DebtsData>(GET_DEBTS);
   const [fabOpen, setFabOpen] = useState(false);
+  const [emojis, setEmojis] = useState<Record<string, string>>({});
 
   const debts: Debt[] = data?.debts || [];
+
+  useEffect(() => {
+    const items = data?.debts || [];
+    if (items.length > 0) {
+      const map: Record<string, string> = {};
+      items.forEach((d) => {
+        const emoji = getDebtEmoji(d.id);
+        if (emoji) map[d.id] = emoji;
+      });
+      setEmojis(map);
+    }
+  }, [data]);
   const activeDebts = debts.filter((d) => d.status === "ACTIVE");
   const paidDebts = debts.filter((d) => d.status === "COMPLETED");
 
@@ -159,7 +173,11 @@ export default function DebtsPage() {
                     <CardContent className="p-4">
                       <div className="flex mb-2">
                         <div className="h-8 w-8 rounded-lg bg-debt/10 flex items-center justify-center">
-                          <Wallet className="h-4 w-4 text-debt" />
+                          {emojis[debt.id] ? (
+                            <span className="text-lg">{emojis[debt.id]}</span>
+                          ) : (
+                            <Wallet className="h-4 w-4 text-debt" />
+                          )}
                         </div>
                       </div>
                       <div className="space-y-2">
@@ -216,7 +234,11 @@ export default function DebtsPage() {
                     <CardContent className="p-4">
                       <div className="flex mb-2">
                         <div className="h-8 w-8 rounded-lg bg-income/10 flex items-center justify-center">
-                          <CheckCircle2 className="h-4 w-4 text-income" />
+                          {emojis[debt.id] ? (
+                            <span className="text-lg">{emojis[debt.id]}</span>
+                          ) : (
+                            <CheckCircle2 className="h-4 w-4 text-income" />
+                          )}
                         </div>
                       </div>
                       <div className="space-y-2">

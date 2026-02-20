@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@apollo/client/react";
@@ -13,6 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { formatDateShortID } from "@/lib/utils/format";
+import { getSavingsEmoji } from "@/lib/utils/emoji-storage";
 
 interface SavingsContribution {
   id: string;
@@ -46,8 +47,21 @@ export default function SavingsPage() {
   const router = useRouter();
   const { data, loading } = useQuery<SavingsGoalsData>(GET_SAVINGS_GOALS);
   const [fabOpen, setFabOpen] = useState(false);
+  const [emojis, setEmojis] = useState<Record<string, string>>({});
 
   const goals: SavingsGoal[] = data?.savingsGoals || [];
+
+  useEffect(() => {
+    const items = data?.savingsGoals || [];
+    if (items.length > 0) {
+      const map: Record<string, string> = {};
+      items.forEach((g) => {
+        const emoji = getSavingsEmoji(g.id);
+        if (emoji) map[g.id] = emoji;
+      });
+      setEmojis(map);
+    }
+  }, [data]);
   const activeGoals = goals.filter((g) => g.status === "ACTIVE");
   const completedGoals = goals.filter((g) => g.status === "COMPLETED");
   const cancelledGoals = goals.filter((g) => g.status === "CANCELLED");
@@ -142,7 +156,11 @@ export default function SavingsPage() {
                       <CardContent className="p-4">
                         <div className="flex mb-3">
                           <div className="h-8 w-8 rounded-lg bg-savings/10 flex items-center justify-center">
-                            <PiggyBank className="h-4 w-4 text-savings" />
+                            {emojis[goal.id] ? (
+                              <span className="text-lg">{emojis[goal.id]}</span>
+                            ) : (
+                              <PiggyBank className="h-4 w-4 text-savings" />
+                            )}
                           </div>
                         </div>
                         <div className="space-y-3">
@@ -200,7 +218,11 @@ export default function SavingsPage() {
                       <CardContent className="p-4">
                         <div className="flex mb-3">
                           <div className="h-8 w-8 rounded-lg bg-income/10 flex items-center justify-center">
-                            <CheckCircle2 className="h-4 w-4 text-income" />
+                            {emojis[goal.id] ? (
+                              <span className="text-lg">{emojis[goal.id]}</span>
+                            ) : (
+                              <CheckCircle2 className="h-4 w-4 text-income" />
+                            )}
                           </div>
                         </div>
                         <div className="space-y-2">
@@ -238,7 +260,11 @@ export default function SavingsPage() {
                       <CardContent className="p-4">
                         <div className="flex mb-3">
                           <div className="h-8 w-8 rounded-lg bg-muted flex items-center justify-center">
-                            <XCircle className="h-4 w-4 text-muted-foreground" />
+                            {emojis[goal.id] ? (
+                              <span className="text-lg">{emojis[goal.id]}</span>
+                            ) : (
+                              <XCircle className="h-4 w-4 text-muted-foreground" />
+                            )}
                           </div>
                         </div>
                         <div className="space-y-2">

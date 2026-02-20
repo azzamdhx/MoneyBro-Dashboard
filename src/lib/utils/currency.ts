@@ -2,7 +2,7 @@ import { formatNumberID } from "./format";
 
 export function formatIDR(amount: number): string {
   const formatted = formatNumberID(Math.abs(amount));
-  return amount < 0 ? `-Rp${formatted}` : `Rp${formatted}`;
+  return amount < 0 ? `-Rp ${formatted}` : `Rp ${formatted}`;
 }
 
 export function formatCompact(amount: number): string {

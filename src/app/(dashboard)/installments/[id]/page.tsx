@@ -38,6 +38,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { EmojiPicker } from "@/components/ui/emoji-picker";
+import { getInstallmentEmoji, setInstallmentEmoji } from "@/lib/utils/emoji-storage";
 
 const GET_INSTALLMENT = gql`
   query GetInstallment($id: UUID!) {
@@ -115,6 +117,7 @@ export default function InstallmentDetailPage() {
 
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
   const [fabOpen, setFabOpen] = useState(false);
+  const [emoji, setEmoji] = useState("");
   const [formData, setFormData] = useState({
     name: "",
     actualAmount: "",
@@ -144,11 +147,23 @@ export default function InstallmentDetailPage() {
         startDate: installment.startDate?.slice(0, 10) || "",
         notes: installment.notes || "",
       });
+      setEmoji(getInstallmentEmoji(installment.id));
     }
   }, [installment]);
 
+  const handleEmojiChange = (newEmoji: string) => {
+    setEmoji(newEmoji);
+    if (!isNew && id) {
+      setInstallmentEmoji(id, newEmoji);
+    }
+  };
+
   const [createInstallment, { loading: creating }] = useMutation(CREATE_INSTALLMENT, {
-    onCompleted: () => {
+    onCompleted: (data) => {
+      const newId = (data as { createInstallment: { id: string } }).createInstallment.id;
+      if (emoji && newId) {
+        setInstallmentEmoji(newId, emoji);
+      }
       toast.success("Cicilan berhasil ditambahkan");
       router.push("/installments");
     },
@@ -316,13 +331,18 @@ export default function InstallmentDetailPage() {
           <Button variant="ghost" size="icon" onClick={() => router.back()}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <div>
-            <h1 className="text-2xl font-bold">
-              {isNew ? "Tambah Cicilan" : installment?.name}
-            </h1>
-            <p className="text-muted-foreground hidden sm:block">
-              {isNew ? "Catat cicilan baru" : "Detail cicilan"}
-            </p>
+          <div className="flex items-center gap-3">
+            {!isNew && emoji && (
+              <span className="text-3xl">{emoji}</span>
+            )}
+            <div>
+              <h1 className="text-2xl font-bold">
+                {isNew ? "Tambah Cicilan" : installment?.name}
+              </h1>
+              <p className="text-muted-foreground hidden sm:block">
+                {isNew ? "Catat cicilan baru" : "Detail cicilan"}
+              </p>
+            </div>
           </div>
         </div>
         <div className="flex flex-wrap gap-2 justify-end">
@@ -469,13 +489,20 @@ export default function InstallmentDetailPage() {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label>Nama Cicilan</Label>
-                <Input
-                  value={formData.name}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, name: e.target.value }))
-                  }
-                  placeholder="Contoh: Kredit Motor Honda"
-                />
+                <div className="flex items-center gap-2">
+                  <EmojiPicker
+                    value={emoji}
+                    onChange={handleEmojiChange}
+                  />
+                  <Input
+                    value={formData.name}
+                    onChange={(e) =>
+                      setFormData((prev) => ({ ...prev, name: e.target.value }))
+                    }
+                    placeholder="Contoh: Kredit Motor Honda"
+                    className="flex-1"
+                  />
+                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -40,6 +40,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { EmojiPicker } from "@/components/ui/emoji-picker";
+import { getSavingsEmoji, setSavingsEmoji } from "@/lib/utils/emoji-storage";
 
 const GET_SAVINGS_GOAL = gql`
   query GetSavingsGoal($id: UUID!) {
@@ -112,6 +114,7 @@ export default function SavingsGoalDetailPage() {
 
   const [isContributionOpen, setIsContributionOpen] = useState(false);
   const [fabOpen, setFabOpen] = useState(false);
+  const [emoji, setEmoji] = useState("");
   const [formData, setFormData] = useState({
     name: "",
     targetAmount: "",
@@ -153,8 +156,16 @@ export default function SavingsGoalDetailPage() {
         targetMonths: diffMonths > 0 ? String(diffMonths) : "1",
         notes: goal.notes || "",
       });
+      setEmoji(getSavingsEmoji(goal.id));
     }
   }, [goal]);
+
+  const handleEmojiChange = (newEmoji: string) => {
+    setEmoji(newEmoji);
+    if (!isNew && id) {
+      setSavingsEmoji(id, newEmoji);
+    }
+  };
 
   const updateTargetDateFromMonths = (months: string) => {
     const m = parseInt(months);
@@ -208,8 +219,11 @@ export default function SavingsGoalDetailPage() {
             },
           },
         });
-        toast.success("Tabungan berhasil dibuat");
         const newId = (res.data as { createSavingsGoal: { id: string } }).createSavingsGoal.id;
+        if (emoji && newId) {
+          setSavingsEmoji(newId, emoji);
+        }
+        toast.success("Tabungan berhasil dibuat");
         router.replace(`/savings/${newId}`);
       } else {
         await updateGoal({
@@ -349,13 +363,18 @@ export default function SavingsGoalDetailPage() {
           <Button variant="ghost" size="icon" onClick={() => router.back()}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <div>
-            <h1 className="text-2xl font-bold">
-              {isNew ? "Tambah Tabungan" : goal?.name}
-            </h1>
-            <p className="text-muted-foreground hidden sm:block">
-              {isNew ? "Buat target tabungan baru" : "Detail tabungan"}
-            </p>
+          <div className="flex items-center gap-3">
+            {!isNew && emoji && (
+              <span className="text-3xl">{emoji}</span>
+            )}
+            <div>
+              <h1 className="text-2xl font-bold">
+                {isNew ? "Tambah Tabungan" : goal?.name}
+              </h1>
+              <p className="text-muted-foreground hidden sm:block">
+                {isNew ? "Buat target tabungan baru" : "Detail tabungan"}
+              </p>
+            </div>
           </div>
         </div>
         <div className="flex flex-wrap gap-2 justify-end">
@@ -573,13 +592,20 @@ export default function SavingsGoalDetailPage() {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label>Nama Tabungan</Label>
-                <Input
-                  value={formData.name}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, name: e.target.value }))
-                  }
-                  placeholder="Contoh: Dana Darurat, Liburan, dll"
-                />
+                <div className="flex items-center gap-2">
+                  <EmojiPicker
+                    value={emoji}
+                    onChange={handleEmojiChange}
+                  />
+                  <Input
+                    value={formData.name}
+                    onChange={(e) =>
+                      setFormData((prev) => ({ ...prev, name: e.target.value }))
+                    }
+                    placeholder="Contoh: Dana Darurat, Liburan, dll"
+                    className="flex-1"
+                  />
+                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

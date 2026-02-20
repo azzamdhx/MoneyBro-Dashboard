@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@apollo/client/react";
@@ -12,6 +12,7 @@ import { Plus, CreditCard, CheckCircle2, Clock, X } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { getInstallmentEmoji } from "@/lib/utils/emoji-storage";
 
 interface InstallmentPayment {
   id: string;
@@ -48,8 +49,21 @@ export default function InstallmentsPage() {
   const router = useRouter();
   const { data, loading } = useQuery<InstallmentsData>(GET_INSTALLMENTS);
   const [fabOpen, setFabOpen] = useState(false);
+  const [emojis, setEmojis] = useState<Record<string, string>>({});
 
   const installments: Installment[] = data?.installments || [];
+
+  useEffect(() => {
+    const items = data?.installments || [];
+    if (items.length > 0) {
+      const map: Record<string, string> = {};
+      items.forEach((i) => {
+        const emoji = getInstallmentEmoji(i.id);
+        if (emoji) map[i.id] = emoji;
+      });
+      setEmojis(map);
+    }
+  }, [data]);
   const activeInstallments = installments.filter((i) => i.status === "ACTIVE");
   const completedInstallments = installments.filter((i) => i.status === "COMPLETED");
 
@@ -149,7 +163,11 @@ export default function InstallmentsPage() {
                     <CardContent className="p-4">
                       <div className="flex mb-2">
                         <div className="h-8 w-8 rounded-lg bg-installment/10 flex items-center justify-center">
-                          <CreditCard className="h-4 w-4 text-installment" />
+                          {emojis[installment.id] ? (
+                            <span className="text-lg">{emojis[installment.id]}</span>
+                          ) : (
+                            <CreditCard className="h-4 w-4 text-installment" />
+                          )}
                         </div>
                       </div>
                       <div className="space-y-2">
@@ -196,7 +214,11 @@ export default function InstallmentsPage() {
                     <CardContent className="p-4">
                       <div className="flex mb-2">
                         <div className="h-8 w-8 rounded-lg bg-income/10 flex items-center justify-center">
-                          <CheckCircle2 className="h-4 w-4 text-income" />
+                          {emojis[installment.id] ? (
+                            <span className="text-lg">{emojis[installment.id]}</span>
+                          ) : (
+                            <CheckCircle2 className="h-4 w-4 text-income" />
+                          )}
                         </div>
                       </div>
                       <div className="space-y-2">

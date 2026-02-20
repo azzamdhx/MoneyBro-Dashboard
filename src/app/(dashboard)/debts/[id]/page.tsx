@@ -46,6 +46,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { EmojiPicker } from "@/components/ui/emoji-picker";
+import { getDebtEmoji, setDebtEmoji } from "@/lib/utils/emoji-storage";
 
 const GET_DEBT = gql`
   query GetDebt($id: UUID!) {
@@ -132,6 +134,7 @@ export default function DebtDetailPage() {
   const [paymentAmount, setPaymentAmount] = useState("");
   const [paymentDate, setPaymentDate] = useState(new Date().toISOString().split("T")[0]);
   const [fabOpen, setFabOpen] = useState(false);
+  const [emoji, setEmoji] = useState("");
   const [formData, setFormData] = useState({
     personName: "",
     actualAmount: "",
@@ -162,11 +165,23 @@ export default function DebtDetailPage() {
         notes: debt.notes || "",
       });
       setPaymentAmount(debt.monthlyPayment ? formatNumberID(debt.monthlyPayment) : "");
+      setEmoji(getDebtEmoji(debt.id));
     }
   }, [debt]);
 
+  const handleEmojiChange = (newEmoji: string) => {
+    setEmoji(newEmoji);
+    if (!isNew && id) {
+      setDebtEmoji(id, newEmoji);
+    }
+  };
+
   const [createDebt, { loading: creating }] = useMutation(CREATE_DEBT, {
-    onCompleted: () => {
+    onCompleted: (data) => {
+      const newId = (data as { createDebt: { id: string } }).createDebt.id;
+      if (emoji && newId) {
+        setDebtEmoji(newId, emoji);
+      }
       toast.success("Hutang berhasil ditambahkan");
       router.push("/debts");
     },
@@ -339,13 +354,18 @@ export default function DebtDetailPage() {
           <Button variant="ghost" size="icon" onClick={() => router.back()}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <div>
-            <h1 className="text-2xl font-bold">
-              {isNew ? "Tambah Hutang" : debt?.personName}
-            </h1>
-            <p className="text-muted-foreground hidden sm:block">
-              {isNew ? "Catat hutang baru" : "Detail hutang"}
-            </p>
+          <div className="flex items-center gap-3">
+            {!isNew && emoji && (
+              <span className="text-3xl">{emoji}</span>
+            )}
+            <div>
+              <h1 className="text-2xl font-bold">
+                {isNew ? "Tambah Hutang" : debt?.personName}
+              </h1>
+              <p className="text-muted-foreground hidden sm:block">
+                {isNew ? "Catat hutang baru" : "Detail hutang"}
+              </p>
+            </div>
           </div>
         </div>
         <div className="flex flex-wrap gap-2 justify-end">
@@ -526,13 +546,20 @@ export default function DebtDetailPage() {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label>Nama Pemberi Hutang</Label>
-                <Input
-                  value={formData.personName}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, personName: e.target.value }))
-                  }
-                  placeholder="Contoh: Bank BCA, Pak Andi"
-                />
+                <div className="flex items-center gap-2">
+                  <EmojiPicker
+                    value={emoji}
+                    onChange={handleEmojiChange}
+                  />
+                  <Input
+                    value={formData.personName}
+                    onChange={(e) =>
+                      setFormData((prev) => ({ ...prev, personName: e.target.value }))
+                    }
+                    placeholder="Contoh: Bank BCA, Pak Andi"
+                    className="flex-1"
+                  />
+                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
