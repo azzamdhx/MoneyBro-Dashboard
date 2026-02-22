@@ -34,6 +34,7 @@ const VERIFY_REGISTRATION_MUTATION = gql`
   mutation VerifyRegistration($input: Verify2FAInput!) {
     verifyRegistration(input: $input) {
       token
+      refreshToken
       user {
         id
         email
@@ -163,9 +164,12 @@ export default function RegisterPage() {
         },
       });
 
-      const verifyData = data as { verifyRegistration?: { token: string } };
+      const verifyData = data as { verifyRegistration?: { token: string; refreshToken: string } };
       if (verifyData?.verifyRegistration?.token) {
-        Cookies.set("token", verifyData.verifyRegistration.token, { expires: 7, sameSite: "lax", secure: true });
+        Cookies.set("token", verifyData.verifyRegistration.token, { expires: 1, sameSite: "lax", secure: true });
+        if (verifyData.verifyRegistration.refreshToken) {
+          Cookies.set("refreshToken", verifyData.verifyRegistration.refreshToken, { expires: 90, sameSite: "lax", secure: true });
+        }
         toast.success("Registrasi berhasil! 2FA telah aktif.");
         router.push("/dashboard");
       }

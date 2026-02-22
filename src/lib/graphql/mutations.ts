@@ -339,10 +339,31 @@ export const RESET_PASSWORD = gql`
   }
 `;
 
+export const REFRESH_TOKEN = gql`
+  mutation RefreshToken($refreshToken: String!) {
+    refreshToken(refreshToken: $refreshToken) {
+      token
+      refreshToken
+      user {
+        id
+        email
+        name
+      }
+    }
+  }
+`;
+
+export const LOGOUT = gql`
+  mutation Logout($refreshToken: String!) {
+    logout(refreshToken: $refreshToken)
+  }
+`;
+
 export const VERIFY_2FA = gql`
   mutation Verify2FA($input: Verify2FAInput!) {
     verify2FA(input: $input) {
       token
+      refreshToken
       user {
         id
         email

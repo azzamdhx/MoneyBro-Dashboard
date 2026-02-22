@@ -21,12 +21,13 @@ import {
   ChevronDown,
   PiggyBank,
 } from "lucide-react";
-import { useQuery } from "@apollo/client/react";
+import { useQuery, useMutation } from "@apollo/client/react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import Cookies from "js-cookie";
 import Image from "next/image";
 import { GET_ME } from "@/lib/graphql/queries";
+import { LOGOUT } from "@/lib/graphql/mutations";
 
 interface NavChild {
   title: string;
@@ -136,6 +137,7 @@ export function Sidebar() {
   const { collapsed, setCollapsed } = useSidebar();
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
   const { data } = useQuery<UserData>(GET_ME);
+  const [logoutMutation] = useMutation(LOGOUT);
   const profileImage = data?.me?.profileImage || "BRO-1-B";
 
   const toggleExpand = (href: string) => {
@@ -156,8 +158,17 @@ export function Sidebar() {
     return false;
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    const refreshToken = Cookies.get("refreshToken");
+    if (refreshToken) {
+      try {
+        await logoutMutation({ variables: { refreshToken } });
+      } catch {
+        // Ignore logout mutation errors
+      }
+    }
     Cookies.remove("token");
+    Cookies.remove("refreshToken");
     router.push("/login");
   };
 

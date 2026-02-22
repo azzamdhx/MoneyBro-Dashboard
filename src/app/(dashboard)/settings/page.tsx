@@ -3,9 +3,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useQuery } from "@apollo/client/react";
+import { useQuery, useMutation } from "@apollo/client/react";
 import Cookies from "js-cookie";
 import { GET_ME } from "@/lib/graphql/queries";
+import { LOGOUT } from "@/lib/graphql/mutations";
 import {
   Bell,
   Mail,
@@ -72,11 +73,21 @@ function SettingSection({ title, children }: { title: string; children: React.Re
 export default function SettingsPage() {
   const router = useRouter();
   const { data, loading } = useQuery<UserData>(GET_ME);
+  const [logoutMutation] = useMutation(LOGOUT);
 
   const user = data?.me;
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    const refreshToken = Cookies.get("refreshToken");
+    if (refreshToken) {
+      try {
+        await logoutMutation({ variables: { refreshToken } });
+      } catch {
+        // Ignore logout mutation errors
+      }
+    }
     Cookies.remove("token");
+    Cookies.remove("refreshToken");
     router.push("/login");
   };
 

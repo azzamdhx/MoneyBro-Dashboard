@@ -55,9 +55,12 @@ function Verify2FAContent() {
         },
       });
 
-      const verifyData = data as { verify2FA?: { token: string } };
+      const verifyData = data as { verify2FA?: { token: string; refreshToken: string } };
       if (verifyData?.verify2FA?.token) {
-        Cookies.set("token", verifyData.verify2FA.token, { expires: 7, sameSite: "lax", secure: true });
+        Cookies.set("token", verifyData.verify2FA.token, { expires: 1, sameSite: "lax", secure: true });
+        if (verifyData.verify2FA.refreshToken) {
+          Cookies.set("refreshToken", verifyData.verify2FA.refreshToken, { expires: 90, sameSite: "lax", secure: true });
+        }
         toast.success("Verifikasi berhasil!");
         router.push("/dashboard");
       }

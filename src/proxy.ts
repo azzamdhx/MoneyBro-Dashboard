@@ -6,17 +6,19 @@ const PUBLIC_PAGES = ["/"];
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const token = request.cookies.get("token")?.value;
+  const refreshToken = request.cookies.get("refreshToken")?.value;
+  const hasSession = !!(token || refreshToken);
 
   const isAuthPage = AUTH_PAGES.some((page) => pathname.startsWith(page));
   const isPublicPage = PUBLIC_PAGES.includes(pathname);
 
   // Logged in user trying to access auth pages → redirect to dashboard
-  if (token && isAuthPage) {
+  if (hasSession && isAuthPage) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
   // Not logged in user trying to access protected pages → redirect to login
-  if (!token && !isAuthPage && !isPublicPage) {
+  if (!hasSession && !isAuthPage && !isPublicPage) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 

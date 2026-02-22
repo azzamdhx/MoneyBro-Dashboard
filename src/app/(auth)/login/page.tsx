@@ -22,6 +22,7 @@ const LOGIN_MUTATION = gql`
   mutation Login($input: LoginInput!) {
     login(input: $input) {
       token
+      refreshToken
       requires2FA
       tempToken
       user {
@@ -62,11 +63,13 @@ export default function LoginPage() {
       const loginData = (result.data as {
         login: {
           token?: string;
+          refreshToken?: string;
           requires2FA: boolean;
           tempToken?: string;
         }
       })?.login as {
         token?: string;
+        refreshToken?: string;
         requires2FA: boolean;
         tempToken?: string;
       };
@@ -80,7 +83,10 @@ export default function LoginPage() {
 
       // Normal login flow
       if (loginData.token) {
-        Cookies.set("token", loginData.token, { expires: 7, sameSite: "lax", secure: true });
+        Cookies.set("token", loginData.token, { expires: 1, sameSite: "lax", secure: true });
+        if (loginData.refreshToken) {
+          Cookies.set("refreshToken", loginData.refreshToken, { expires: 90, sameSite: "lax", secure: true });
+        }
         toast.success("Login berhasil!");
         router.push("/dashboard");
       }
