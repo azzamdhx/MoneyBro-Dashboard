@@ -20,6 +20,7 @@ import {
   FileText,
   ChevronDown,
   PiggyBank,
+  Landmark,
 } from "lucide-react";
 import { useQuery, useMutation } from "@apollo/client/react";
 import { Button } from "@/components/ui/button";
@@ -62,6 +63,11 @@ const navItems: NavItem[] = [
     title: "Notifikasi",
     href: "/notifications",
     icon: Bell,
+  },
+  {
+    title: "Pocket",
+    href: "/pockets",
+    icon: Landmark,
   },
   {
     title: "Pemasukan",

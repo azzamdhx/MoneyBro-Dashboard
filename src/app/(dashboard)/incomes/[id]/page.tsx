@@ -50,10 +50,10 @@ interface Income {
   id: string;
   sourceName: string;
   amount: number;
-  incomeType: string;
   incomeDate: string | null;
   isRecurring: boolean;
   notes: string | null;
+  pocketId: string | null;
   category: Category;
 }
 
@@ -139,7 +139,6 @@ export default function CreateIncomePage() {
       categoryId: recurring.category.id,
       sourceName: recurring.sourceName,
       amount: recurring.amount,
-      incomeType: recurring.incomeType,
     });
     toast.success(`Ditambahkan dari income tetap: ${recurring.sourceName}`);
   };
@@ -162,8 +161,8 @@ export default function CreateIncomePage() {
         </div>
       </div>
 
-      {/* Archive Input - Date */}
-      <div className="flex justify-end sm:justify-start">
+      {/* Date */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
           <MonthPicker
               value={incomeDate}
               onChange={setIncomeDate}

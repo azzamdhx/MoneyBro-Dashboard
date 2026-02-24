@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useQuery } from "@apollo/client/react";
@@ -14,6 +15,19 @@ import {
   BadgeDollarSign,
   PiggyBank,
 } from "lucide-react";
+import {
+  TrendUp,
+  Receipt as PhReceipt,
+  CreditCard as PhCreditCard,
+  Wallet as PhWallet,
+  PiggyBank as PhPiggyBank,
+  ChartLineUp,
+  ClockCounterClockwise,
+  DotsNine,
+  ArrowsClockwise,
+  FileText,
+  X,
+} from "@phosphor-icons/react";
 import { ValueChip } from "@/components/ui/value-chip";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -60,6 +74,8 @@ interface DashboardData {
       targetAmount: number;
       currentAmount: number;
       targetDate: string;
+      icon: string | null;
+      cardBgColor: string | null;
       progress: number;
       remainingAmount: number;
       monthlyTarget: number;
@@ -77,6 +93,7 @@ interface DashboardData {
 
 export default function DashboardPage() {
   const { data, loading, error } = useQuery<DashboardData>(GET_DASHBOARD);
+  const [moreOpen, setMoreOpen] = useState(false);
   
 
   if (loading) {
@@ -243,19 +260,19 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <div>
+      <div className="mb-4">
         <h1 className="text-2xl font-bold">Dashboard</h1>
-        <p className="text-muted-foreground">Overview keuangan bulan ini</p>
+        <p className="text-muted-foreground hidden sm:block">Overview keuangan bulan ini</p>
       </div>
 
       {/* Net Balance Hero Card */}
       <HighlightCard
         gradientColor={getBalanceGradientBg()}
         balanceLabel={
-          <p className="text-xs sm:text-sm font-medium text-white/70">Saldo Bersih Bulan Ini</p>
+          <p className="text-xs sm:text-sm font-medium text-white/70 hidden sm:block">Saldo Bersih Bulan Ini</p>
         }
         balanceValue={
-          <p className={`text-2xl sm:text-3xl md:text-4xl font-bold ${getBalanceColor()} break-all mt-1`}>
+          <p className={`text-2xl sm:text-3xl md:text-4xl font-bold ${getBalanceColor()} break-all sm:mt-1`}>
             {formatIDR(netBalance)}
           </p>
         }
@@ -274,68 +291,139 @@ export default function DashboardPage() {
         }
       />
 
-      {/* Monthly Cash Flow Cards — single scroll row on mobile, 2-col + 3-col grid on desktop */}
-      <div className="flex gap-4 overflow-x-auto pb-2 md:hidden">
-        <Link href="/incomes" className="min-w-[200px] flex-shrink-0">
+      {/* Mobile Menu Grid */}
+      <div className="grid grid-cols-4 gap-4 md:hidden">
+        {[
+          { href: "/incomes", icon: TrendUp, label: "Pemasukan", color: "text-income" },
+          { href: "/expenses", icon: PhReceipt, label: "Pengeluaran", color: "text-expense" },
+          { href: "/installments", icon: PhCreditCard, label: "Cicilan", color: "text-installment" },
+          { href: "/debts", icon: PhWallet, label: "Hutang", color: "text-debt" },
+          { href: "/savings", icon: PhPiggyBank, label: "Tabungan", color: "text-savings" },
+          { href: "/forecast", icon: ChartLineUp, label: "Forecast", color: "text-primary" },
+          { href: "/history", icon: ClockCounterClockwise, label: "History", color: "text-primary" },
+        ].map((item) => (
+          <Link
+            key={item.href}
+            href={item.href}
+            className="flex flex-col items-center gap-1.5"
+          >
+            <div
+              className="flex flex-col items-center py-3 w-full rounded-xl bg-card border border-border hover:bg-muted/50 transition-colors"
+            >
+              <item.icon size={24}/>
+            </div>
+            <span className="text-[10px] font-medium text-muted-foreground text-center">{item.label}</span>
+          </Link>
+        ))}
+        <button
+          onClick={() => setMoreOpen(true)}
+          className="flex flex-col items-center gap-1.5"
+        >
+          <div className="flex flex-col items-center py-3 w-full rounded-xl bg-card border border-border hover:bg-muted/50 transition-colors">
+            <DotsNine size={24} className="text-muted-foreground" />
+          </div>
+          <span className="text-[10px] font-medium text-muted-foreground text-center">Lainnya</span>
+        </button>
+      </div>
+
+      {/* More Modal */}
+      {moreOpen && (
+        <div className="fixed inset-0 z-90 md:hidden" onClick={() => setMoreOpen(false)}>
+          <div className="absolute inset-0 bg-black/50" />
+          <div
+            className="border-t absolute bottom-0 left-0 right-0 h-[70vh] bg-background rounded-t-2xl p-6 animate-in slide-in-from-bottom duration-300"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-lg font-semibold">Lainnya</h2>
+              <button onClick={() => setMoreOpen(false)} className="p-1 rounded-full hover:bg-muted">
+                <X size={20} />
+              </button>
+            </div>
+            <div className="grid grid-cols-4 gap-4">
+              {[
+                { href: "/recurring-incomes", icon: ArrowsClockwise, label: "Pemasukan Tetap", color: "text-income" },
+                { href: "/expense-templates", icon: FileText, label: "Template Pengeluaran", color: "text-expense" },
+              ].map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setMoreOpen(false)}
+                  className="flex flex-col items-center gap-1.5"
+                >
+                  <div className="flex flex-col items-center py-3 w-full rounded-xl bg-card border border-border hover:bg-muted/50 transition-colors">
+                    <item.icon size={24} />
+                  </div>
+                  <span className="text-[10px] font-medium text-muted-foreground text-center">{item.label}</span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Monthly Cash Flow Cards — 2-col grid on mobile, 2-col + 3-col grid on desktop */}
+      <div className="grid grid-cols-2 gap-3 md:hidden">
+        <Link href="/incomes">
           <Card className="h-full transition-colors hover:bg-muted/50">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Pemasukan</CardTitle>
               <BadgeDollarSign className="h-4 w-4 text-income" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-income">
+              <div className="text-lg font-bold text-income break-all">
                 {formatIDR(balanceSummary?.totalIncome || 0)}
               </div>
             </CardContent>
           </Card>
         </Link>
-        <Link href="/expenses" className="min-w-[200px] flex-shrink-0">
+        <Link href="/expenses">
           <Card className="h-full transition-colors hover:bg-muted/50">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Pengeluaran</CardTitle>
               <Wallet className="h-4 w-4 text-expense" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-expense">
+              <div className="text-lg font-bold text-expense break-all">
                 {formatIDR(balanceSummary?.totalExpense || 0)}
               </div>
             </CardContent>
           </Card>
         </Link>
-        <Link href="/installments" className="min-w-[200px] flex-shrink-0">
+        <Link href="/installments">
           <Card className="h-full transition-colors hover:bg-muted/50">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Cicilan</CardTitle>
               <CreditCard className="h-4 w-4 text-installment" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-installment">
+              <div className="text-lg font-bold text-installment break-all">
                 {formatIDR(balanceSummary?.totalInstallmentPayment || 0)}
               </div>
             </CardContent>
           </Card>
         </Link>
-        <Link href="/debts" className="min-w-[200px] flex-shrink-0">
+        <Link href="/debts">
           <Card className="h-full transition-colors hover:bg-muted/50">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Hutang</CardTitle>
               <Receipt className="h-4 w-4 text-debt" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-debt">
+              <div className="text-lg font-bold text-debt break-all">
                 {formatIDR(balanceSummary?.totalDebtPayment || 0)}
               </div>
             </CardContent>
           </Card>
         </Link>
-        <Link href="/savings" className="min-w-[200px] flex-shrink-0">
+        <Link href="/savings" className="col-span-2">
           <Card className="h-full transition-colors hover:bg-muted/50">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Tabungan</CardTitle>
               <PiggyBank className="h-4 w-4 text-savings" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-savings">
+              <div className="text-lg font-bold text-savings break-all">
                 {formatIDR(dashboard?.totalSavingsContributionThisMonth || 0)}
               </div>
             </CardContent>

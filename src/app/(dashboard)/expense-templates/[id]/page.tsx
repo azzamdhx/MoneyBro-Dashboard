@@ -125,7 +125,7 @@ export default function ExpenseTemplateDetailPage() {
 
   const group = groupData?.expenseTemplateGroup;
 
-  const [createGroup, { loading: creating }] = useMutation(CREATE_EXPENSE_TEMPLATE_GROUP, {
+  const [createGroup] = useMutation(CREATE_EXPENSE_TEMPLATE_GROUP, {
     onCompleted: () => {
       toast.success("Template berhasil ditambahkan");
       router.push("/expense-templates");
@@ -135,7 +135,7 @@ export default function ExpenseTemplateDetailPage() {
     },
   });
 
-  const [updateGroup, { loading: updating }] = useMutation(UPDATE_EXPENSE_TEMPLATE_GROUP, {
+  const [updateGroup] = useMutation(UPDATE_EXPENSE_TEMPLATE_GROUP, {
     onCompleted: () => {
       toast.success("Perubahan disimpan");
       setIsSaving(false);
@@ -285,8 +285,6 @@ export default function ExpenseTemplateDetailPage() {
     }
   };
 
-  const isLoading = creating || updating || deleting;
-
   // Group by category for Per Kategori card
   const categoryTotals = group?.items.reduce((acc, item) => {
     const catName = item.category.name;
@@ -339,9 +337,6 @@ export default function ExpenseTemplateDetailPage() {
             <h1 className="text-2xl font-bold">
               {isNew ? "Tambah Template" : "Edit Template"}
             </h1>
-            <p className="text-muted-foreground hidden sm:block">
-              {isNew ? "Buat template pengeluaran baru" : "Ubah detail template"}
-            </p>
           </div>
         </div>
         {!isNew && (
@@ -483,7 +478,7 @@ export default function ExpenseTemplateDetailPage() {
       {/* New Mode */}
       {isNew && (
         <form onSubmit={handleSubmit}>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mb-6">
           <Card>
             <CardHeader>
               <CardTitle>Info Template</CardTitle>
@@ -559,21 +554,6 @@ export default function ExpenseTemplateDetailPage() {
               />
             </CardContent>
           </Card>
-
-          <div className="md:static md:mt-6 p-5 pb-8 md:rounded-lg md:border fixed bottom-0 left-0 right-0 z-50 rounded-t-3xl border-t border-x border-border bg-card">
-            <div className="flex items-end justify-between gap-4">
-              <div>
-                <p className="text-sm text-muted-foreground">Total</p>
-                <p className="text-2xl font-bold text-expense">
-                  {formatIDR(items.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0))}
-                </p>
-              </div>
-              <Button type="submit" className="w-fit" disabled={isLoading || !groupName.trim() || items.filter(i => i.categoryId && i.itemName && i.unitPrice).length === 0}>
-                {isLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                Simpan Template
-              </Button>
-            </div>
-          </div>
         </form>
       )}
     </div>

@@ -110,12 +110,6 @@ export function MonthPicker({ value, onChange, disabledMonths = new Set(), disab
               );
             })}
           </div>
-
-          {/* Legend */}
-          <div className="flex items-center gap-2 text-xs text-muted-foreground border-t pt-2">
-            <span className="line-through">Jan</span>
-            <span>= Sudah ada data</span>
-          </div>
         </div>
       </PopoverContent>
     </Popover>

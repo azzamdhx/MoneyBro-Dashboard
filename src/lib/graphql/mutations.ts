@@ -10,6 +10,7 @@ export const CREATE_EXPENSE = gql`
       total
       notes
       expenseDate
+      pocketId
       category {
         id
         name
@@ -28,6 +29,7 @@ export const UPDATE_EXPENSE = gql`
       total
       notes
       expenseDate
+      pocketId
       category {
         id
         name
@@ -78,6 +80,8 @@ export const CREATE_INSTALLMENT = gql`
       startDate
       dueDay
       status
+      icon
+      cardBgColor
     }
   }
 `;
@@ -94,6 +98,8 @@ export const UPDATE_INSTALLMENT = gql`
       startDate
       dueDay
       status
+      icon
+      cardBgColor
     }
   }
 `;
@@ -111,6 +117,7 @@ export const RECORD_INSTALLMENT_PAYMENT = gql`
       paymentNumber
       amount
       paidAt
+      pocketId
     }
   }
 `;
@@ -127,6 +134,8 @@ export const CREATE_DEBT = gql`
       tenor
       dueDate
       status
+      icon
+      cardBgColor
     }
   }
 `;
@@ -143,6 +152,8 @@ export const UPDATE_DEBT = gql`
       tenor
       dueDate
       status
+      icon
+      cardBgColor
     }
   }
 `;
@@ -160,6 +171,7 @@ export const RECORD_DEBT_PAYMENT = gql`
       paymentNumber
       amount
       paidAt
+      pocketId
     }
   }
 `;
@@ -212,10 +224,10 @@ export const CREATE_INCOME = gql`
       id
       sourceName
       amount
-      incomeType
       incomeDate
       isRecurring
       notes
+      pocketId
       category {
         id
         name
@@ -230,10 +242,10 @@ export const UPDATE_INCOME = gql`
       id
       sourceName
       amount
-      incomeType
       incomeDate
       isRecurring
       notes
+      pocketId
       category {
         id
         name
@@ -254,7 +266,6 @@ export const CREATE_RECURRING_INCOME = gql`
       id
       sourceName
       amount
-      incomeType
       recurringDay
       isActive
       notes
@@ -272,7 +283,6 @@ export const UPDATE_RECURRING_INCOME = gql`
       id
       sourceName
       amount
-      incomeType
       recurringDay
       isActive
       notes
@@ -296,7 +306,6 @@ export const CREATE_INCOME_FROM_RECURRING = gql`
       id
       sourceName
       amount
-      incomeType
       incomeDate
       category {
         id
@@ -503,6 +512,7 @@ export const CREATE_SAVINGS_GOAL = gql`
       currentAmount
       targetDate
       icon
+      cardBgColor
       status
       progress
       remainingAmount
@@ -520,6 +530,7 @@ export const UPDATE_SAVINGS_GOAL = gql`
       currentAmount
       targetDate
       icon
+      cardBgColor
       status
       progress
       remainingAmount
@@ -541,6 +552,7 @@ export const ADD_SAVINGS_CONTRIBUTION = gql`
       amount
       contributionDate
       notes
+      pocketId
     }
   }
 `;
@@ -574,5 +586,49 @@ export const CREATE_EXPENSES_FROM_TEMPLATE_GROUP = gql`
         name
       }
     }
+  }
+`;
+
+export const CREATE_POCKET = gql`
+  mutation CreatePocket($input: CreatePocketInput!) {
+    createPocket(input: $input) {
+      id
+      name
+      currentBalance
+      isDefault
+      isPocket
+      icon
+      cardBgColor
+      sortOrder
+      createdAt
+    }
+  }
+`;
+
+export const UPDATE_POCKET = gql`
+  mutation UpdatePocket($id: UUID!, $input: UpdatePocketInput!) {
+    updatePocket(id: $id, input: $input) {
+      id
+      name
+      currentBalance
+      isDefault
+      isPocket
+      icon
+      cardBgColor
+      sortOrder
+      createdAt
+    }
+  }
+`;
+
+export const DELETE_POCKET = gql`
+  mutation DeletePocket($id: UUID!) {
+    deletePocket(id: $id)
+  }
+`;
+
+export const TRANSFER_BETWEEN_POCKETS = gql`
+  mutation TransferBetweenPockets($input: TransferPocketInput!) {
+    transferBetweenPockets(input: $input)
   }
 `;

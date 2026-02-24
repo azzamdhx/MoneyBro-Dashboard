@@ -1,105 +1,30 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useQuery } from "@apollo/client/react";
 import { cn } from "@/lib/utils";
-import { GET_ME } from "@/lib/graphql/queries";
-import {
-  House,
-  TrendingUp,
-  Receipt,
-  CreditCard,
-  Wallet,
-  History,
-  Bell,
-  CalendarClock,
-  RefreshCw,
-  FileText,
-  X,
-  PiggyBank,
-} from "lucide-react";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { GET_ME, GET_EXPENSES } from "@/lib/graphql/queries";
+import { House, Wallet, Plus, Bell } from "@phosphor-icons/react";
 
-interface NavChild {
-  title: string;
-  href: string;
-  icon: React.ElementType;
+interface Expense {
+  id: string;
+  expenseDate: string | null;
 }
 
-interface MenuItem {
-  title: string;
-  href: string;
-  icon: React.ElementType;
-  children?: NavChild[];
+interface ExpensesData {
+  expenses: {
+    items: Expense[];
+  };
 }
-
-const menuItems: MenuItem[] = [
-  {
-    title: "Pemasukan",
-    href: "/incomes",
-    icon: TrendingUp,
-    children: [
-      {
-        title: "Tetap",
-        href: "/recurring-incomes",
-        icon: RefreshCw,
-      },
-    ],
-  },
-  {
-    title: "Pengeluaran",
-    href: "/expenses",
-    icon: Receipt,
-    children: [
-      {
-        title: "Template",
-        href: "/expense-templates",
-        icon: FileText,
-      },
-    ],
-  },
-  {
-    title: "Cicilan",
-    href: "/installments",
-    icon: CreditCard,
-  },
-  {
-    title: "Hutang",
-    href: "/debts",
-    icon: Wallet,
-  },
-  {
-    title: "Tabungan",
-    href: "/savings",
-    icon: PiggyBank,
-  },
-  {
-    title: "Forecast",
-    href: "/forecast",
-    icon: CalendarClock,
-  },
-];
 
 const allowedRoutes = [
   "/dashboard",
-  "/incomes",
-  "/recurring-incomes",
-  "/expenses",
-  "/expense-templates",
-  "/installments",
-  "/debts",
-  "/settings",
-  "/history",
-  "/forecast",
-  "/savings",
+  "/pockets",
   "/notifications",
+  "/settings",  
 ];
 
 interface UserData {
@@ -110,9 +35,19 @@ interface UserData {
 
 export function MobileNav() {
   const pathname = usePathname();
-  const [isOpen, setIsOpen] = useState(false);
   const { data } = useQuery<UserData>(GET_ME);
+  const { data: expensesData } = useQuery<ExpensesData>(GET_EXPENSES);
   const profileImage = data?.me?.profileImage || "BRO-1-B";
+
+  const expenseHref = useMemo(() => {
+    const now = new Date();
+    const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+    const items = expensesData?.expenses?.items || [];
+    const hasCurrentMonth = items.some(
+      (e) => e.expenseDate && e.expenseDate.slice(0, 7) === currentMonth
+    );
+    return hasCurrentMonth ? `/expenses/month/${currentMonth}` : "/expenses/new";
+  }, [expensesData]);
 
   // Check if current path is in allowed routes (exact match only)
   const shouldShowNav = allowedRoutes.includes(pathname);
@@ -137,97 +72,34 @@ export function MobileNav() {
               : "text-muted-foreground"
           )}
         >
-          <House className={cn("h-6 w-6", (pathname === "/dashboard" || pathname.startsWith("/dashboard/")) && "fill-current")} />
+          <House size={24} weight={pathname === "/dashboard" || pathname.startsWith("/dashboard/") ? "fill" : "regular"} />
         </Link>
 
-        {/* History */}
+        {/* Pockets */}
         <Link
-          href="/history"
+          href="/pockets"
           className={cn(
             "flex items-center justify-center px-3 py-2 transition-colors",
-            pathname === "/history" || pathname.startsWith("/history/")
+            pathname === "/pockets" || pathname.startsWith("/pockets/")
               ? "text-primary"
               : "text-muted-foreground"
           )}
         >
-          <History className="h-6 w-6" />
+          <Wallet size={24} weight={pathname === "/pockets" || pathname.startsWith("/pockets/") ? "fill" : "regular"} />
         </Link>
 
-        {/* Menu Popover - Floating FAB */}
-        <Popover open={isOpen} onOpenChange={setIsOpen}>
-          <PopoverTrigger asChild>
-            <button
-              className={cn(
-                "relative -mt-8 flex items-center justify-center w-14 h-14 rounded-full shadow-lg transition-all duration-200",
-                isOpen 
-                  ? "bg-destructive text-primary scale-95" 
-                  : "bg-accent text-primary"
-              )}
-            >
-              {isOpen ? (
-                <X className="h-6 w-6" />
-              ) : (
-                <Wallet className="h-6 w-6" />
-              )}
-            </button>
-          </PopoverTrigger>
-          <PopoverContent 
-            className="w-52 p-2 mb-4 border-border/50 shadow-2xl backdrop-blur-xl bg-gradient-to-b from-card/95 to-background/95" 
-            align="center" 
-            side="top"
-          >
-            <div className="grid gap-1">
-              {menuItems.map((item) => {
-                const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
-                const hasChildren = item.children && item.children.length > 0;
-                const isChildActive = hasChildren && item.children?.some(
-                  child => pathname === child.href || pathname.startsWith(`${child.href}/`)
-                );
-
-                return (
-                  <div key={item.href}>
-                    <Link
-                      href={item.href}
-                      onClick={() => setIsOpen(false)}
-                      className={cn(
-                        "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
-                        isActive || isChildActive
-                          ? "bg-primary/10 text-primary"
-                          : "text-muted-foreground hover:bg-muted"
-                      )}
-                    >
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
-                    </Link>
-                    {hasChildren && item.children && (
-                      <div className="ml-4 border-l border-border/50 pl-2 mt-1 space-y-1">
-                        {item.children.map((child) => {
-                          const childActive = pathname === child.href || pathname.startsWith(`${child.href}/`);
-                          return (
-                            <Link
-                              key={child.href}
-                              href={child.href}
-                              onClick={() => setIsOpen(false)}
-                              className={cn(
-                                "flex items-center gap-2 px-2 py-1.5 rounded-md text-xs transition-colors",
-                                childActive
-                                  ? "bg-primary/10 text-primary"
-                                  : "text-muted-foreground hover:bg-muted"
-                              )}
-                            >
-                              <child.icon className="h-3 w-3" />
-                              <span>{child.title}</span>
-                            </Link>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </PopoverContent>
-        </Popover>
+        {/* Expenses - FAB */}
+        <Link
+          href={expenseHref}
+          className={cn(
+            "relative -mt-8 flex items-center justify-center w-14 h-14 rounded-full shadow-lg transition-all duration-200",
+            pathname === "/expenses" || pathname.startsWith("/expenses/")
+              ? "bg-primary text-primary-foreground"
+              : "bg-accent text-primary"
+          )}
+        >
+          <Plus className="h-6 w-6" weight="bold" />
+        </Link>
 
         {/* Notifikasi */}
         <Link
@@ -239,10 +111,10 @@ export function MobileNav() {
               : "text-muted-foreground"
           )}
         >
-          <Bell className={cn("h-6 w-6", (pathname === "/notifications" || pathname.startsWith("/notifications/")) && "fill-current")} />
+          <Bell size={24} weight={pathname === "/notifications" || pathname.startsWith("/notifications/") ? "fill" : "regular"} />
         </Link>
 
-        {/* Profil */}
+        {/* Profil/Settings */}
         <Link
           href="/settings"
           className={cn(

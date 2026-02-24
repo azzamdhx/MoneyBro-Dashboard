@@ -39,7 +39,8 @@ import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { EmojiPicker } from "@/components/ui/emoji-picker";
-import { getInstallmentEmoji, setInstallmentEmoji } from "@/lib/utils/emoji-storage";
+import { ColorPicker } from "@/components/ui/color-picker";
+import { PocketSelector } from "@/components/pocket/pocket-selector";
 
 const GET_INSTALLMENT = gql`
   query GetInstallment($id: UUID!) {
@@ -54,6 +55,8 @@ const GET_INSTALLMENT = gql`
       startDate
       dueDay
       status
+      icon
+      cardBgColor
       notes
       createdAt
       interestAmount
@@ -88,6 +91,8 @@ interface Installment {
   startDate: string;
   dueDay: number;
   status: string;
+  icon: string | null;
+  cardBgColor: string | null;
   notes: string | null;
   interestAmount: number;
   interestPercentage: number;
@@ -116,8 +121,10 @@ export default function InstallmentDetailPage() {
   const isNew = id === "new";
 
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
+  const [paymentPocketId, setPaymentPocketId] = useState("");
   const [fabOpen, setFabOpen] = useState(false);
   const [emoji, setEmoji] = useState("");
+  const [cardBgColor, setCardBgColor] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     actualAmount: "",
@@ -147,23 +154,17 @@ export default function InstallmentDetailPage() {
         startDate: installment.startDate?.slice(0, 10) || "",
         notes: installment.notes || "",
       });
-      setEmoji(getInstallmentEmoji(installment.id));
+      setEmoji(installment.icon || "");
+      setCardBgColor(installment.cardBgColor || null);
     }
   }, [installment]);
 
   const handleEmojiChange = (newEmoji: string) => {
     setEmoji(newEmoji);
-    if (!isNew && id) {
-      setInstallmentEmoji(id, newEmoji);
-    }
   };
 
   const [createInstallment, { loading: creating }] = useMutation(CREATE_INSTALLMENT, {
-    onCompleted: (data) => {
-      const newId = (data as { createInstallment: { id: string } }).createInstallment.id;
-      if (emoji && newId) {
-        setInstallmentEmoji(newId, emoji);
-      }
+    onCompleted: () => {
       toast.success("Cicilan berhasil ditambahkan");
       router.push("/installments");
     },
@@ -229,6 +230,8 @@ export default function InstallmentDetailPage() {
       tenor: parseInt(formData.tenor),
       dueDay: parseInt(formData.dueDay),
       startDate: formData.startDate ? toRFC3339(formData.startDate) : null,
+      icon: emoji || null,
+      cardBgColor: cardBgColor || null,
       notes: formData.notes || null,
     };
 
@@ -251,6 +254,7 @@ export default function InstallmentDetailPage() {
           installmentId: id,
           amount: installment.monthlyPayment,
           paidAt: toRFC3339(new Date().toISOString()),
+          pocketId: paymentPocketId || undefined,
         },
       },
     });
@@ -387,6 +391,14 @@ export default function InstallmentDetailPage() {
             <DialogTitle>Konfirmasi Pembayaran</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Pocket</Label>
+              <PocketSelector
+                value={paymentPocketId}
+                onChange={setPaymentPocketId}
+                className="w-full"
+              />
+            </div>
             <div className="p-4 bg-card rounded-lg">
               <p className="text-sm text-primary">Jumlah Pembayaran</p>
               <p className="text-2xl font-bold text-income">
@@ -493,6 +505,10 @@ export default function InstallmentDetailPage() {
                   <EmojiPicker
                     value={emoji}
                     onChange={handleEmojiChange}
+                  />
+                  <ColorPicker
+                    value={cardBgColor}
+                    onChange={setCardBgColor}
                   />
                   <Input
                     value={formData.name}

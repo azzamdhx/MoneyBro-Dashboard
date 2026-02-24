@@ -9,11 +9,10 @@ import { Button } from "@/components/ui/button";
 import { formatIDR } from "@/lib/utils/currency";
 import { formatDateShortID } from "@/lib/utils/format";
 import { GET_DEBTS } from "@/lib/graphql/queries";
-import { Plus, Wallet, CheckCircle2, Clock, X } from "lucide-react";
+import { Plus, Wallet, CheckCircle2, Clock, ArrowLeft } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { getDebtEmoji } from "@/lib/utils/emoji-storage";
+import { getContrastStyles } from "@/lib/utils/color";
 
 interface DebtPayment {
   id: string;
@@ -31,6 +30,8 @@ interface Debt {
   tenor: number;
   dueDate: string | null;
   status: string;
+  icon: string | null;
+  cardBgColor: string | null;
   notes: string | null;
   createdAt: string;
   totalToPay: number;
@@ -59,7 +60,6 @@ const getPaymentTypeLabel = (type: string): string => {
 export default function DebtsPage() {
   const router = useRouter();
   const { data, loading } = useQuery<DebtsData>(GET_DEBTS);
-  const [fabOpen, setFabOpen] = useState(false);
   const [emojis, setEmojis] = useState<Record<string, string>>({});
 
   const debts: Debt[] = data?.debts || [];
@@ -69,8 +69,7 @@ export default function DebtsPage() {
     if (items.length > 0) {
       const map: Record<string, string> = {};
       items.forEach((d) => {
-        const emoji = getDebtEmoji(d.id);
-        if (emoji) map[d.id] = emoji;
+        if (d.icon) map[d.id] = d.icon;
       });
       setEmojis(map);
     }
@@ -90,9 +89,14 @@ export default function DebtsPage() {
     <>
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Hutang</h1>
-          <p className="text-muted-foreground hidden sm:block">Kelola hutang kamu</p>
+        <div className="flex items-center gap-3">
+          <Link href="/dashboard" className="md:hidden">
+            <ArrowLeft className="h-5 w-5" />
+          </Link>
+          <div>
+            <h1 className="text-2xl font-bold">Hutang</h1>
+            <p className="text-muted-foreground hidden sm:block">Kelola hutang kamu</p>
+          </div>
         </div>
         <Button asChild className="w-fit hidden md:inline-flex">
           <Link href="/debts/new">
@@ -102,26 +106,26 @@ export default function DebtsPage() {
         </Button>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Card className="bg-card border-1">
+      <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 sm:grid sm:grid-cols-2 sm:overflow-visible">
+        <Card className="bg-card border-1 min-w-[90%] shrink-0 sm:min-w-0">
           <CardHeader>
             <CardTitle className="flex flex-col gap-4 items-start">
               <span className="text-primary">Cicilan Bulanan</span>
               <span className="text-2xl text-debt">{formatIDR(totalMonthlyPayment)}</span>
             </CardTitle>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-muted-foreground hidden sm:block">
               {activeDebts.filter((d) => d.paymentType === "INSTALLMENT").length} hutang cicilan
             </p>
           </CardHeader>
         </Card>
 
-        <Card className="bg-card border-1">
+        <Card className="bg-card border-1 min-w-[90%] shrink-0 sm:min-w-0">
           <CardHeader>
             <CardTitle className="flex flex-col gap-4 items-start">
               <span className="text-primary">Sisa Hutang</span>
               <span className="text-2xl text-debt">{formatIDR(totalRemainingAmount)}</span>
             </CardTitle>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-muted-foreground hidden sm:block">
               {activeDebts.length} hutang aktif
             </p>
           </CardHeader>
@@ -163,32 +167,33 @@ export default function DebtsPage() {
                 <Clock className="h-5 w-5 text-debt" />
                 Hutang Aktif ({activeDebts.length})
               </h2>
-              <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-4">
-                {activeDebts.map((debt) => (
+              <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+                {activeDebts.map((debt) => {
+                  const c = getContrastStyles(debt.cardBgColor);
+                  return (
                   <Card
                     key={debt.id}
                     className="cursor-pointer hover:border-accent transition-colors py-0"
                     onClick={() => router.push(`/debts/${debt.id}`)}
+                    style={debt.cardBgColor ? { backgroundColor: debt.cardBgColor, borderColor: debt.cardBgColor } : undefined}
                   >
                     <CardContent className="p-4">
                       <div className="flex mb-2">
-                        <div className="h-8 w-8 rounded-lg bg-debt/10 flex items-center justify-center">
-                          {emojis[debt.id] ? (
-                            <span className="text-lg">{emojis[debt.id]}</span>
-                          ) : (
-                            <Wallet className="h-4 w-4 text-debt" />
-                          )}
-                        </div>
+                        {emojis[debt.id] ? (
+                          <span className="text-2xl">{emojis[debt.id]}</span>
+                        ) : (
+                          <Wallet className={cn("h-5 w-5", c.bold || "text-debt")} />
+                        )}
                       </div>
                       <div className="space-y-2">
                         <div>
-                          <h3 className="font-semibold">{debt.personName}</h3>
+                          <h3 className={cn("font-semibold", c.text)}>{debt.personName}</h3>
                           <div className="flex flex-wrap items-center gap-1 mt-1">
-                            <span className="text-sm text-muted-foreground">
+                            <span className={cn("text-sm", c.muted)}>
                               {getPaymentTypeLabel(debt.paymentType)}
                             </span>
                             {debt.dueDate && (
-                              <span className="text-xs text-muted-foreground">
+                              <span className={cn("text-xs", c.muted)}>
                                 · {formatDateShortID(debt.dueDate)}
                               </span>
                             )}
@@ -197,15 +202,15 @@ export default function DebtsPage() {
                         <div>
                           {debt.paymentType === "INSTALLMENT" ? (
                             <>
-                              <p className="font-bold text-debt">
+                              <p className={cn("font-bold", c.bold || "text-debt")}>
                                 {formatIDR(debt.monthlyPayment || 0)}/bln
                               </p>
-                              <p className="text-xs text-muted-foreground mt-1">
+                              <p className={cn("text-xs mt-1", c.muted)}>
                                 Sisa {formatIDR(debt.remainingAmount)}
                               </p>
                             </>
                           ) : (
-                            <p className="font-bold text-debt">
+                            <p className={cn("font-bold", c.bold || "text-debt")}>
                               {formatIDR(debt.remainingAmount)}
                             </p>
                           )}
@@ -213,7 +218,8 @@ export default function DebtsPage() {
                       </div>
                     </CardContent>
                   </Card>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
@@ -224,7 +230,7 @@ export default function DebtsPage() {
                 <CheckCircle2 className="h-5 w-5 text-income" />
                 Hutang Lunas ({paidDebts.length})
               </h2>
-              <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-4">
+              <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
                 {paidDebts.map((debt) => (
                   <Card
                     key={debt.id}
@@ -233,13 +239,11 @@ export default function DebtsPage() {
                   >
                     <CardContent className="p-4">
                       <div className="flex mb-2">
-                        <div className="h-8 w-8 rounded-lg bg-income/10 flex items-center justify-center">
-                          {emojis[debt.id] ? (
-                            <span className="text-lg">{emojis[debt.id]}</span>
-                          ) : (
-                            <CheckCircle2 className="h-4 w-4 text-income" />
-                          )}
-                        </div>
+                        {emojis[debt.id] ? (
+                          <span className="text-2xl">{emojis[debt.id]}</span>
+                        ) : (
+                          <CheckCircle2 className="h-5 w-5 text-income" />
+                        )}
                       </div>
                       <div className="space-y-2">
                         <div>
@@ -274,41 +278,13 @@ export default function DebtsPage() {
     </div>
 
     {/* Floating Action Button - Mobile Only */}
-    <div className="fixed bottom-28 right-6 z-[60] md:hidden">
-      <Popover open={fabOpen} onOpenChange={setFabOpen}>
-        <PopoverTrigger asChild>
-          <button
-            className={cn(
-              "flex items-center justify-center w-14 h-14 rounded-full shadow-lg transition-all duration-200",
-              fabOpen
-                ? "bg-destructive text-destructive-foreground scale-95"
-                : "bg-primary text-primary-foreground"
-            )}
-          >
-            {fabOpen ? (
-              <X className="h-6 w-6" />
-            ) : (
-              <Plus className="h-6 w-6" />
-            )}
-          </button>
-        </PopoverTrigger>
-        <PopoverContent
-          className="w-52 p-2 mb-2 border-border/50 shadow-2xl backdrop-blur-xl bg-gradient-to-b from-card/95 to-background/95"
-          align="end"
-          side="top"
-        >
-          <div className="grid gap-1">
-            <Link
-              href="/debts/new"
-              onClick={() => setFabOpen(false)}
-              className="flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors text-muted-foreground hover:bg-muted"
-            >
-              <Plus className="h-4 w-4" />
-              <span>Tambah</span>
-            </Link>
-          </div>
-        </PopoverContent>
-      </Popover>
+    <div className="fixed bottom-10 right-6 z-[60] md:hidden">
+      <Link
+        href="/debts/new"
+        className="flex items-center justify-center w-14 h-14 rounded-full shadow-lg bg-primary text-primary-foreground"
+      >
+        <Plus className="h-6 w-6" />
+      </Link>
     </div>
     </>
   );

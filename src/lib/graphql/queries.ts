@@ -31,6 +31,7 @@ export const GET_DASHBOARD = gql`
         currentAmount
         targetDate
         icon
+        cardBgColor
         status
         progress
         remainingAmount
@@ -84,6 +85,7 @@ export const GET_EXPENSES = gql`
         total
         notes
         expenseDate
+        pocketId
         createdAt
         category {
           id
@@ -130,6 +132,8 @@ export const GET_INSTALLMENTS = gql`
       startDate
       dueDay
       status
+      icon
+      cardBgColor
       notes
       createdAt
       interestAmount
@@ -141,6 +145,7 @@ export const GET_INSTALLMENTS = gql`
         paymentNumber
         amount
         paidAt
+        pocketId
       }
     }
   }
@@ -158,6 +163,8 @@ export const GET_DEBTS = gql`
       tenor
       dueDate
       status
+      icon
+      cardBgColor
       notes
       createdAt
       totalToPay
@@ -169,6 +176,7 @@ export const GET_DEBTS = gql`
         id
         amount
         paidAt
+        pocketId
       }
     }
   }
@@ -191,10 +199,10 @@ export const GET_INCOMES = gql`
         id
         sourceName
         amount
-        incomeType
         incomeDate
         isRecurring
         notes
+        pocketId
         createdAt
         category {
           id
@@ -212,11 +220,6 @@ export const GET_INCOMES = gql`
           totalAmount
           count
         }
-        byType {
-          incomeType
-          totalAmount
-          count
-        }
       }
     }
   }
@@ -228,7 +231,6 @@ export const GET_RECURRING_INCOMES = gql`
       id
       sourceName
       amount
-      incomeType
       recurringDay
       isActive
       notes
@@ -279,11 +281,6 @@ export const GET_BALANCE = gql`
             id
             name
           }
-          totalAmount
-          incomeCount
-        }
-        byType {
-          incomeType
           totalAmount
           incomeCount
         }
@@ -350,6 +347,7 @@ export const GET_SAVINGS_GOALS = gql`
       currentAmount
       targetDate
       icon
+      cardBgColor
       status
       notes
       progress
@@ -361,6 +359,7 @@ export const GET_SAVINGS_GOALS = gql`
         amount
         contributionDate
         notes
+        pocketId
         createdAt
       }
     }
@@ -404,11 +403,6 @@ export const GET_HISTORY_SUMMARY = gql`
             id
             name
           }
-          totalAmount
-          count
-        }
-        byType {
-          incomeType
           totalAmount
           count
         }
@@ -465,11 +459,6 @@ export const GET_FORECAST_SUMMARY = gql`
           totalAmount
           count
         }
-        byType {
-          incomeType
-          totalAmount
-          count
-        }
       }
       expenseSummary {
         total
@@ -506,6 +495,22 @@ export const GET_FORECAST_SUMMARY = gql`
         totalPayments
       }
       totalSavingsContribution
+    }
+  }
+`;
+
+export const GET_POCKETS = gql`
+  query GetPockets {
+    pockets {
+      id
+      name
+      currentBalance
+      isDefault
+      isPocket
+      icon
+      cardBgColor
+      sortOrder
+      createdAt
     }
   }
 `;

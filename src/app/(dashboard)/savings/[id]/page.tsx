@@ -41,7 +41,8 @@ import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { EmojiPicker } from "@/components/ui/emoji-picker";
-import { getSavingsEmoji, setSavingsEmoji } from "@/lib/utils/emoji-storage";
+import { ColorPicker } from "@/components/ui/color-picker";
+import { PocketSelector } from "@/components/pocket/pocket-selector";
 
 const GET_SAVINGS_GOAL = gql`
   query GetSavingsGoal($id: UUID!) {
@@ -52,6 +53,7 @@ const GET_SAVINGS_GOAL = gql`
       currentAmount
       targetDate
       icon
+      cardBgColor
       status
       notes
       progress
@@ -84,6 +86,7 @@ interface SavingsGoal {
   currentAmount: number;
   targetDate: string;
   icon: string | null;
+  cardBgColor: string | null;
   status: string;
   notes: string | null;
   progress: number;
@@ -113,8 +116,10 @@ export default function SavingsGoalDetailPage() {
   const isNew = id === "new";
 
   const [isContributionOpen, setIsContributionOpen] = useState(false);
+  const [contributionPocketId, setContributionPocketId] = useState("");
   const [fabOpen, setFabOpen] = useState(false);
   const [emoji, setEmoji] = useState("");
+  const [cardBgColor, setCardBgColor] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     targetAmount: "",
@@ -156,15 +161,13 @@ export default function SavingsGoalDetailPage() {
         targetMonths: diffMonths > 0 ? String(diffMonths) : "1",
         notes: goal.notes || "",
       });
-      setEmoji(getSavingsEmoji(goal.id));
+      setEmoji(goal.icon || "");
+      setCardBgColor(goal.cardBgColor || null);
     }
   }, [goal]);
 
   const handleEmojiChange = (newEmoji: string) => {
     setEmoji(newEmoji);
-    if (!isNew && id) {
-      setSavingsEmoji(id, newEmoji);
-    }
   };
 
   const updateTargetDateFromMonths = (months: string) => {
@@ -215,14 +218,13 @@ export default function SavingsGoalDetailPage() {
               name: formData.name,
               targetAmount,
               targetDate: toRFC3339(formData.targetDate),
+              icon: emoji || null,
+              cardBgColor: cardBgColor || null,
               notes: formData.notes || null,
             },
           },
         });
         const newId = (res.data as { createSavingsGoal: { id: string } }).createSavingsGoal.id;
-        if (emoji && newId) {
-          setSavingsEmoji(newId, emoji);
-        }
         toast.success("Tabungan berhasil dibuat");
         router.replace(`/savings/${newId}`);
       } else {
@@ -233,6 +235,8 @@ export default function SavingsGoalDetailPage() {
               name: formData.name,
               targetAmount,
               targetDate: toRFC3339(formData.targetDate),
+              icon: emoji || null,
+              cardBgColor: cardBgColor || null,
               notes: formData.notes || null,
             },
           },
@@ -274,6 +278,7 @@ export default function SavingsGoalDetailPage() {
             amount,
             contributionDate: toRFC3339(contributionData.contributionDate),
             notes: contributionData.notes || null,
+            pocketId: contributionPocketId || undefined,
           },
         },
       });
@@ -419,6 +424,14 @@ export default function SavingsGoalDetailPage() {
             <DialogTitle>Tambah Kontribusi</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleAddContribution} className="space-y-4">
+            <div className="space-y-2">
+              <Label>Pocket</Label>
+              <PocketSelector
+                value={contributionPocketId}
+                onChange={setContributionPocketId}
+                className="w-full"
+              />
+            </div>
             <div className="space-y-2">
               <Label htmlFor="contrib-amount">Jumlah (Rp) *</Label>
               <Input
@@ -596,6 +609,10 @@ export default function SavingsGoalDetailPage() {
                   <EmojiPicker
                     value={emoji}
                     onChange={handleEmojiChange}
+                  />
+                  <ColorPicker
+                    value={cardBgColor}
+                    onChange={setCardBgColor}
                   />
                   <Input
                     value={formData.name}

@@ -17,6 +17,7 @@ import {
   PiggyBank,
   TrendingUp,
   CalendarClock,
+  ArrowLeft,
 } from "lucide-react";
 import { ValueChip } from "@/components/ui/value-chip";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -47,11 +48,6 @@ interface ForecastSummaryData {
       count: number;
       byCategory: {
         category: { id: string; name: string };
-        totalAmount: number;
-        count: number;
-      }[];
-      byType: {
-        incomeType: string;
         totalAmount: number;
         count: number;
       }[];
@@ -160,7 +156,10 @@ export default function ForecastPage() {
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+          <Link href="/dashboard" className="md:hidden">
+            <ArrowLeft className="h-5 w-5" />
+          </Link>
+          <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center hidden md:flex">
             <TrendingUp className="h-5 w-5 text-primary" />
           </div>
           <div>
@@ -245,7 +244,10 @@ export default function ForecastPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+          <Link href="/dashboard" className="md:hidden">
+            <ArrowLeft className="h-5 w-5" />
+          </Link>
+          <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center hidden md:flex">
             <TrendingUp className="h-5 w-5 text-primary" />
           </div>
           <div>
@@ -308,60 +310,60 @@ export default function ForecastPage() {
             }
           />
 
-          {/* Monthly Cash Flow Cards - Mobile: scroll row */}
-          <div className="flex gap-4 overflow-x-auto pb-2 md:hidden">
-            <Link href="/incomes" className="min-w-[200px] flex-shrink-0">
+          {/* Monthly Cash Flow Cards — 2-col grid on mobile */}
+          <div className="grid grid-cols-2 gap-3 md:hidden">
+            <Link href="/incomes">
               <Card className="h-full transition-colors hover:bg-muted/50">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Pemasukan</CardTitle>
                   <BadgeDollarSign className="h-4 w-4 text-income" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-income">{formatIDR(incomeSummary?.total || 0)}</div>
+                  <div className="text-lg font-bold text-income break-all">{formatIDR(incomeSummary?.total || 0)}</div>
                 </CardContent>
               </Card>
             </Link>
-            <Link href="/expenses" className="min-w-[200px] flex-shrink-0">
+            <Link href="/expenses">
               <Card className="h-full transition-colors hover:bg-muted/50">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Pengeluaran</CardTitle>
                   <Wallet className="h-4 w-4 text-expense" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-expense">{formatIDR(expenseSummary?.total || 0)}</div>
+                  <div className="text-lg font-bold text-expense break-all">{formatIDR(expenseSummary?.total || 0)}</div>
                 </CardContent>
               </Card>
             </Link>
-            <Link href="/installments" className="min-w-[200px] flex-shrink-0">
+            <Link href="/installments">
               <Card className="h-full transition-colors hover:bg-muted/50">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Cicilan</CardTitle>
                   <CreditCard className="h-4 w-4 text-installment" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-installment">{formatIDR(payments?.totalInstallment || 0)}</div>
+                  <div className="text-lg font-bold text-installment break-all">{formatIDR(payments?.totalInstallment || 0)}</div>
                 </CardContent>
               </Card>
             </Link>
-            <Link href="/debts" className="min-w-[200px] flex-shrink-0">
+            <Link href="/debts">
               <Card className="h-full transition-colors hover:bg-muted/50">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Hutang</CardTitle>
                   <Receipt className="h-4 w-4 text-debt" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-debt">{formatIDR(payments?.totalDebt || 0)}</div>
+                  <div className="text-lg font-bold text-debt break-all">{formatIDR(payments?.totalDebt || 0)}</div>
                 </CardContent>
               </Card>
             </Link>
-            <Link href="/savings" className="min-w-[200px] flex-shrink-0">
+            <Link href="/savings" className="col-span-2">
               <Card className="h-full transition-colors hover:bg-muted/50">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Tabungan</CardTitle>
                   <PiggyBank className="h-4 w-4 text-savings" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-savings">{formatIDR(summary?.totalSavingsContribution || 0)}</div>
+                  <div className="text-lg font-bold text-savings break-all">{formatIDR(summary?.totalSavingsContribution || 0)}</div>
                 </CardContent>
               </Card>
             </Link>

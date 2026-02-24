@@ -43,7 +43,6 @@ const GET_RECURRING_INCOME = gql`
       id
       sourceName
       amount
-      incomeType
       recurringDay
       isActive
       notes
@@ -64,7 +63,6 @@ interface RecurringIncome {
   id: string;
   sourceName: string;
   amount: number;
-  incomeType: string;
   recurringDay: number;
   isActive: boolean;
   notes: string | null;
@@ -79,16 +77,6 @@ interface RecurringIncomeData {
   recurringIncome: RecurringIncome;
 }
 
-const INCOME_TYPES = [
-  { value: "SALARY", label: "Gaji" },
-  { value: "FREELANCE", label: "Freelance" },
-  { value: "BUSINESS", label: "Bisnis" },
-  { value: "INVESTMENT", label: "Investasi" },
-  { value: "BONUS", label: "Bonus" },
-  { value: "REFUND", label: "Refund" },
-  { value: "GIFT", label: "Hadiah" },
-  { value: "OTHER", label: "Lainnya" },
-];
 
 const parseNumber = (value: string): number => {
   return parseInt(value.replace(/\D/g, "")) || 0;
@@ -109,7 +97,6 @@ export default function RecurringIncomeDetailPage() {
     categoryId: "",
     sourceName: "",
     amount: "",
-    incomeType: "SALARY",
     recurringDay: "1",
     isActive: true,
     notes: "",
@@ -147,7 +134,6 @@ export default function RecurringIncomeDetailPage() {
         categoryId: recurring.category.id,
         sourceName: recurring.sourceName,
         amount: formatNumberID(recurring.amount),
-        incomeType: recurring.incomeType,
         recurringDay: recurring.recurringDay.toString(),
         isActive: recurring.isActive,
         notes: recurring.notes || "",
@@ -238,7 +224,6 @@ export default function RecurringIncomeDetailPage() {
         categoryId: formData.categoryId,
         sourceName: formData.sourceName,
         amount: parseNumber(formData.amount),
-        incomeType: formData.incomeType,
         recurringDay: recurringDay,
         notes: formData.notes || null,
       };
@@ -261,7 +246,6 @@ export default function RecurringIncomeDetailPage() {
         categoryId: formData.categoryId,
         sourceName: formData.sourceName,
         amount: parseNumber(formData.amount),
-        incomeType: formData.incomeType,
         recurringDay: recurringDay,
         notes: formData.notes || null,
       };
@@ -343,22 +327,6 @@ export default function RecurringIncomeDetailPage() {
         id,
         input: { 
           categoryId,
-          isActive: editingRecurring.isActive,
-        },
-      },
-    });
-  };
-
-  const handleInlineTypeChange = async (incomeType: string) => {
-    if (!editingRecurring || incomeType === editingRecurring.incomeType) return;
-    
-    setIsSaving(true);
-    await updateRecurring({
-      variables: {
-        id,
-        input: { 
-          categoryId: editingRecurring.category.id,
-          incomeType,
           isActive: editingRecurring.isActive,
         },
       },
@@ -494,25 +462,6 @@ export default function RecurringIncomeDetailPage() {
                   </Select>
                 </div>
 
-                <div className="space-y-2">
-                  <Label className="text-muted-foreground text-xs">Tipe Pemasukan</Label>
-                  <Select
-                    value={editingRecurring.incomeType}
-                    onValueChange={handleInlineTypeChange}
-                    disabled={isSaving}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {INCOME_TYPES.map((type) => (
-                        <SelectItem key={type.value} value={type.value}>
-                          {type.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -664,24 +613,6 @@ export default function RecurringIncomeDetailPage() {
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label className="text-muted-foreground text-xs">Tipe Pemasukan</Label>
-                  <Select
-                    value={formData.incomeType}
-                    onValueChange={(value) => setFormData((prev) => ({ ...prev, incomeType: value }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {INCOME_TYPES.map((type) => (
-                        <SelectItem key={type.value} value={type.value}>
-                          {type.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -47,7 +47,8 @@ import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { EmojiPicker } from "@/components/ui/emoji-picker";
-import { getDebtEmoji, setDebtEmoji } from "@/lib/utils/emoji-storage";
+import { ColorPicker } from "@/components/ui/color-picker";
+import { PocketSelector } from "@/components/pocket/pocket-selector";
 
 const GET_DEBT = gql`
   query GetDebt($id: UUID!) {
@@ -61,6 +62,8 @@ const GET_DEBT = gql`
       tenor
       dueDate
       status
+      icon
+      cardBgColor
       notes
       createdAt
       totalToPay
@@ -95,6 +98,8 @@ interface Debt {
   tenor: number;
   dueDate: string | null;
   status: string;
+  icon: string | null;
+  cardBgColor: string | null;
   notes: string | null;
   totalToPay: number;
   paidAmount: number;
@@ -133,8 +138,10 @@ export default function DebtDetailPage() {
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
   const [paymentAmount, setPaymentAmount] = useState("");
   const [paymentDate, setPaymentDate] = useState(new Date().toISOString().split("T")[0]);
+  const [paymentPocketId, setPaymentPocketId] = useState("");
   const [fabOpen, setFabOpen] = useState(false);
   const [emoji, setEmoji] = useState("");
+  const [cardBgColor, setCardBgColor] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     personName: "",
     actualAmount: "",
@@ -165,23 +172,17 @@ export default function DebtDetailPage() {
         notes: debt.notes || "",
       });
       setPaymentAmount(debt.monthlyPayment ? formatNumberID(debt.monthlyPayment) : "");
-      setEmoji(getDebtEmoji(debt.id));
+      setEmoji(debt.icon || "");
+      setCardBgColor(debt.cardBgColor || null);
     }
   }, [debt]);
 
   const handleEmojiChange = (newEmoji: string) => {
     setEmoji(newEmoji);
-    if (!isNew && id) {
-      setDebtEmoji(id, newEmoji);
-    }
   };
 
   const [createDebt, { loading: creating }] = useMutation(CREATE_DEBT, {
-    onCompleted: (data) => {
-      const newId = (data as { createDebt: { id: string } }).createDebt.id;
-      if (emoji && newId) {
-        setDebtEmoji(newId, emoji);
-      }
+    onCompleted: () => {
       toast.success("Hutang berhasil ditambahkan");
       router.push("/debts");
     },
@@ -215,7 +216,7 @@ export default function DebtDetailPage() {
       toast.success("Pembayaran berhasil dicatat");
       setIsPaymentOpen(false);
       setPaymentAmount("");
-      setPaymentDate(new Date().toISOString().split("T")[0]);  // Reset tanggal
+      setPaymentDate(new Date().toISOString().split("T")[0]);
       refetch();
     },
     onError: (error) => {
@@ -246,6 +247,8 @@ export default function DebtDetailPage() {
       actualAmount: parseNumber(formData.actualAmount),
       paymentType: formData.paymentType,
       dueDate: formData.dueDate ? toRFC3339(formData.dueDate) : null,
+      icon: emoji || null,
+      cardBgColor: cardBgColor || null,
       notes: formData.notes || null,
     };
 
@@ -275,6 +278,7 @@ export default function DebtDetailPage() {
           debtId: id,
           amount: parseNumber(paymentAmount),
           paidAt: toRFC3339(paymentDate),
+          pocketId: paymentPocketId || undefined,
         },
       },
     });
@@ -420,6 +424,15 @@ export default function DebtDetailPage() {
             </div>
 
             <div className="space-y-2">
+              <Label>Pocket</Label>
+              <PocketSelector
+                value={paymentPocketId}
+                onChange={setPaymentPocketId}
+                className="w-full"
+              />
+            </div>
+
+            <div className="space-y-2">
               <Label>Jumlah Pembayaran</Label>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
@@ -550,6 +563,10 @@ export default function DebtDetailPage() {
                   <EmojiPicker
                     value={emoji}
                     onChange={handleEmojiChange}
+                  />
+                  <ColorPicker
+                    value={cardBgColor}
+                    onChange={setCardBgColor}
                   />
                   <Input
                     value={formData.personName}

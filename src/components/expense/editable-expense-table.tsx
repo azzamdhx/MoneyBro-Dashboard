@@ -31,8 +31,9 @@ import { formatNumberID } from "@/lib/utils/format";
 import { GET_CATEGORIES } from "@/lib/graphql/queries";
 import { CREATE_CATEGORY } from "@/lib/graphql/mutations";
 import { toast } from "sonner";
-import { Plus, Trash2, Loader2 } from "lucide-react";
+import { Plus, Trash2, Loader2, Check } from "lucide-react";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
+import { PocketSelector } from "@/components/pocket/pocket-selector";
 
 interface Category {
   id: string;
@@ -49,16 +50,17 @@ interface Item {
   unitPrice: number;
   quantity: number;
   total: number;
+  pocketId?: string | null;
   category: Category;
 }
 
 export interface EditableExpenseTableRef {
-  addItem: (item: { itemName: string; categoryId: string; unitPrice: number; quantity: number }) => void;
+  addItem: (item: { itemName: string; categoryId: string; unitPrice: number; quantity: number; pocketId?: string }) => void;
 }
 
 interface EditableExpenseTableProps {
   items: Item[];
-  onCreateItem: (input: { itemName: string; categoryId: string; unitPrice: number; quantity: number }) => Promise<void>;
+  onCreateItem: (input: { itemName: string; categoryId: string; unitPrice: number; quantity: number; pocketId?: string }) => Promise<void>;
   onUpdateItem: (id: string, input: Record<string, unknown>) => Promise<void>;
   onDeleteItem: (id: string) => Promise<void>;
   onSaveComplete?: () => void;
@@ -74,6 +76,7 @@ interface NewExpenseRow {
   categoryId: string;
   unitPrice: string;
   quantity: string;
+  pocketId: string;
 }
 
 const initialNewRow: NewExpenseRow = {
@@ -81,6 +84,7 @@ const initialNewRow: NewExpenseRow = {
   categoryId: "",
   unitPrice: "",
   quantity: "1",
+  pocketId: "",
 };
 
 export const EditableExpenseTable = forwardRef<EditableExpenseTableRef, EditableExpenseTableProps>(function EditableExpenseTable({ items, onCreateItem, onUpdateItem, onDeleteItem, onSaveComplete }, ref) {
@@ -94,7 +98,7 @@ export const EditableExpenseTable = forwardRef<EditableExpenseTableRef, Editable
   const blurTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Buffered create/edit/delete state
-  const [pendingCreates, setPendingCreates] = useState<Map<string, { itemName: string; categoryId: string; unitPrice: number; quantity: number }>>(new Map());
+  const [pendingCreates, setPendingCreates] = useState<Map<string, { itemName: string; categoryId: string; unitPrice: number; quantity: number; pocketId?: string }>>(new Map());
   const [pendingUpdates, setPendingUpdates] = useState<Map<string, Record<string, unknown>>>(new Map());
   const [pendingDeletes, setPendingDeletes] = useState<Set<string>>(new Set());
   const [saving, setSaving] = useState(false);
@@ -139,6 +143,7 @@ export const EditableExpenseTable = forwardRef<EditableExpenseTableRef, Editable
       unitPrice: pc.unitPrice,
       quantity: pc.quantity,
       total: pc.unitPrice * pc.quantity,
+      pocketId: pc.pocketId,
       category: categories.find(c => c.id === pc.categoryId) || { id: pc.categoryId, name: "" },
     }));
 
@@ -169,6 +174,7 @@ export const EditableExpenseTable = forwardRef<EditableExpenseTableRef, Editable
         categoryId: newRow.categoryId,
         unitPrice,
         quantity,
+        pocketId: newRow.pocketId || undefined,
       });
       return next;
     });
@@ -245,6 +251,28 @@ export const EditableExpenseTable = forwardRef<EditableExpenseTableRef, Editable
         if (field === "itemName") existing.itemName = editValue.trim();
         else if (field === "unitPrice") existing.unitPrice = newValue;
         else if (field === "quantity") existing.quantity = newValue;
+        next.set(item.id, existing);
+        return next;
+      });
+    }
+  };
+
+  const handlePocketChange = (item: Item, pocketId: string) => {
+    if (pocketId === item.pocketId) return;
+
+    if (pendingCreates.has(item.id)) {
+      setPendingCreates(prev => {
+        const next = new Map(prev);
+        const existing = next.get(item.id)!;
+        existing.pocketId = pocketId;
+        next.set(item.id, existing);
+        return next;
+      });
+    } else {
+      setPendingUpdates(prev => {
+        const next = new Map(prev);
+        const existing = next.get(item.id) || {};
+        existing.pocketId = pocketId;
         next.set(item.id, existing);
         return next;
       });
@@ -388,7 +416,7 @@ export const EditableExpenseTable = forwardRef<EditableExpenseTableRef, Editable
 
     return (
       <div
-        className={`cursor-pointer hover:bg-muted/50 px-2 py-1 rounded -mx-2 ${isPending ? "text-primary" : ""}`}
+        className={`cursor-pointer px-2 py-1 rounded -mx-2 ${isPending ? "text-primary" : ""}`}
         onClick={() => startEditing(item, field)}
       >
         {displayValue}
@@ -404,6 +432,7 @@ export const EditableExpenseTable = forwardRef<EditableExpenseTableRef, Editable
           <TableRow>
             <TableHead className="min-w-[150px]">Item</TableHead>
             <TableHead className="min-w-[120px]">Kategori</TableHead>
+            <TableHead className="min-w-[120px]">Pocket</TableHead>
             <TableHead className="text-right min-w-[100px]">Harga</TableHead>
             <TableHead className="text-right min-w-[60px]">Qty</TableHead>
             <TableHead className="text-right min-w-[100px]">Total</TableHead>
@@ -433,6 +462,13 @@ export const EditableExpenseTable = forwardRef<EditableExpenseTableRef, Editable
                   </SelectContent>
                 </Select>
               </TableCell>
+              <TableCell>
+                <PocketSelector
+                  value={item.pocketId || undefined}
+                  onChange={(pocketId) => handlePocketChange(item, pocketId)}
+                  className="h-8 w-full"
+                />
+              </TableCell>
               <TableCell className="text-right">
                 {renderEditableCell(item, "unitPrice", formatIDR(item.unitPrice))}
               </TableCell>
@@ -455,7 +491,22 @@ export const EditableExpenseTable = forwardRef<EditableExpenseTableRef, Editable
 
           {/* Add New Row */}
           {isAddingNew && (
-            <TableRow>
+            <TableRow
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  const committed = commitNewRow();
+                  if (!committed) {
+                    toast.error("Lengkapi data terlebih dahulu");
+                  } else {
+                    setIsAddingNew(true);
+                  }
+                } else if (e.key === "Escape") {
+                  setIsAddingNew(false);
+                  setNewRow(initialNewRow);
+                }
+              }}
+            >
               <TableCell>
                 <Input
                   placeholder="Nama item"
@@ -495,6 +546,13 @@ export const EditableExpenseTable = forwardRef<EditableExpenseTableRef, Editable
                 </Select>
               </TableCell>
               <TableCell>
+                <PocketSelector
+                  value={newRow.pocketId || undefined}
+                  onChange={(pocketId) => setNewRow({ ...newRow, pocketId })}
+                  className="h-8"
+                />
+              </TableCell>
+              <TableCell>
                 <Input
                   placeholder="Harga"
                   value={newRow.unitPrice ? formatNumberID(parseInt(newRow.unitPrice)) : ""}
@@ -516,21 +574,36 @@ export const EditableExpenseTable = forwardRef<EditableExpenseTableRef, Editable
                   className="h-8 text-right w-16"
                 />
               </TableCell>
-              <TableCell className="text-right font-medium text-expense">
+              <TableCell className="text-right font-medium text-primary">
                 {formatIDR((parseInt(newRow.unitPrice) || 0) * (parseInt(newRow.quantity) || 1))}
               </TableCell>
               <TableCell>
+                <div className="flex items-center gap-1">
                   <Button
-                  size="icon"
-                  variant="ghost"
-                  className="h-8 w-8"
-                  onClick={() => {
-                    setIsAddingNew(false);
-                    setNewRow(initialNewRow);
-                  }}
-                >
-                  <Trash2 className="h-4 w-4 text-destructive" />
-                </Button>
+                    size="icon"
+                    variant="ghost"
+                    className="h-8 w-8"
+                    onClick={() => {
+                      const committed = commitNewRow();
+                      if (!committed) {
+                        toast.error("Lengkapi data terlebih dahulu");
+                      }
+                    }}
+                  >
+                    <Check className="h-4 w-4 text-primary" />
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-8 w-8"
+                    onClick={() => {
+                      setIsAddingNew(false);
+                      setNewRow(initialNewRow);
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
+                </div>
               </TableCell>
             </TableRow>
           )}
@@ -549,7 +622,7 @@ export const EditableExpenseTable = forwardRef<EditableExpenseTableRef, Editable
               setIsAddingNew(true);
             }}
           >
-            <TableCell colSpan={6} className="text-center text-muted-foreground py-4">
+            <TableCell colSpan={7} className="text-center text-muted-foreground py-4">
               <div className="flex items-center justify-center gap-2">
                 <Plus className="h-4 w-4" />
                 <span>Tambah item baru</span>

@@ -31,8 +31,9 @@ import { formatNumberID } from "@/lib/utils/format";
 import { GET_INCOME_CATEGORIES } from "@/lib/graphql/queries";
 import { CREATE_INCOME_CATEGORY } from "@/lib/graphql/mutations";
 import { toast } from "sonner";
-import { Plus, Trash2, Loader2 } from "lucide-react";
+import { Plus, Trash2, Loader2, Check } from "lucide-react";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
+import { PocketSelector } from "@/components/pocket/pocket-selector";
 
 interface IncomeCategory {
   id: string;
@@ -47,17 +48,17 @@ interface Item {
   id: string;
   sourceName: string;
   amount: number;
-  incomeType: string;
+  pocketId?: string | null;
   category: IncomeCategory;
 }
 
 export interface EditableIncomeTableRef {
-  addItem: (item: { sourceName: string; categoryId: string; amount: number; incomeType: string }) => void;
+  addItem: (item: { sourceName: string; categoryId: string; amount: number; pocketId?: string }) => void;
 }
 
 interface EditableIncomeTableProps {
   items: Item[];
-  onCreateItem: (input: { sourceName: string; categoryId: string; amount: number; incomeType: string }) => Promise<void>;
+  onCreateItem: (input: { sourceName: string; categoryId: string; amount: number; pocketId?: string }) => Promise<void>;
   onUpdateItem: (id: string, input: Record<string, unknown>) => Promise<void>;
   onDeleteItem: (id: string) => Promise<void>;
   onSaveComplete?: () => void;
@@ -72,25 +73,14 @@ interface NewIncomeRow {
   sourceName: string;
   categoryId: string;
   amount: string;
-  incomeType: string;
+  pocketId: string;
 }
-
-const INCOME_TYPES = [
-  { value: "SALARY", label: "Gaji" },
-  { value: "FREELANCE", label: "Freelance" },
-  { value: "BUSINESS", label: "Bisnis" },
-  { value: "INVESTMENT", label: "Investasi" },
-  { value: "BONUS", label: "Bonus" },
-  { value: "REFUND", label: "Refund" },
-  { value: "GIFT", label: "Hadiah" },
-  { value: "OTHER", label: "Lainnya" },
-];
 
 const initialNewRow: NewIncomeRow = {
   sourceName: "",
   categoryId: "",
   amount: "",
-  incomeType: "OTHER",
+  pocketId: "",
 };
 
 export const EditableIncomeTable = forwardRef<EditableIncomeTableRef, EditableIncomeTableProps>(function EditableIncomeTable({ items, onCreateItem, onUpdateItem, onDeleteItem, onSaveComplete }, ref) {
@@ -105,7 +95,7 @@ export const EditableIncomeTable = forwardRef<EditableIncomeTableRef, EditableIn
   const [newCategory, setNewCategory] = useState("");
 
   // Buffered create/edit/delete state
-  const [pendingCreates, setPendingCreates] = useState<Map<string, { sourceName: string; categoryId: string; amount: number; incomeType: string }>>(new Map());
+  const [pendingCreates, setPendingCreates] = useState<Map<string, { sourceName: string; categoryId: string; amount: number; pocketId?: string }>>(new Map());
   const [pendingUpdates, setPendingUpdates] = useState<Map<string, Record<string, unknown>>>(new Map());
   const [pendingDeletes, setPendingDeletes] = useState<Set<string>>(new Set());
   const [saving, setSaving] = useState(false);
@@ -135,7 +125,6 @@ export const EditableIncomeTable = forwardRef<EditableIncomeTableRef, EditableIn
         const merged = { ...item };
         if (pending.sourceName !== undefined) merged.sourceName = pending.sourceName as string;
         if (pending.amount !== undefined) merged.amount = pending.amount as number;
-        if (pending.incomeType !== undefined) merged.incomeType = pending.incomeType as string;
         if (pending.categoryId !== undefined) {
           const cat = categories.find(c => c.id === pending.categoryId);
           if (cat) merged.category = cat;
@@ -147,7 +136,7 @@ export const EditableIncomeTable = forwardRef<EditableIncomeTableRef, EditableIn
       id,
       sourceName: pc.sourceName,
       amount: pc.amount,
-      incomeType: pc.incomeType,
+      pocketId: pc.pocketId,
       category: categories.find(c => c.id === pc.categoryId) || { id: pc.categoryId, name: "" },
     }));
 
@@ -176,7 +165,7 @@ export const EditableIncomeTable = forwardRef<EditableIncomeTableRef, EditableIn
         sourceName: newRow.sourceName.trim(),
         categoryId: newRow.categoryId,
         amount,
-        incomeType: newRow.incomeType,
+        pocketId: newRow.pocketId || undefined,
       });
       return next;
     });
@@ -254,6 +243,28 @@ export const EditableIncomeTable = forwardRef<EditableIncomeTableRef, EditableIn
     }
   };
 
+  const handlePocketChange = (item: Item, pocketId: string) => {
+    if (pocketId === item.pocketId) return;
+
+    if (pendingCreates.has(item.id)) {
+      setPendingCreates(prev => {
+        const next = new Map(prev);
+        const existing = next.get(item.id)!;
+        existing.pocketId = pocketId;
+        next.set(item.id, existing);
+        return next;
+      });
+    } else {
+      setPendingUpdates(prev => {
+        const next = new Map(prev);
+        const existing = next.get(item.id) || {};
+        existing.pocketId = pocketId;
+        next.set(item.id, existing);
+        return next;
+      });
+    }
+  };
+
   const handleCategoryChange = (item: Item, categoryId: string) => {
     if (categoryId === item.category.id) return;
 
@@ -270,28 +281,6 @@ export const EditableIncomeTable = forwardRef<EditableIncomeTableRef, EditableIn
         const next = new Map(prev);
         const existing = next.get(item.id) || {};
         existing.categoryId = categoryId;
-        next.set(item.id, existing);
-        return next;
-      });
-    }
-  };
-
-  const handleTypeChange = (item: Item, incomeType: string) => {
-    if (incomeType === item.incomeType) return;
-
-    if (pendingCreates.has(item.id)) {
-      setPendingCreates(prev => {
-        const next = new Map(prev);
-        const existing = next.get(item.id)!;
-        existing.incomeType = incomeType;
-        next.set(item.id, existing);
-        return next;
-      });
-    } else {
-      setPendingUpdates(prev => {
-        const next = new Map(prev);
-        const existing = next.get(item.id) || { categoryId: item.category.id };
-        existing.incomeType = incomeType;
         next.set(item.id, existing);
         return next;
       });
@@ -429,7 +418,7 @@ export const EditableIncomeTable = forwardRef<EditableIncomeTableRef, EditableIn
           <TableRow>
             <TableHead className="min-w-[150px]">Sumber</TableHead>
             <TableHead className="min-w-[120px]">Kategori</TableHead>
-            <TableHead className="min-w-[100px]">Tipe</TableHead>
+            <TableHead className="min-w-[120px]">Pocket</TableHead>
             <TableHead className="text-right min-w-[120px]">Jumlah</TableHead>
             <TableHead className="w-[50px]"></TableHead>
           </TableRow>
@@ -458,21 +447,11 @@ export const EditableIncomeTable = forwardRef<EditableIncomeTableRef, EditableIn
                 </Select>
               </TableCell>
               <TableCell>
-                <Select
-                  value={item.incomeType}
-                  onValueChange={(value) => handleTypeChange(item, value)}
-                >
-                  <SelectTrigger className="h-8 w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {INCOME_TYPES.map((type) => (
-                      <SelectItem key={type.value} value={type.value}>
-                        {type.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <PocketSelector
+                  value={item.pocketId || undefined}
+                  onChange={(pocketId) => handlePocketChange(item, pocketId)}
+                  className="h-8 w-full"
+                />
               </TableCell>
               <TableCell className="text-right text-income font-medium">
                 {renderEditableCell(item, "amount", formatIDR(item.amount))}
@@ -490,7 +469,22 @@ export const EditableIncomeTable = forwardRef<EditableIncomeTableRef, EditableIn
 
           {/* Add New Row */}
           {isAddingNew && (
-            <TableRow>
+            <TableRow
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  const committed = commitNewRow();
+                  if (!committed) {
+                    toast.error("Lengkapi data terlebih dahulu");
+                  } else {
+                    setIsAddingNew(true);
+                  }
+                } else if (e.key === "Escape") {
+                  setIsAddingNew(false);
+                  setNewRow(initialNewRow);
+                }
+              }}
+            >
               <TableCell>
                 <Input
                   placeholder="Nama sumber"
@@ -530,21 +524,11 @@ export const EditableIncomeTable = forwardRef<EditableIncomeTableRef, EditableIn
                 </Select>
               </TableCell>
               <TableCell>
-                <Select
-                  value={newRow.incomeType}
-                  onValueChange={(value) => setNewRow({ ...newRow, incomeType: value })}
-                >
-                  <SelectTrigger className="h-8">
-                    <SelectValue placeholder="Tipe" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {INCOME_TYPES.map((type) => (
-                      <SelectItem key={type.value} value={type.value}>
-                        {type.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <PocketSelector
+                  value={newRow.pocketId || undefined}
+                  onChange={(pocketId) => setNewRow({ ...newRow, pocketId })}
+                  className="h-8"
+                />
               </TableCell>
               <TableCell>
                 <Input
@@ -558,17 +542,32 @@ export const EditableIncomeTable = forwardRef<EditableIncomeTableRef, EditableIn
                 />
               </TableCell>
               <TableCell>
+                <div className="flex items-center gap-1">
                   <Button
-                  size="icon"
-                  variant="ghost"
-                  className="h-8 w-8"
-                  onClick={() => {
-                    setIsAddingNew(false);
-                    setNewRow(initialNewRow);
-                  }}
-                >
-                  <Trash2 className="h-4 w-4 text-destructive" />
-                </Button>
+                    size="icon"
+                    variant="ghost"
+                    className="h-8 w-8"
+                    onClick={() => {
+                      const committed = commitNewRow();
+                      if (!committed) {
+                        toast.error("Lengkapi data terlebih dahulu");
+                      }
+                    }}
+                  >
+                    <Check className="h-4 w-4 text-primary" />
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-8 w-8"
+                    onClick={() => {
+                      setIsAddingNew(false);
+                      setNewRow(initialNewRow);
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
+                </div>
               </TableCell>
             </TableRow>
           )}

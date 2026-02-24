@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@apollo/client/react";
@@ -9,10 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { formatIDR } from "@/lib/utils/currency";
 import { GET_EXPENSE_TEMPLATE_GROUPS } from "@/lib/graphql/queries";
-import { Plus, FileText, X } from "lucide-react";
+import { Plus, FileText, ArrowLeft } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
 
 interface ExpenseTemplateItem {
   id: string;
@@ -43,7 +40,6 @@ interface ExpenseTemplateGroupsData {
 export default function ExpenseTemplatesPage() {
   const router = useRouter();
   const { data, loading } = useQuery<ExpenseTemplateGroupsData>(GET_EXPENSE_TEMPLATE_GROUPS);
-  const [fabOpen, setFabOpen] = useState(false);
 
   const groups = data?.expenseTemplateGroups || [];
   const totalAmount = groups.reduce((sum, g) => sum + g.total, 0);
@@ -83,7 +79,10 @@ export default function ExpenseTemplatesPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-lg bg-expense/10 flex items-center justify-center shrink-0">
+          <Link href="/dashboard" className="md:hidden">
+            <ArrowLeft className="h-5 w-5" />
+          </Link>
+          <div className="h-10 w-10 rounded-lg bg-expense/10 flex items-center justify-center shrink-0 hidden md:flex">
             <FileText className="h-5 w-5 text-expense" />
           </div>
           <div>
@@ -150,41 +149,13 @@ export default function ExpenseTemplatesPage() {
     </div>
 
     {/* Floating Action Button - Mobile Only */}
-    <div className="fixed bottom-28 right-6 z-[60] md:hidden">
-      <Popover open={fabOpen} onOpenChange={setFabOpen}>
-        <PopoverTrigger asChild>
-          <button
-            className={cn(
-              "flex items-center justify-center w-14 h-14 rounded-full shadow-lg transition-all duration-200",
-              fabOpen
-                ? "bg-destructive text-destructive-foreground scale-95"
-                : "bg-primary text-primary-foreground"
-            )}
-          >
-            {fabOpen ? (
-              <X className="h-6 w-6" />
-            ) : (
-              <Plus className="h-6 w-6" />
-            )}
-          </button>
-        </PopoverTrigger>
-        <PopoverContent
-          className="w-52 p-2 mb-2 border-border/50 shadow-2xl backdrop-blur-xl bg-gradient-to-b from-card/95 to-background/95"
-          align="end"
-          side="top"
-        >
-          <div className="grid gap-1">
-            <Link
-              href="/expense-templates/new"
-              onClick={() => setFabOpen(false)}
-              className="flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors text-muted-foreground hover:bg-muted"
-            >
-              <Plus className="h-4 w-4" />
-              <span>Tambah</span>
-            </Link>
-          </div>
-        </PopoverContent>
-      </Popover>
+    <div className="fixed bottom-10 right-6 z-[60] md:hidden">
+      <Link
+        href="/expense-templates/new"
+        className="flex items-center justify-center w-14 h-14 rounded-full shadow-lg bg-primary text-primary-foreground"
+      >
+        <Plus className="h-6 w-6" />
+      </Link>
     </div>
     </>
   );

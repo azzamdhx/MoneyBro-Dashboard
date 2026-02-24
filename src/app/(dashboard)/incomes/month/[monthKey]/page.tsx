@@ -18,10 +18,10 @@ interface Income {
   id: string;
   sourceName: string;
   amount: number;
-  incomeType: string;
   incomeDate: string | null;
   isRecurring: boolean;
   notes: string | null;
+  pocketId: string | null;
   category: {
     id: string;
     name: string;

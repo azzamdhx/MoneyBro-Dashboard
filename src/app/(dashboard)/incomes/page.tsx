@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@apollo/client/react";
@@ -9,16 +8,13 @@ import { Button } from "@/components/ui/button";
 import { formatIDR } from "@/lib/utils/currency";
 import { formatMonthYear } from "@/lib/utils/format";
 import { GET_INCOMES } from "@/lib/graphql/queries";
-import { Plus, Wallet, CalendarDays, RefreshCw, X } from "lucide-react";
+import { Plus, Wallet, CalendarDays, RefreshCw, ArrowLeft } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
 
 interface Income {
   id: string;
   sourceName: string;
   amount: number;
-  incomeType: string;
   incomeDate: string | null;
   isRecurring: boolean;
   notes: string | null;
@@ -57,7 +53,6 @@ const getMonthKey = (dateStr: string): string => {
 export default function IncomesPage() {
   const router = useRouter();
   const { data, loading } = useQuery<IncomesData>(GET_INCOMES);
-  const [fabOpen, setFabOpen] = useState(false);
 
   const incomes: Income[] = data?.incomes.items || [];
   const totalAll = incomes.reduce((sum, i) => sum + i.amount, 0);
@@ -92,9 +87,14 @@ export default function IncomesPage() {
     <>
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Pemasukan</h1>
-          <p className="text-muted-foreground hidden sm:block">Kelola pemasukan bulanan kamu</p>
+        <div className="flex items-center gap-3">
+          <Link href="/dashboard" className="md:hidden">
+            <ArrowLeft className="h-5 w-5" />
+          </Link>
+          <div>
+            <h1 className="text-2xl font-bold">Pemasukan</h1>
+            <p className="text-muted-foreground hidden sm:block">Kelola pemasukan bulanan kamu</p>
+          </div>
         </div>
         <div className="hidden md:flex md:flex-row gap-2">
           <Button asChild variant="outline" size="sm">
@@ -122,7 +122,7 @@ export default function IncomesPage() {
       </Card>
 
       {loading ? (
-        <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-4">
+        <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
           {[...Array(8)].map((_, i) => (
             <Card key={i}>
               <CardContent className="p-4">
@@ -138,7 +138,7 @@ export default function IncomesPage() {
           ))}
         </div>
       ) : monthlySummaries.length > 0 ? (
-        <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-4">
+        <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
           {monthlySummaries.map((summary) => (
             <Card
               key={summary.monthKey}
@@ -171,49 +171,13 @@ export default function IncomesPage() {
     </div>
 
     {/* Floating Action Button - Mobile Only */}
-    <div className="fixed bottom-28 right-6 z-[60] md:hidden">
-      <Popover open={fabOpen} onOpenChange={setFabOpen}>
-        <PopoverTrigger asChild>
-          <button
-            className={cn(
-              "flex items-center justify-center w-14 h-14 rounded-full shadow-lg transition-all duration-200",
-              fabOpen
-                ? "bg-destructive text-destructive-foreground scale-95"
-                : "bg-primary text-primary-foreground"
-            )}
-          >
-            {fabOpen ? (
-              <X className="h-6 w-6" />
-            ) : (
-              <Plus className="h-6 w-6" />
-            )}
-          </button>
-        </PopoverTrigger>
-        <PopoverContent
-          className="w-52 p-2 mb-2 border-border/50 shadow-2xl backdrop-blur-xl bg-gradient-to-b from-card/95 to-background/95"
-          align="end"
-          side="top"
-        >
-          <div className="grid gap-1">
-            <Link
-              href="/incomes/new"
-              onClick={() => setFabOpen(false)}
-              className="flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors text-muted-foreground hover:bg-muted"
-            >
-              <Plus className="h-4 w-4" />
-              <span>Tambah Pemasukan</span>
-            </Link>
-            <Link
-              href="/recurring-incomes"
-              onClick={() => setFabOpen(false)}
-              className="flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors text-muted-foreground hover:bg-muted"
-            >
-              <RefreshCw className="h-4 w-4" />
-              <span>Pemasukkan Tetap</span>
-            </Link>
-          </div>
-        </PopoverContent>
-      </Popover>
+    <div className="fixed bottom-10 right-6 z-[60] md:hidden">
+      <Link
+        href="/incomes/new"
+        className="flex items-center justify-center w-14 h-14 rounded-full shadow-lg bg-primary text-primary-foreground"
+      >
+        <Plus className="h-6 w-6" />
+      </Link>
     </div>
     </>
   );

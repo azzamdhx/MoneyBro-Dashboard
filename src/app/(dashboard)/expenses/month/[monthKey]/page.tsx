@@ -22,6 +22,7 @@ interface Expense {
   total: number;
   notes: string | null;
   expenseDate: string | null;
+  pocketId: string | null;
   category: {
     id: string;
     name: string;

@@ -53,6 +53,7 @@ interface Expense {
   total: number;
   notes: string | null;
   expenseDate: string | null;
+  pocketId: string | null;
   category: Category;
 }
 
@@ -162,8 +163,8 @@ export default function CreateExpensePage() {
         </div>
       </div>
 
-      {/* Archive Input - Date */}
-      <div className="flex justify-end sm:justify-start">
+      {/* Date */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
           <MonthPicker
               value={expenseDate}
               onChange={setExpenseDate}

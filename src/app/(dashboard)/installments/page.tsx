@@ -8,11 +8,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { formatIDR } from "@/lib/utils/currency";
 import { GET_INSTALLMENTS } from "@/lib/graphql/queries";
-import { Plus, CreditCard, CheckCircle2, Clock, X } from "lucide-react";
+import { Plus, CreditCard, CheckCircle2, Clock, ArrowLeft } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { getInstallmentEmoji } from "@/lib/utils/emoji-storage";
+import { getContrastStyles } from "@/lib/utils/color";
 
 interface InstallmentPayment {
   id: string;
@@ -32,6 +31,8 @@ interface Installment {
   startDate: string;
   dueDay: number;
   status: string;
+  icon: string | null;
+  cardBgColor: string | null;
   notes: string | null;
   createdAt: string;
   interestAmount: number;
@@ -48,7 +49,6 @@ interface InstallmentsData {
 export default function InstallmentsPage() {
   const router = useRouter();
   const { data, loading } = useQuery<InstallmentsData>(GET_INSTALLMENTS);
-  const [fabOpen, setFabOpen] = useState(false);
   const [emojis, setEmojis] = useState<Record<string, string>>({});
 
   const installments: Installment[] = data?.installments || [];
@@ -58,8 +58,7 @@ export default function InstallmentsPage() {
     if (items.length > 0) {
       const map: Record<string, string> = {};
       items.forEach((i) => {
-        const emoji = getInstallmentEmoji(i.id);
-        if (emoji) map[i.id] = emoji;
+        if (i.icon) map[i.id] = i.icon;
       });
       setEmojis(map);
     }
@@ -80,9 +79,14 @@ export default function InstallmentsPage() {
     <>
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Cicilan</h1>
-          <p className="text-muted-foreground hidden sm:block">Kelola cicilan kamu</p>
+        <div className="flex items-center gap-3">
+          <Link href="/dashboard" className="md:hidden">
+            <ArrowLeft className="h-5 w-5" />
+          </Link>
+          <div>
+            <h1 className="text-2xl font-bold">Cicilan</h1>
+            <p className="text-muted-foreground hidden sm:block">Kelola cicilan kamu</p>
+          </div>
         </div>
         <Button asChild className="w-fit hidden md:inline-flex">
           <Link href="/installments/new">
@@ -92,26 +96,26 @@ export default function InstallmentsPage() {
         </Button>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Card className="bg-card border-1">
+      <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 sm:grid sm:grid-cols-2 sm:overflow-visible">
+        <Card className="bg-card border-1 min-w-[90%] shrink-0 sm:min-w-0">
           <CardHeader>
             <CardTitle className="flex flex-col gap-4 items-start">
               <span className="text-primary">Cicilan Bulanan</span>
-              <span className="text-2xl text-installment">{formatIDR(totalMonthlyPayment)}</span>
+              <span className="text-xl text-installment">{formatIDR(totalMonthlyPayment)}</span>
             </CardTitle>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-muted-foreground hidden sm:block">
               {activeInstallments.length} cicilan aktif
             </p>
           </CardHeader>
         </Card>
 
-        <Card className="bg-card border-1">
+        <Card className="bg-card border-1 min-w-[90%] shrink-0 sm:min-w-0">
           <CardHeader>
             <CardTitle className="flex flex-col gap-4 items-start">
               <span className="text-primary">Sisa Cicilan</span>
-              <span className="text-2xl text-installment">{formatIDR(totalRemainingAmount)}</span>
+              <span className="text-xl text-installment">{formatIDR(totalRemainingAmount)}</span>
             </CardTitle>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-muted-foreground hidden sm:block">
               Total yang harus dilunasi
             </p>
           </CardHeader>
@@ -153,47 +157,49 @@ export default function InstallmentsPage() {
                 <Clock className="h-5 w-5 text-installment" />
                 Cicilan Aktif ({activeInstallments.length})
               </h2>
-              <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-4">
-                {activeInstallments.map((installment) => (
+              <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+                {activeInstallments.map((installment) => {
+                  const c = getContrastStyles(installment.cardBgColor);
+                  return (
                   <Card
                     key={installment.id}
                     className="cursor-pointer hover:border-accent transition-colors py-0"
                     onClick={() => router.push(`/installments/${installment.id}`)}
+                    style={installment.cardBgColor ? { backgroundColor: installment.cardBgColor, borderColor: installment.cardBgColor } : undefined}
                   >
                     <CardContent className="p-4">
                       <div className="flex mb-2">
-                        <div className="h-8 w-8 rounded-lg bg-installment/10 flex items-center justify-center">
-                          {emojis[installment.id] ? (
-                            <span className="text-lg">{emojis[installment.id]}</span>
-                          ) : (
-                            <CreditCard className="h-4 w-4 text-installment" />
-                          )}
-                        </div>
+                        {emojis[installment.id] ? (
+                          <span className="text-2xl">{emojis[installment.id]}</span>
+                        ) : (
+                          <CreditCard className={cn("h-5 w-5", c.bold || "text-installment")} />
+                        )}
                       </div>
                       <div className="space-y-2">
                         <div>
-                          <h3 className="font-semibold">{installment.name}</h3>
+                          <h3 className={cn("font-semibold", c.text)}>{installment.name}</h3>
                           <div className="flex flex-wrap items-center gap-1 mt-1">
-                            <span className="text-sm text-muted-foreground">
+                            <span className={cn("text-sm", c.muted)}>
                               {installment.paidCount}/{installment.tenor} bulan
                             </span>
-                            <span className="text-xs text-muted-foreground">
+                            <span className={cn("text-xs", c.muted)}>
                               · Tanggal {installment.dueDay}
                             </span>
                           </div>
                         </div>
                         <div>
-                          <p className="font-bold text-installment">
-                            {formatIDR(installment.monthlyPayment)}/bln
+                          <p className={cn("font-bold", c.bold || "text-installment")}>
+                            {formatIDR(installment.monthlyPayment)}
                           </p>
-                          <p className="text-xs text-muted-foreground mt-1">
+                          <p className={cn("text-xs mt-1", c.muted)}>
                             Sisa {formatIDR(installment.remainingAmount)}
                           </p>
                         </div>
                       </div>
                     </CardContent>
                   </Card>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
@@ -213,13 +219,11 @@ export default function InstallmentsPage() {
                   >
                     <CardContent className="p-4">
                       <div className="flex mb-2">
-                        <div className="h-8 w-8 rounded-lg bg-income/10 flex items-center justify-center">
-                          {emojis[installment.id] ? (
-                            <span className="text-lg">{emojis[installment.id]}</span>
-                          ) : (
-                            <CheckCircle2 className="h-4 w-4 text-income" />
-                          )}
-                        </div>
+                        {emojis[installment.id] ? (
+                          <span className="text-2xl">{emojis[installment.id]}</span>
+                        ) : (
+                          <CheckCircle2 className="h-5 w-5 text-income" />
+                        )}
                       </div>
                       <div className="space-y-2">
                         <div>
@@ -256,41 +260,13 @@ export default function InstallmentsPage() {
     </div>
 
     {/* Floating Action Button - Mobile Only */}
-    <div className="fixed bottom-28 right-6 z-[60] md:hidden">
-      <Popover open={fabOpen} onOpenChange={setFabOpen}>
-        <PopoverTrigger asChild>
-          <button
-            className={cn(
-              "flex items-center justify-center w-14 h-14 rounded-full shadow-lg transition-all duration-200",
-              fabOpen
-                ? "bg-destructive text-destructive-foreground scale-95"
-                : "bg-primary text-primary-foreground"
-            )}
-          >
-            {fabOpen ? (
-              <X className="h-6 w-6" />
-            ) : (
-              <Plus className="h-6 w-6" />
-            )}
-          </button>
-        </PopoverTrigger>
-        <PopoverContent
-          className="w-52 p-2 mb-2 border-border/50 shadow-2xl backdrop-blur-xl bg-gradient-to-b from-card/95 to-background/95"
-          align="end"
-          side="top"
-        >
-          <div className="grid gap-1">
-            <Link
-              href="/installments/new"
-              onClick={() => setFabOpen(false)}
-              className="flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors text-muted-foreground hover:bg-muted"
-            >
-              <Plus className="h-4 w-4" />
-              <span>Tambah</span>
-            </Link>
-          </div>
-        </PopoverContent>
-      </Popover>
+    <div className="fixed bottom-10 right-6 z-[60] md:hidden">
+      <Link
+        href="/installments/new"
+        className="flex items-center justify-center w-14 h-14 rounded-full shadow-lg bg-primary text-primary-foreground"
+      >
+        <Plus className="h-6 w-6" />
+      </Link>
     </div>
     </>
   );
