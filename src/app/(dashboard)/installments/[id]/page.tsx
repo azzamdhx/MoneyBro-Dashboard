@@ -340,7 +340,7 @@ export default function InstallmentDetailPage() {
               <span className="text-3xl">{emoji}</span>
             )}
             <div>
-              <h1 className="text-2xl font-bold">
+              <h1 className="text-lg sm:text-xl md:text-2xl font-bold">
                 {isNew ? "Tambah Cicilan" : installment?.name}
               </h1>
               <p className="text-muted-foreground hidden sm:block">
@@ -425,7 +425,7 @@ export default function InstallmentDetailPage() {
           <Card>
             <CardContent className="pt-0">
               <p className="text-sm text-muted-foreground">Cicilan Bulanan</p>
-              <p className="text-2xl font-bold text-primary">
+              <p className="text-lg sm:text-2xl font-bold text-primary">
                 {formatIDR(installment.monthlyPayment)}
               </p>
             </CardContent>
@@ -433,7 +433,7 @@ export default function InstallmentDetailPage() {
           <Card>
             <CardContent className="pt-0">
               <p className="text-sm text-muted-foreground">Progress</p>
-              <p className="text-2xl font-bold">
+              <p className="text-lg sm:text-2xl font-bold">
                 {installment.paidCount}/{installment.tenor}
               </p>
             </CardContent>
@@ -441,7 +441,7 @@ export default function InstallmentDetailPage() {
           <Card>
             <CardContent className="pt-0">
               <p className="text-sm text-muted-foreground">Sisa Cicilan</p>
-              <p className="text-2xl font-bold text-destructive">
+              <p className="text-lg sm:text-2xl font-bold text-destructive">
                 {formatIDR(installment.remainingAmount)}
               </p>
             </CardContent>
@@ -449,7 +449,7 @@ export default function InstallmentDetailPage() {
           <Card>
             <CardContent className="pt-0">
               <p className="text-sm text-muted-foreground">Jatuh Tempo</p>
-              <p className="text-2xl font-bold">Tanggal {installment.dueDay}</p>
+              <p className="text-lg sm:text-2xl font-bold">Tanggal {installment.dueDay}</p>
             </CardContent>
           </Card>
         </div>

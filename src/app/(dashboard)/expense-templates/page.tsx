@@ -86,7 +86,7 @@ export default function ExpenseTemplatesPage() {
             <FileText className="h-5 w-5 text-expense" />
           </div>
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold">Template Pengeluaran</h1>
+            <h1 className="text-lg sm:text-xl md:text-2xl font-bold">Template Pengeluaran</h1>
             <p className="text-muted-foreground text-sm hidden sm:block">Kelola template untuk input cepat</p>
           </div>
         </div>

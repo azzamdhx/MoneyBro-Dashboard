@@ -116,7 +116,7 @@ export default function NotificationsPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Notifikasi</h1>
+          <h1 className="text-lg sm:text-xl md:text-2xl font-bold">Notifikasi</h1>
           <p className="text-muted-foreground hidden sm:block">Riwayat email pengingat yang telah dikirim</p>
         </div>
         <Button variant="outline" asChild className="w-fit">

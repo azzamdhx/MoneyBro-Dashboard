@@ -373,7 +373,7 @@ export default function SavingsGoalDetailPage() {
               <span className="text-3xl">{emoji}</span>
             )}
             <div>
-              <h1 className="text-2xl font-bold">
+              <h1 className="text-lg sm:text-xl md:text-2xl font-bold">
                 {isNew ? "Tambah Tabungan" : goal?.name}
               </h1>
               <p className="text-muted-foreground hidden sm:block">
@@ -506,7 +506,7 @@ export default function SavingsGoalDetailPage() {
           <Card>
             <CardContent className="pt-0">
               <p className="text-sm text-muted-foreground">Terkumpul</p>
-              <p className="text-2xl font-bold text-savings">
+              <p className="text-lg sm:text-2xl font-bold text-savings">
                 {formatIDR(goal.currentAmount)}
               </p>
             </CardContent>
@@ -515,7 +515,7 @@ export default function SavingsGoalDetailPage() {
             <CardContent className="pt-0">
               <p className="text-sm text-muted-foreground">Progress</p>
               <div className="space-y-1">
-                <p className="text-2xl font-bold">
+                <p className="text-lg sm:text-2xl font-bold">
                   {Math.round(goal.progress)}%
                 </p>
                 <div className="w-full bg-muted rounded-full h-2">
@@ -530,7 +530,7 @@ export default function SavingsGoalDetailPage() {
           <Card>
             <CardContent className="pt-0">
               <p className="text-sm text-muted-foreground">Sisa Target</p>
-              <p className="text-2xl font-bold text-destructive">
+              <p className="text-lg sm:text-2xl font-bold text-destructive">
                 {formatIDR(goal.remainingAmount)}
               </p>
             </CardContent>
@@ -538,7 +538,7 @@ export default function SavingsGoalDetailPage() {
           <Card>
             <CardContent className="pt-0">
               <p className="text-sm text-muted-foreground">Deadline</p>
-              <p className="text-2xl font-bold">{formatDateID(goal.targetDate)}</p>
+              <p className="text-lg sm:text-2xl font-bold">{formatDateID(goal.targetDate)}</p>
             </CardContent>
           </Card>
         </div>

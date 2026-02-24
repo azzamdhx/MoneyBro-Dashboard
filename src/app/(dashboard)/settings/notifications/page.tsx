@@ -140,7 +140,7 @@ export default function NotificationSettingsPage() {
           </Button>
         </Link>
         <div>
-          <h1 className="text-2xl font-bold">Pengaturan Notifikasi</h1>
+          <h1 className="text-lg sm:text-xl md:text-2xl font-bold">Pengaturan Notifikasi</h1>
           <p className="text-muted-foreground hidden sm:block">Kelola pengingat email untuk cicilan dan hutang</p>
         </div>
       </div>

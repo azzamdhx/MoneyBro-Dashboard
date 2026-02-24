@@ -363,7 +363,7 @@ export default function DebtDetailPage() {
               <span className="text-3xl">{emoji}</span>
             )}
             <div>
-              <h1 className="text-2xl font-bold">
+              <h1 className="text-lg sm:text-xl md:text-2xl font-bold">
                 {isNew ? "Tambah Hutang" : debt?.personName}
               </h1>
               <p className="text-muted-foreground hidden sm:block">
@@ -469,7 +469,7 @@ export default function DebtDetailPage() {
               <p className="text-sm text-muted-foreground">
                 {debt.paymentType === "INSTALLMENT" ? "Cicilan Bulanan" : "Total Hutang"}
               </p>
-              <p className="text-2xl font-bold text-primary">
+              <p className="text-lg sm:text-2xl font-bold text-primary">
                 {formatIDR(debt.paymentType === "INSTALLMENT" ? (debt.monthlyPayment || 0) : debt.actualAmount)}
               </p>
             </CardContent>
@@ -477,7 +477,7 @@ export default function DebtDetailPage() {
           <Card>
             <CardContent className="pt-0">
               <p className="text-sm text-muted-foreground">Sudah Dibayar</p>
-              <p className="text-2xl font-bold text-primary">
+              <p className="text-lg sm:text-2xl font-bold text-primary">
                 {formatIDR(debt.paidAmount)}
               </p>
               {debt.paymentType === "INSTALLMENT" && debt.tenor && (
@@ -490,7 +490,7 @@ export default function DebtDetailPage() {
           <Card>
             <CardContent className="pt-0">
               <p className="text-sm text-muted-foreground">Sisa Hutang</p>
-              <p className="text-2xl font-bold text-debt">
+              <p className="text-lg sm:text-2xl font-bold text-debt">
                 {formatIDR(debt.remainingAmount)}
               </p>
               {debt.paymentType === "INSTALLMENT" && debt.tenor && (
@@ -503,7 +503,7 @@ export default function DebtDetailPage() {
           <Card>
             <CardContent className="pt-0">
               <p className="text-sm text-muted-foreground">Jatuh Tempo</p>
-              <p className="text-2xl font-bold">
+              <p className="text-lg sm:text-2xl font-bold">
                 {debt.dueDate
                   ? formatDateShortID(debt.dueDate)
                   : "-"}

@@ -334,7 +334,7 @@ export default function ExpenseTemplateDetailPage() {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h1 className="text-2xl font-bold">
+            <h1 className="text-lg sm:text-xl md:text-2xl font-bold">
               {isNew ? "Tambah Template" : "Edit Template"}
             </h1>
           </div>

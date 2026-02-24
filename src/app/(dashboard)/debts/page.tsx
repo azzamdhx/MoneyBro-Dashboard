@@ -94,7 +94,7 @@ export default function DebtsPage() {
             <ArrowLeft className="h-5 w-5" />
           </Link>
           <div>
-            <h1 className="text-2xl font-bold">Hutang</h1>
+            <h1 className="text-lg sm:text-xl md:text-2xl font-bold">Hutang</h1>
             <p className="text-muted-foreground hidden sm:block">Kelola hutang kamu</p>
           </div>
         </div>
@@ -111,7 +111,7 @@ export default function DebtsPage() {
           <CardHeader>
             <CardTitle className="flex flex-col gap-4 items-start">
               <span className="text-primary">Cicilan Bulanan</span>
-              <span className="text-2xl text-debt">{formatIDR(totalMonthlyPayment)}</span>
+              <span className="text-lg sm:text-2xl text-debt">{formatIDR(totalMonthlyPayment)}</span>
             </CardTitle>
             <p className="text-xs text-muted-foreground hidden sm:block">
               {activeDebts.filter((d) => d.paymentType === "INSTALLMENT").length} hutang cicilan
@@ -123,7 +123,7 @@ export default function DebtsPage() {
           <CardHeader>
             <CardTitle className="flex flex-col gap-4 items-start">
               <span className="text-primary">Sisa Hutang</span>
-              <span className="text-2xl text-debt">{formatIDR(totalRemainingAmount)}</span>
+              <span className="text-lg sm:text-2xl text-debt">{formatIDR(totalRemainingAmount)}</span>
             </CardTitle>
             <p className="text-xs text-muted-foreground hidden sm:block">
               {activeDebts.length} hutang aktif

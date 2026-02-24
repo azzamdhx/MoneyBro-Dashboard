@@ -48,7 +48,7 @@ export default function ContactPage() {
           </Link>
         </Button>
         <div>
-          <h1 className="text-2xl font-bold">Hubungi Kami</h1>
+          <h1 className="text-lg sm:text-xl md:text-2xl font-bold">Hubungi Kami</h1>
           <p className="text-muted-foreground hidden sm:block">Ada pertanyaan atau masukan? Kami siap membantu</p>
         </div>
       </div>

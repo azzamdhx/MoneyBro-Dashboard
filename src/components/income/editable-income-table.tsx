@@ -532,7 +532,10 @@ export const EditableIncomeTable = forwardRef<EditableIncomeTableRef, EditableIn
               </TableCell>
               <TableCell>
                 <Input
-                  placeholder="Jumlah"
+                  placeholder="Nominal"
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                   value={newRow.amount ? formatNumberID(parseInt(newRow.amount)) : ""}
                   onChange={(e) => {
                     const value = e.target.value.replace(/\D/g, "");

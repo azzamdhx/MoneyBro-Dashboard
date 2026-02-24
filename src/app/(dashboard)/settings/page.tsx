@@ -151,7 +151,7 @@ export default function SettingsPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold">Pengaturan</h1>
+        <h1 className="text-lg sm:text-xl md:text-2xl font-bold">Pengaturan</h1>
         <p className="text-muted-foreground hidden sm:block">Kelola akun dan preferensi kamu</p>
       </div>
 

@@ -84,7 +84,7 @@ export default function InstallmentsPage() {
             <ArrowLeft className="h-5 w-5" />
           </Link>
           <div>
-            <h1 className="text-2xl font-bold">Cicilan</h1>
+            <h1 className="text-lg sm:text-xl md:text-2xl font-bold">Cicilan</h1>
             <p className="text-muted-foreground hidden sm:block">Kelola cicilan kamu</p>
           </div>
         </div>

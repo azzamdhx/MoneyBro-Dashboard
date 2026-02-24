@@ -82,6 +82,7 @@ export function OTPInput({ value, onChange, length = 6, disabled = false }: OTPI
           ref={(el) => { inputRefs.current[index] = el; }}
           type="text"
           inputMode="numeric"
+          pattern="[0-9]*"
           autoComplete={index === 0 ? "one-time-code" : "off"}
           maxLength={1}
           value={value[index] || ""}

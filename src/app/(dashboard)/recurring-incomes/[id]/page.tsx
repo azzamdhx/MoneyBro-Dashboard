@@ -406,7 +406,7 @@ export default function RecurringIncomeDetailPage() {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div className="min-w-0">
-            <h1 className="text-lg sm:text-2xl font-bold truncate">
+            <h1 className="text-lg sm:text-xl md:text-2xl font-bold truncate">
               {isNew ? "Tambah" : "Edit"}
             </h1>
             <p className="text-muted-foreground text-sm truncate hidden sm:block">
@@ -491,7 +491,9 @@ export default function RecurringIncomeDetailPage() {
                   {editingField === "recurringDay" ? (
                     <Input
                       ref={inputRef}
-                      type="number"
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
                       min="1"
                       max="31"
                       value={editValue}

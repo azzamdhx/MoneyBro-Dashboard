@@ -92,7 +92,7 @@ export default function IncomesPage() {
             <ArrowLeft className="h-5 w-5" />
           </Link>
           <div>
-            <h1 className="text-2xl font-bold">Pemasukan</h1>
+            <h1 className="text-lg sm:text-xl md:text-2xl font-bold">Pemasukan</h1>
             <p className="text-muted-foreground hidden sm:block">Kelola pemasukan bulanan kamu</p>
           </div>
         </div>
@@ -116,7 +116,7 @@ export default function IncomesPage() {
         <CardHeader>
           <CardTitle className="flex flex-col items-start gap-4">
             <span className="text-primary">Total Pemasukkan</span>
-            <span className="text-2xl text-income">{formatIDR(totalAll)}</span>
+            <span className="text-lg sm:text-2xl text-income">{formatIDR(totalAll)}</span>
           </CardTitle>
         </CardHeader>
       </Card>

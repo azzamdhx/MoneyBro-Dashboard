@@ -555,6 +555,9 @@ export const EditableExpenseTable = forwardRef<EditableExpenseTableRef, Editable
               <TableCell>
                 <Input
                   placeholder="Harga"
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                   value={newRow.unitPrice ? formatNumberID(parseInt(newRow.unitPrice)) : ""}
                   onChange={(e) => {
                     const value = e.target.value.replace(/\D/g, "");
@@ -566,6 +569,9 @@ export const EditableExpenseTable = forwardRef<EditableExpenseTableRef, Editable
               <TableCell>
                 <Input
                   placeholder="Qty"
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                   value={newRow.quantity}
                   onChange={(e) => {
                     const value = e.target.value.replace(/\D/g, "");

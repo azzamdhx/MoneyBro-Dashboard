@@ -383,7 +383,7 @@ export default function ProfilePage() {
           </Link>
         </Button>
         <div>
-          <h1 className="text-2xl font-bold">Profil Saya</h1>
+          <h1 className="text-lg sm:text-xl md:text-2xl font-bold">Profil Saya</h1>
           <p className="text-muted-foreground hidden sm:block">Kelola informasi akun kamu</p>
         </div>
       </div>

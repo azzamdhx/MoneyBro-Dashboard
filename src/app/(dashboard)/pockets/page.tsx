@@ -91,10 +91,10 @@ function PocketCard({ pocket, onClick }: { pocket: Pocket; onClick: () => void }
           </div>
         </div>
         <div className="space-y-1">
-          <h3 className={cn("font-semibold", c.text)}>{pocket.name}</h3>
-          <p className={cn("text-lg font-bold", c.bold || "text-primary")}>
+          <h3 className={cn("text-md font-bold", c.text)}>{pocket.name}</h3>
+          <h4 className={cn("text-sm sm:text-lg md:text-xl font-semibold", c.bold || "text-primary")}>
             {formatIDR(monthlyBalance)}
-          </p>
+          </h4>
         </div>
       </CardContent>
     </Card>
@@ -113,7 +113,7 @@ export default function PocketsPage() {
       <div className="space-y-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl font-bold">Pocket</h1>
+            <h1 className="text-lg sm:text-xl md:text-2xl font-bold">Pocket</h1>
             <p className="text-muted-foreground hidden sm:block">Kelola kantong uang kamu</p>
           </div>
           <Button asChild className="w-fit hidden md:inline-flex">
@@ -138,7 +138,7 @@ export default function PocketsPage() {
             <Card className="py-0">
               <CardContent className="p-4">
                 <p className="text-sm text-muted-foreground">Total Saldo</p>
-                <p className="text-2xl font-bold mt-1">{formatIDR(totalBalance)}</p>
+                <h1 className="text-lg sm:text-xl md:text-2xl font-bold">{formatIDR(totalBalance)}</h1>
               </CardContent>
             </Card>
 

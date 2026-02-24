@@ -9,12 +9,7 @@ import { formatIDR } from "@/lib/utils/currency";
 import { formatMonthYear } from "@/lib/utils/format";
 import { GET_FORECAST_SUMMARY } from "@/lib/graphql/queries";
 import {
-  Wallet,
   BarChart3,
-  Receipt,
-  CreditCard,
-  BadgeDollarSign,
-  PiggyBank,
   TrendingUp,
   CalendarClock,
   ArrowLeft,
@@ -163,7 +158,7 @@ export default function ForecastPage() {
             <TrendingUp className="h-5 w-5 text-primary" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold">Forecast</h1>
+            <h1 className="text-lg sm:text-xl md:text-2xl font-bold">Forecast</h1>
             <p className="text-muted-foreground">Proyeksi keuangan bulan mendatang</p>
           </div>
         </div>
@@ -251,7 +246,7 @@ export default function ForecastPage() {
             <TrendingUp className="h-5 w-5 text-primary" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold">Forecast</h1>
+            <h1 className="text-lg sm:text-xl md:text-2xl font-bold">Forecast</h1>
           </div>
         </div>
         <Select value={currentMonth} onValueChange={setSelectedMonth}>
@@ -286,12 +281,12 @@ export default function ForecastPage() {
           <HighlightCard
             gradientColor={getBalanceGradientBg()}
             balanceLabel={
-              <p className="text-xs sm:text-sm font-medium text-white/70">
+              <p className="text-xs sm:text-sm font-medium text-white/70 hidden sm:block">
                 Proyeksi {currentMonth ? formatMonthYear(`${currentMonth}-01`) : ""}
               </p>
             }
             balanceValue={
-              <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-white break-all mt-1">
+              <p className="text-lg sm:text-2xl md:text-3xl font-bold text-white break-all sm:mt-1">
                 {formatIDR(netBalance)}
               </p>
             }
@@ -313,57 +308,52 @@ export default function ForecastPage() {
           {/* Monthly Cash Flow Cards — 2-col grid on mobile */}
           <div className="grid grid-cols-2 gap-3 md:hidden">
             <Link href="/incomes">
-              <Card className="h-full transition-colors hover:bg-muted/50">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <Card className="h-full transition-colors hover:bg-muted/50 py-4 gap-4">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 px-4">
                   <CardTitle className="text-sm font-medium">Pemasukan</CardTitle>
-                  <BadgeDollarSign className="h-4 w-4 text-income" />
                 </CardHeader>
-                <CardContent>
-                  <div className="text-lg font-bold text-income break-all">{formatIDR(incomeSummary?.total || 0)}</div>
+                <CardContent className="px-4">
+                  <div className="text-md font-bold text-income break-all">{formatIDR(incomeSummary?.total || 0)}</div>
                 </CardContent>
               </Card>
             </Link>
             <Link href="/expenses">
-              <Card className="h-full transition-colors hover:bg-muted/50">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <Card className="h-full transition-colors hover:bg-muted/50 py-4 gap-4">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 px-4">
                   <CardTitle className="text-sm font-medium">Pengeluaran</CardTitle>
-                  <Wallet className="h-4 w-4 text-expense" />
                 </CardHeader>
-                <CardContent>
-                  <div className="text-lg font-bold text-expense break-all">{formatIDR(expenseSummary?.total || 0)}</div>
+                <CardContent className="px-4">
+                  <div className="text-md font-bold text-expense break-all">{formatIDR(expenseSummary?.total || 0)}</div>
                 </CardContent>
               </Card>
             </Link>
             <Link href="/installments">
-              <Card className="h-full transition-colors hover:bg-muted/50">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <Card className="h-full transition-colors hover:bg-muted/50 py-4 gap-4">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 px-4">
                   <CardTitle className="text-sm font-medium">Cicilan</CardTitle>
-                  <CreditCard className="h-4 w-4 text-installment" />
                 </CardHeader>
-                <CardContent>
-                  <div className="text-lg font-bold text-installment break-all">{formatIDR(payments?.totalInstallment || 0)}</div>
+                <CardContent className="px-4">
+                  <div className="text-md font-bold text-installment break-all">{formatIDR(payments?.totalInstallment || 0)}</div>
                 </CardContent>
               </Card>
             </Link>
             <Link href="/debts">
-              <Card className="h-full transition-colors hover:bg-muted/50">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <Card className="h-full transition-colors hover:bg-muted/50 py-4 gap-4">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 px-4">
                   <CardTitle className="text-sm font-medium">Hutang</CardTitle>
-                  <Receipt className="h-4 w-4 text-debt" />
                 </CardHeader>
-                <CardContent>
-                  <div className="text-lg font-bold text-debt break-all">{formatIDR(payments?.totalDebt || 0)}</div>
+                <CardContent className="px-4">
+                  <div className="text-md font-bold text-debt break-all">{formatIDR(payments?.totalDebt || 0)}</div>
                 </CardContent>
               </Card>
             </Link>
             <Link href="/savings" className="col-span-2">
-              <Card className="h-full transition-colors hover:bg-muted/50">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <Card className="h-full transition-colors hover:bg-muted/50 py-4 gap-4">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 px-4">
                   <CardTitle className="text-sm font-medium">Tabungan</CardTitle>
-                  <PiggyBank className="h-4 w-4 text-savings" />
                 </CardHeader>
-                <CardContent>
-                  <div className="text-lg font-bold text-savings break-all">{formatIDR(summary?.totalSavingsContribution || 0)}</div>
+                <CardContent className="px-4">
+                  <div className="text-md font-bold text-savings break-all">{formatIDR(summary?.totalSavingsContribution || 0)}</div>
                 </CardContent>
               </Card>
             </Link>
@@ -373,59 +363,54 @@ export default function ForecastPage() {
           <div className="hidden md:block space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <Link href="/incomes">
-                <Card className="h-full transition-colors hover:bg-muted/50">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <Card className="h-full transition-colors hover:bg-muted/50 py-4 gap-4">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 px-4">
                     <CardTitle className="text-sm font-medium">Pemasukan</CardTitle>
-                    <BadgeDollarSign className="h-4 w-4 text-income" />
                   </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold text-income">{formatIDR(incomeSummary?.total || 0)}</div>
+                  <CardContent className="px-4">
+                    <div className="text-xl font-bold text-income">{formatIDR(incomeSummary?.total || 0)}</div>
                   </CardContent>
                 </Card>
               </Link>
               <Link href="/expenses">
-                <Card className="h-full transition-colors hover:bg-muted/50">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <Card className="h-full transition-colors hover:bg-muted/50 py-4 gap-4">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 px-4">
                     <CardTitle className="text-sm font-medium">Pengeluaran</CardTitle>
-                    <Wallet className="h-4 w-4 text-expense" />
                   </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold text-expense">{formatIDR(expenseSummary?.total || 0)}</div>
+                  <CardContent className="px-4">
+                    <div className="text-xl font-bold text-expense">{formatIDR(expenseSummary?.total || 0)}</div>
                   </CardContent>
                 </Card>
               </Link>
             </div>
             <div className="grid grid-cols-3 gap-4">
               <Link href="/installments">
-                <Card className="h-full transition-colors hover:bg-muted/50">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <Card className="h-full transition-colors hover:bg-muted/50 py-4 gap-4">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 px-4">
                     <CardTitle className="text-sm font-medium">Cicilan</CardTitle>
-                    <CreditCard className="h-4 w-4 text-installment" />
                   </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold text-installment">{formatIDR(payments?.totalInstallment || 0)}</div>
+                  <CardContent className="px-4">
+                    <div className="text-xl font-bold text-installment">{formatIDR(payments?.totalInstallment || 0)}</div>
                   </CardContent>
                 </Card>
               </Link>
               <Link href="/debts">
-                <Card className="h-full transition-colors hover:bg-muted/50">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <Card className="h-full transition-colors hover:bg-muted/50 py-4 gap-4">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 px-4">
                     <CardTitle className="text-sm font-medium">Hutang</CardTitle>
-                    <Receipt className="h-4 w-4 text-debt" />
                   </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold text-debt">{formatIDR(payments?.totalDebt || 0)}</div>
+                  <CardContent className="px-4">
+                    <div className="text-xl font-bold text-debt">{formatIDR(payments?.totalDebt || 0)}</div>
                   </CardContent>
                 </Card>
               </Link>
               <Link href="/savings">
-                <Card className="h-full transition-colors hover:bg-muted/50">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <Card className="h-full transition-colors hover:bg-muted/50 py-4 gap-4">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 px-4">
                     <CardTitle className="text-sm font-medium">Tabungan</CardTitle>
-                    <PiggyBank className="h-4 w-4 text-savings" />
                   </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold text-savings">{formatIDR(summary?.totalSavingsContribution || 0)}</div>
+                  <CardContent className="px-4">
+                    <div className="text-xl font-bold text-savings">{formatIDR(summary?.totalSavingsContribution || 0)}</div>
                   </CardContent>
                 </Card>
               </Link>

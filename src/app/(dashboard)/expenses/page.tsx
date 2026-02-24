@@ -94,7 +94,7 @@ export default function ExpensesPage() {
             <ArrowLeft className="h-5 w-5" />
           </Link>
           <div>
-            <h1 className="text-2xl font-bold">Pengeluaran</h1>
+            <h1 className="text-lg sm:text-xl md:text-2xl font-bold">Pengeluaran</h1>
             <p className="text-muted-foreground hidden sm:block">Pengeluaran bulanan</p>
           </div>
         </div>
@@ -118,7 +118,7 @@ export default function ExpensesPage() {
         <CardHeader>
           <CardTitle className="flex flex-col gap-4 items-start">
             <span className="text-primary">Total Pengeluaran</span>
-            <span className="text-2xl text-expense">{formatIDR(totalAll)}</span>
+            <span className="text-lg sm:text-2xl text-expense">{formatIDR(totalAll)}</span>
           </CardTitle>
         </CardHeader>
       </Card>

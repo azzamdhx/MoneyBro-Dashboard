@@ -81,7 +81,7 @@ export default function RecurringIncomesPage() {
             <RefreshCw className="h-5 w-5 text-income" />
           </div>
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold">Pemasukkan Tetap</h1>
+            <h1 className="text-lg sm:text-xl md:text-2xl font-bold">Pemasukkan Tetap</h1>
             <p className="text-muted-foreground text-sm hidden sm:block">Kelola pemasukan tetap bulanan</p>
           </div>
         </div>
@@ -97,7 +97,7 @@ export default function RecurringIncomesPage() {
         <CardHeader>
           <CardTitle className="flex flex-col items-start gap-4">
             <span className="text-primary">Total Bulanan</span>
-            <span className="text-2xl text-income">{formatIDR(totalMonthly)}</span>
+            <span className="text-lg sm:text-xl text-income">{formatIDR(totalMonthly)}</span>
           </CardTitle>
         </CardHeader>
       </Card>
@@ -123,7 +123,7 @@ export default function RecurringIncomesPage() {
                 </div>
                 <div>
                   <h3 className="font-semibold">{item.sourceName}</h3>
-                  <p className="text-lg font-bold text-income">{formatIDR(item.amount)}</p>
+                  <p className="text-md font-semibold text-income">{formatIDR(item.amount)}</p>
                 </div>
                 <div className="flex flex-wrap gap-1 mt-2">
                   <Badge variant="outline" className="text-xs">{item.category.name}</Badge>

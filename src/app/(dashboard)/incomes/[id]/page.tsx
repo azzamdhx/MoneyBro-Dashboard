@@ -153,7 +153,7 @@ export default function CreateIncomePage() {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h1 className="text-2xl font-bold">Tambah Pemasukan</h1>
+            <h1 className="text-lg sm:text-xl md:text-2xl font-bold">Tambah Pemasukan</h1>
             <p className="text-muted-foreground hidden sm:block">
               Catat pemasukan baru
             </p>

@@ -273,7 +273,7 @@ export default function PocketDetailPage() {
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div>
-          <h1 className="text-2xl font-bold">
+          <h1 className="text-lg sm:text-xl md:text-2xl font-bold">
             {isNew ? "Tambah Pocket" : pocket?.name || "Detail Pocket"}
           </h1>
         </div>
@@ -495,6 +495,9 @@ export default function PocketDetailPage() {
               <Input
                 id="transferAmount"
                 value={transferData.amount}
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 onChange={(e) => setTransferData({ ...transferData, amount: formatNumber(e.target.value) })}
                 placeholder="0"
                 required

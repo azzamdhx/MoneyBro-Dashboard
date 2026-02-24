@@ -78,7 +78,7 @@ export default function MonthlyExpensesPage() {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h1 className="text-2xl font-bold">{monthLabel}</h1>
+            <h1 className="text-lg sm:text-xl md:text-2xl font-bold">{monthLabel}</h1>
           </div>
         </div>
         {expenses.length > 0 && (
@@ -112,7 +112,7 @@ export default function MonthlyExpensesPage() {
           <CardHeader>
             <CardTitle className="flex flex-col gap-4 items-start">
               <span className="text-primary">Pengeluaran</span>
-              <span className="text-2xl text-expense">{formatIDR(total)}</span>
+              <span className="text-lg sm:text-2xl text-expense">{formatIDR(total)}</span>
             </CardTitle>
           </CardHeader>
         </Card>

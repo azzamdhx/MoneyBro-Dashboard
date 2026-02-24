@@ -155,7 +155,7 @@ export default function CreateExpensePage() {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h1 className="text-2xl font-bold">Tambah Pengeluaran</h1>
+            <h1 className="text-lg sm:text-xl md:text-2xl font-bold">Tambah Pengeluaran</h1>
             <p className="text-muted-foreground hidden sm:block">
               Rencanakan pengeluaran bulanan kamu
             </p>

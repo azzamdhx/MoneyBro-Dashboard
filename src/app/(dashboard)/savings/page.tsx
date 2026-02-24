@@ -76,7 +76,7 @@ export default function SavingsPage() {
               <ArrowLeft className="h-5 w-5" />
             </Link>
             <div>
-              <h1 className="text-2xl font-bold">Tabungan</h1>
+              <h1 className="text-lg sm:text-xl md:text-2xl font-bold">Tabungan</h1>
               <p className="text-muted-foreground hidden sm:block">Kelola target tabungan kamu</p>
             </div>
           </div>
