@@ -431,11 +431,11 @@ export const EditableExpenseTable = forwardRef<EditableExpenseTableRef, Editable
         <TableHeader>
           <TableRow>
             <TableHead className="min-w-[150px]">Item</TableHead>
-            <TableHead className="min-w-[120px]">Kategori</TableHead>
-            <TableHead className="min-w-[120px]">Pocket</TableHead>
-            <TableHead className="text-right min-w-[100px]">Harga</TableHead>
-            <TableHead className="text-right min-w-[60px]">Qty</TableHead>
-            <TableHead className="text-right min-w-[100px]">Total</TableHead>
+            <TableHead className="min-w-[150px]">Kategori</TableHead>
+            <TableHead className="min-w-[150px]">Pocket</TableHead>
+            <TableHead className="text-right min-w-[150px]">Harga</TableHead>
+            <TableHead className="text-right min-w-[100px]">Qty</TableHead>
+            <TableHead className="text-right min-w-[150px]">Total</TableHead>
             <TableHead className="w-[50px]"></TableHead>
           </TableRow>
         </TableHeader>
@@ -475,7 +475,7 @@ export const EditableExpenseTable = forwardRef<EditableExpenseTableRef, Editable
               <TableCell className="text-right">
                 {renderEditableCell(item, "quantity", item.quantity.toString())}
               </TableCell>
-              <TableCell className="text-right font-medium text-expense">
+              <TableCell className="text-right font-medium text-primary">
                 {formatIDR(item.total)}
               </TableCell>
               <TableCell>
@@ -569,7 +569,6 @@ export const EditableExpenseTable = forwardRef<EditableExpenseTableRef, Editable
               <TableCell>
                 <Input
                   placeholder="Qty"
-                  type="text"
                   inputMode="numeric"
                   pattern="[0-9]*"
                   value={newRow.quantity}
@@ -629,7 +628,7 @@ export const EditableExpenseTable = forwardRef<EditableExpenseTableRef, Editable
             }}
           >
             <TableCell colSpan={7} className="text-center text-muted-foreground py-4">
-              <div className="flex items-center justify-center gap-2">
+              <div className="flex items-center md:justify-center justify-start gap-2">
                 <Plus className="h-4 w-4" />
                 <span>Tambah item baru</span>
               </div>
@@ -640,9 +639,9 @@ export const EditableExpenseTable = forwardRef<EditableExpenseTableRef, Editable
     </div>
     <div className="md:static md:mt-4 md:border-0 md:bg-transparent md:p-0 p-6 pb-8 fixed bottom-0 left-0 right-0 z-50 rounded-t-3xl border-t border-x border-border bg-card">
       <div className="flex items-end justify-between gap-4">
-        <div>
+        <div className="flex flex-col gap-1">
           <p className="text-sm text-muted-foreground">Total</p>
-          <p className="text-2xl font-bold text-expense">
+          <p className="md:text-xl text-md font-bold text-expense">
             {formatIDR(displayItems.reduce((sum, item) => sum + item.total, 0))}
           </p>
         </div>
@@ -654,7 +653,7 @@ export const EditableExpenseTable = forwardRef<EditableExpenseTableRef, Editable
           )}
           <Button onClick={handleSave} disabled={saving || !hasPendingChanges}>
             {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-            Simpan Perubahan
+            Simpan
           </Button>
         </div>
       </div>

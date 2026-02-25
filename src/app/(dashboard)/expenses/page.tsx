@@ -108,17 +108,17 @@ export default function ExpensesPage() {
           <Button asChild size="sm">
             <Link href="/expenses/new">
               <Plus className="h-4 w-4 mr-2" />
-              Pengeluaran Baru
+              Pengeluaran
             </Link>
           </Button>
         </div>
       </div>
 
-      <Card className="bg-card border-1">
-        <CardHeader>
-          <CardTitle className="flex flex-col gap-4 items-start">
-            <span className="text-primary">Total Pengeluaran</span>
-            <span className="text-lg sm:text-2xl text-expense">{formatIDR(totalAll)}</span>
+      <Card className="bg-card border-1 py-4 md:py-6">
+        <CardHeader className="flex flex-col px-4">
+          <CardTitle className="flex flex-col items-start md:gap-4 gap-3 w-full">
+            <span className="text-primary text-sm md:text-lg">Total Pengeluaran</span>
+            <span className="text-md sm:text-2xl text-expense">{formatIDR(totalAll)}</span>
           </CardTitle>
         </CardHeader>
       </Card>
@@ -147,15 +147,15 @@ export default function ExpensesPage() {
               className="cursor-pointer hover:border-accent transition-colors py-0"
               onClick={() => router.push(`/expenses/month/${summary.monthKey}`)}
             >
-              <CardContent className="p-4">
-                <div className="flex mb-2">
-                  <div className="h-8 w-8 rounded-lg bg-expense/10 flex items-center justify-center">
-                    <CalendarDays className="h-4 w-4 text-expense" />
+              <CardContent className="p-4 md:px-6 md:py-0 flex flex-col gap-2">
+                <div className="flex mb-2 hidden md:block">
+                  <div>
+                    <CalendarDays className="size-4 md:size-5 text-primary" />
                   </div>
                 </div>
-                <div>
-                  <h3 className="font-semibold">{summary.month}</h3>
-                  <p className="text-lg font-bold text-expense">{formatIDR(summary.total)}</p>
+                <div className="flex flex-col gap-3 md:gap-2">
+                  <h3 className="md:font-semibold font-medium text-xs md:text-lg">{summary.month}</h3>
+                  <p className="md:text-lg text-sm font-bold text-expense">{formatIDR(summary.total)}</p>
                 </div>
               </CardContent>
             </Card>

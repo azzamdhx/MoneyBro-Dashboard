@@ -14,7 +14,6 @@ import {
   ChevronRight,
   LogOut
 } from "lucide-react";
-import { formatDateID } from "@/lib/utils/format";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 
@@ -59,11 +58,11 @@ function SettingItem({ icon, title, description, trailing, disabled, href }: Set
   return content;
 }
 
-function SettingSection({ title, children }: { title: string; children: React.ReactNode }) {
+function SettingSection({ title, children, noBgMobile }: { title: string; children: React.ReactNode; noBgMobile?: boolean }) {
   return (
     <div className="space-y-1">
-      <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4 mb-2">{title}</h2>
-      <div className="rounded-xl border bg-card divide-y divide-border">
+      <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4 mb-2 hidden md:block">{title}</h2>
+      <div className={`rounded-xl border divide-y divide-border ${noBgMobile ? 'bg-transparent md:bg-card border-transparent md:border-border' : 'bg-card'}`}>
         {children}
       </div>
     </div>
@@ -158,8 +157,8 @@ export default function SettingsPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Left Column - Profile */}
         <div className="space-y-4">
-          <SettingSection title="Profil">
-            <Link href="/profile" className="flex flex-col items-center gap-3 p-6 transition-colors hover:bg-muted/50">
+          <SettingSection title="Profil" noBgMobile>
+            <Link href="/profile" className="flex flex-row items-center gap-3 md:p-6 p-0">
               <Image
                 src={`/profile-pics/${user?.profileImage || "BRO-1-B"}.webp`}
                 alt="Profile"
@@ -168,12 +167,9 @@ export default function SettingsPage() {
                 unoptimized
                 className="h-20 w-20 rounded-full object-cover border border-border"
               />
-              <div className="text-center space-y-1">
+              <div className="text-start space-y-1">
                 <h3 className="text-lg font-semibold">{user?.name || "User"}</h3>
                 <p className="text-sm text-muted-foreground">{user?.email}</p>
-                {user?.createdAt && (
-                  <p className="text-xs text-muted-foreground">Bergabung sejak {formatDateID(user.createdAt)}</p>
-                )}
               </div>
             </Link>
           </SettingSection>

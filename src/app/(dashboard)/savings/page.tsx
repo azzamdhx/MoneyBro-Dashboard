@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { formatIDR } from "@/lib/utils/currency";
 import { GET_SAVINGS_GOALS } from "@/lib/graphql/queries";
-import { Plus, PiggyBank, CheckCircle2, Clock, XCircle, ArrowLeft } from "lucide-react";
+import { Plus, PiggyBank, CheckCircle2, XCircle, ArrowLeft } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { getContrastStyles } from "@/lib/utils/color";
@@ -89,27 +89,21 @@ export default function SavingsPage() {
         </div>
 
         <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 sm:grid sm:grid-cols-2 sm:overflow-visible">
-          <Card className="bg-card border-1 min-w-[90%] shrink-0 sm:min-w-0">
-            <CardHeader>
-              <CardTitle className="flex flex-col gap-4 items-start">
-                <span className="text-primary">Total Terkumpul</span>
-                <span className="text-xl text-savings">{formatIDR(totalSaved)}</span>
+          <Card className="bg-card border-1 py-4 md:py-6 min-w-[90%]">
+            <CardHeader className="flex flex-col px-4">
+              <CardTitle className="flex flex-col items-start md:gap-4 gap-3 w-full">
+                <span className="text-primary text-sm md:text-lg">Total Terkumpul</span>
+                <span className="text-md sm:text-2xl text-savings">{formatIDR(totalSaved)}</span>
               </CardTitle>
-              <p className="text-xs text-muted-foreground hidden sm:block">
-                {activeGoals.length} tabungan aktif
-              </p>
             </CardHeader>
           </Card>
 
-          <Card className="bg-card border-1 min-w-[90%] shrink-0 sm:min-w-0">
-            <CardHeader>
-              <CardTitle className="flex flex-col gap-4 items-start">
-                <span className="text-primary">Sisa Target</span>
-                <span className="text-xl text-savings">{formatIDR(totalTarget - totalSaved)}</span>
+          <Card className="bg-card border-1 py-4 md:py-6 min-w-[90%]">
+            <CardHeader className="flex flex-col px-4">
+              <CardTitle className="flex flex-col items-start md:gap-4 gap-3 w-full">
+                <span className="text-primary text-sm md:text-lg">Sisa Target</span>
+                <span className="text-md sm:text-2xl text-savings">{formatIDR(totalTarget - totalSaved)}</span>
               </CardTitle>
-              <p className="text-xs text-muted-foreground hidden sm:block">
-                Dari total target {formatIDR(totalTarget)}
-              </p>
             </CardHeader>
           </Card>
         </div>
@@ -145,11 +139,10 @@ export default function SavingsPage() {
           <div className="space-y-6">
             {activeGoals.length > 0 && (
               <div className="space-y-3">
-                <h2 className="text-lg font-semibold flex items-center gap-2">
-                  <Clock className="h-5 w-5 text-savings" />
+                <h2 className="text-sm md:text-lg font-semibold flex items-center gap-2">
                   Tabungan Aktif ({activeGoals.length})
                 </h2>
-                <div className="grid gap-4 grid-cols-2 lg:grid-cols-3">
+                <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
                   {activeGoals.map((goal) => {
                     const c = getContrastStyles(goal.cardBgColor);
                     return (
@@ -159,27 +152,24 @@ export default function SavingsPage() {
                       onClick={() => router.push(`/savings/${goal.id}`)}
                       style={goal.cardBgColor ? { backgroundColor: goal.cardBgColor, borderColor: goal.cardBgColor } : undefined}
                     >
-                      <CardContent className="p-4">
-                        <div className="flex mb-3">
+                      <CardContent className="p-4 md:px-6 md:py-0 flex flex-col gap-2">
+                        <div className="flex mb-2">
                           {emojis[goal.id] ? (
                             <span className="text-xl">{emojis[goal.id]}</span>
                           ) : (
-                            <PiggyBank className={cn("h-5 w-5", c.bold || "text-savings")} />
+                            <PiggyBank className={cn("size-5", c.bold || "text-savings")} />
                           )}
                         </div>
                         <div className="space-y-3">
                           <div>
                             <h3 className={cn("font-semibold", c.text)}>{goal.name}</h3>
-                            <p className={cn("text-sm", c.muted)}>
+                            <p className={cn("text-sm hidden md:block", c.muted)}>
                               Target: {formatDateShortID(goal.targetDate)}
                             </p>
                           </div>
                           <div>
-                            <div className="flex justify-between text-sm mb-1">
-                              <span className={c.muted}>
-                                {formatIDR(goal.currentAmount)}
-                              </span>
-                              <span className={cn("font-medium", c.text)}>
+                            <div className="flex justify-start text-sm mb-2">
+                              <span className={cn("text-xs md:text-sm font-semibold", c.text)}>
                                 {Math.round(goal.progress)}%
                               </span>
                             </div>
@@ -190,12 +180,7 @@ export default function SavingsPage() {
                               />
                             </div>
                             <p className={cn("text-xs mt-1", c.muted)}>
-                              dari {formatIDR(goal.targetAmount)}
-                            </p>
-                          </div>
-                          <div>
-                            <p className={cn("text-xs", c.muted)}>
-                              Target bulanan: <span className={cn("font-medium", c.bold || "text-savings")}>{formatIDR(goal.monthlyTarget)}</span>
+                              {formatIDR(goal.currentAmount)}
                             </p>
                           </div>
                         </div>
@@ -209,34 +194,32 @@ export default function SavingsPage() {
 
             {completedGoals.length > 0 && (
               <div className="space-y-3">
-                <h2 className="text-lg font-semibold flex items-center gap-2">
-                  <CheckCircle2 className="h-5 w-5 text-income" />
+                <h2 className="text-sm md:text-lg font-semibold flex items-center gap-2">
                   Tabungan Selesai ({completedGoals.length})
                 </h2>
-                <div className="grid gap-4 grid-cols-2 lg:grid-cols-3">
+                <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
                   {completedGoals.map((goal) => (
                     <Card
                       key={goal.id}
                       className="cursor-pointer hover:border-accent transition-colors opacity-70 py-0"
                       onClick={() => router.push(`/savings/${goal.id}`)}
                     >
-                      <CardContent className="p-4">
-                        <div className="flex mb-3">
+                      <CardContent className="p-4 md:px-6 md:py-0 flex flex-col gap-2">
+                        <div className="flex mb-2">
                           {emojis[goal.id] ? (
                             <span className="text-xl">{emojis[goal.id]}</span>
                           ) : (
-                            <CheckCircle2 className="h-5 w-5 text-income" />
+                            <CheckCircle2 className="size-5 text-income" />
                           )}
                         </div>
                         <div className="space-y-2">
                           <div>
                             <h3 className="font-semibold">{goal.name}</h3>
-                            <p className="text-sm text-muted-foreground">Tercapai</p>
                           </div>
                           <div>
-                            <p className="font-bold text-income">Selesai</p>
+                            <p className="text-sm md:text-md font-bold text-income">Selesai</p>
                             <p className="text-xs text-muted-foreground mt-1">
-                              Terkumpul {formatIDR(goal.currentAmount)}
+                              {formatIDR(goal.currentAmount)}
                             </p>
                           </div>
                         </div>
@@ -260,7 +243,7 @@ export default function SavingsPage() {
                       className="cursor-pointer hover:border-accent transition-colors opacity-50 py-0"
                       onClick={() => router.push(`/savings/${goal.id}`)}
                     >
-                      <CardContent className="p-4">
+                      <CardContent className="p-4 md:px-6 md:py-0 flex flex-col gap-2">
                         <div className="flex mb-3">
                           <div className="h-8 w-8 rounded-lg bg-muted flex items-center justify-center">
                             {emojis[goal.id] ? (

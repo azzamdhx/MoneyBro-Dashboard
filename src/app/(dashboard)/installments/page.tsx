@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { formatIDR } from "@/lib/utils/currency";
 import { GET_INSTALLMENTS } from "@/lib/graphql/queries";
-import { Plus, CreditCard, CheckCircle2, Clock, ArrowLeft } from "lucide-react";
+import { Plus, CreditCard, CheckCircle2, ArrowLeft } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { getContrastStyles } from "@/lib/utils/color";
@@ -97,27 +97,21 @@ export default function InstallmentsPage() {
       </div>
 
       <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 sm:grid sm:grid-cols-2 sm:overflow-visible">
-        <Card className="bg-card border-1 min-w-[90%] shrink-0 sm:min-w-0">
-          <CardHeader>
-            <CardTitle className="flex flex-col gap-4 items-start">
-              <span className="text-primary">Cicilan Bulanan</span>
-              <span className="text-xl text-installment">{formatIDR(totalMonthlyPayment)}</span>
+        <Card className="bg-card border-1 py-4 md:py-6 min-w-[90%]">
+          <CardHeader className="flex flex-col px-4">
+            <CardTitle className="flex flex-col items-start md:gap-4 gap-3 w-full">
+              <span className="text-primary text-sm md:text-lg">Cicilan Bulanan</span>
+              <span className="text-md sm:text-2xl text-installment">{formatIDR(totalMonthlyPayment)}</span>
             </CardTitle>
-            <p className="text-xs text-muted-foreground hidden sm:block">
-              {activeInstallments.length} cicilan aktif
-            </p>
           </CardHeader>
         </Card>
 
-        <Card className="bg-card border-1 min-w-[90%] shrink-0 sm:min-w-0">
-          <CardHeader>
-            <CardTitle className="flex flex-col gap-4 items-start">
-              <span className="text-primary">Sisa Cicilan</span>
-              <span className="text-xl text-installment">{formatIDR(totalRemainingAmount)}</span>
+        <Card className="bg-card border-1 py-4 md:py-6 min-w-[90%]">
+          <CardHeader className="flex flex-col px-4">
+            <CardTitle className="flex flex-col items-start md:gap-4 gap-3 w-full">
+              <span className="text-primary text-sm md:text-lg">Sisa Cicilan</span>
+              <span className="text-md sm:text-2xl text-installment">{formatIDR(totalRemainingAmount)}</span>
             </CardTitle>
-            <p className="text-xs text-muted-foreground hidden sm:block">
-              Total yang harus dilunasi
-            </p>
           </CardHeader>
         </Card>
       </div>
@@ -153,8 +147,7 @@ export default function InstallmentsPage() {
         <div className="space-y-6">
           {activeInstallments.length > 0 && (
             <div className="space-y-3">
-              <h2 className="text-lg font-semibold flex items-center gap-2">
-                <Clock className="h-5 w-5 text-installment" />
+              <h2 className="text-sm md:text-lg font-semibold flex items-center gap-2">
                 Cicilan Aktif ({activeInstallments.length})
               </h2>
               <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
@@ -167,12 +160,12 @@ export default function InstallmentsPage() {
                     onClick={() => router.push(`/installments/${installment.id}`)}
                     style={installment.cardBgColor ? { backgroundColor: installment.cardBgColor, borderColor: installment.cardBgColor } : undefined}
                   >
-                    <CardContent className="p-4">
+                    <CardContent className="p-4 md:px-6 md:py-0 flex flex-col gap-2">
                       <div className="flex mb-2">
                         {emojis[installment.id] ? (
                           <span className="text-2xl">{emojis[installment.id]}</span>
                         ) : (
-                          <CreditCard className={cn("h-5 w-5", c.bold || "text-installment")} />
+                          <CreditCard className={cn("size-5", c.bold || "text-installment")} />
                         )}
                       </div>
                       <div className="space-y-2">
@@ -180,15 +173,15 @@ export default function InstallmentsPage() {
                           <h3 className={cn("font-semibold", c.text)}>{installment.name}</h3>
                           <div className="flex flex-wrap items-center gap-1 mt-1">
                             <span className={cn("text-sm", c.muted)}>
-                              {installment.paidCount}/{installment.tenor} bulan
+                              {installment.paidCount}/{installment.tenor}
                             </span>
                             <span className={cn("text-xs", c.muted)}>
-                              · Tanggal {installment.dueDay}
+                              · Tgl {installment.dueDay}
                             </span>
                           </div>
                         </div>
                         <div>
-                          <p className={cn("font-bold", c.bold || "text-installment")}>
+                          <p className={cn("font-bold", c.bold || "md:text-lg text-sm font-bold text-installment")}>
                             {formatIDR(installment.monthlyPayment)}
                           </p>
                           <p className={cn("text-xs mt-1", c.muted)}>
@@ -206,34 +199,30 @@ export default function InstallmentsPage() {
 
           {completedInstallments.length > 0 && (
             <div className="space-y-3">
-              <h2 className="text-lg font-semibold flex items-center gap-2">
-                <CheckCircle2 className="h-5 w-5 text-income" />
+              <h2 className="text-sm md:text-lg font-semibold flex items-center gap-2">
                 Cicilan Selesai ({completedInstallments.length})
               </h2>
-              <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-4">
+              <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
                 {completedInstallments.map((installment) => (
                   <Card
                     key={installment.id}
                     className="cursor-pointer hover:border-accent transition-colors opacity-70 py-0"
                     onClick={() => router.push(`/installments/${installment.id}`)}
                   >
-                    <CardContent className="p-4">
+                    <CardContent className="p-4 md:px-6 md:py-0 flex flex-col gap-2">
                       <div className="flex mb-2">
                         {emojis[installment.id] ? (
                           <span className="text-2xl">{emojis[installment.id]}</span>
                         ) : (
-                          <CheckCircle2 className="h-5 w-5 text-income" />
+                          <CheckCircle2 className="size-5 text-income" />
                         )}
                       </div>
                       <div className="space-y-2">
                         <div>
                           <h3 className="font-semibold">{installment.name}</h3>
-                          <p className="text-sm text-muted-foreground">
-                            Lunas · {installment.tenor} bulan
-                          </p>
                         </div>
                         <div>
-                          <p className="font-bold text-income">Lunas</p>
+                          <p className="font-bold text-income text-sm md:text-lg">Lunas · {installment.tenor} bulan </p>
                           <p className="text-xs text-muted-foreground mt-1">
                             Total {formatIDR(installment.actualAmount)}
                           </p>

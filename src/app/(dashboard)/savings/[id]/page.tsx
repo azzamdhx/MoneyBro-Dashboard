@@ -417,14 +417,14 @@ export default function SavingsGoalDetailPage() {
         </div>
       </div>
 
-      {/* Contribution Dialog */}
+      {/* Contribution Dialog - Desktop */}
       <Dialog open={isContributionOpen} onOpenChange={setIsContributionOpen}>
-        <DialogContent>
-          <DialogHeader>
+        <DialogContent className="hidden md:block">
+          <DialogHeader className="pb-6">
             <DialogTitle>Tambah Kontribusi</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleAddContribution} className="space-y-4">
-            <div className="space-y-2">
+            <div className="flex flex-col gap-3">
               <Label>Pocket</Label>
               <PocketSelector
                 value={contributionPocketId}
@@ -432,7 +432,7 @@ export default function SavingsGoalDetailPage() {
                 className="w-full"
               />
             </div>
-            <div className="space-y-2">
+            <div className="flex flex-col gap-3">
               <Label htmlFor="contrib-amount">Jumlah (Rp) *</Label>
               <Input
                 id="contrib-amount"
@@ -444,9 +444,11 @@ export default function SavingsGoalDetailPage() {
                   })
                 }
                 placeholder="0"
+                inputMode="numeric"
+                pattern="[0-9]*"
               />
             </div>
-            <div className="space-y-2">
+            <div className="flex flex-col gap-3">
               <Label>Tanggal *</Label>
               <DatePicker
                 value={contributionData.contributionDate}
@@ -458,7 +460,7 @@ export default function SavingsGoalDetailPage() {
                 }
               />
             </div>
-            <div className="space-y-2">
+            <div className="flex flex-col gap-3">
               <Label htmlFor="contrib-notes">Catatan</Label>
               <Input
                 id="contrib-notes"
@@ -479,6 +481,80 @@ export default function SavingsGoalDetailPage() {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Contribution Bottom Sheet - Mobile */}
+      {isContributionOpen && (
+        <div className="fixed inset-0 z-90 md:hidden" onClick={() => setIsContributionOpen(false)}>
+          <div className="absolute inset-0 bg-black/50" />
+          <div
+            className="border-t absolute bottom-0 left-0 right-0 min-h-[70vh] bg-background rounded-t-2xl p-6 pb-8 flex flex-col animate-in slide-in-from-bottom duration-300"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-lg font-semibold">Tambah Kontribusi</h2>
+              <button onClick={() => setIsContributionOpen(false)} className="p-1 rounded-full hover:bg-muted">
+                <X size={20} />
+              </button>
+            </div>
+            <form onSubmit={handleAddContribution} className="flex flex-col gap-4 flex-1">
+              <div className="flex flex-col gap-3">
+                <Label>Pocket</Label>
+                <PocketSelector
+                  value={contributionPocketId}
+                  onChange={setContributionPocketId}
+                  className="w-full"
+                />
+              </div>
+              <div className="flex flex-col gap-3">
+                <Label htmlFor="contrib-amount-mobile">Jumlah (Rp) *</Label>
+                <Input
+                  id="contrib-amount-mobile"
+                  value={contributionData.amount}
+                  onChange={(e) =>
+                    setContributionData({
+                      ...contributionData,
+                      amount: formatNumber(e.target.value),
+                    })
+                  }
+                  placeholder="0"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                />
+              </div>
+              <div className="flex flex-col gap-3">
+                <Label>Tanggal *</Label>
+                <DatePicker
+                  value={contributionData.contributionDate}
+                  onChange={(val) =>
+                    setContributionData({
+                      ...contributionData,
+                      contributionDate: val,
+                    })
+                  }
+                />
+              </div>
+              <div className="flex flex-col gap-3">
+                <Label htmlFor="contrib-notes-mobile">Catatan</Label>
+                <Input
+                  id="contrib-notes-mobile"
+                  value={contributionData.notes}
+                  onChange={(e) =>
+                    setContributionData({
+                      ...contributionData,
+                      notes: e.target.value,
+                    })
+                  }
+                  placeholder="Opsional"
+                />
+              </div>
+              <Button type="submit" className="w-full mt-auto" disabled={contributing}>
+                {contributing && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                Tambah Kontribusi
+              </Button>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Withdraw Confirmation */}
       {withdrawId && (
@@ -642,6 +718,8 @@ export default function SavingsGoalDetailPage() {
                       }
                       placeholder="10.000.000"
                       className="pl-10"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
                     />
                   </div>
                 </div>
@@ -654,6 +732,8 @@ export default function SavingsGoalDetailPage() {
                     onChange={(e) => updateTargetDateFromMonths(e.target.value)}
                     placeholder="12"
                     min="1"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
                   />
                 </div>
               </div>
@@ -683,10 +763,10 @@ export default function SavingsGoalDetailPage() {
 
           <div className="md:static md:mt-6 p-5 pb-8 md:p-6 md:rounded-lg md:border fixed bottom-0 left-0 right-0 z-50 rounded-t-3xl border-t border-x border-border bg-card">
             {isNew ? (
-              <div className="flex items-end justify-between gap-4">
-                <div>
-                  <p className="text-sm text-muted-foreground">Nabung per bulan</p>
-                  <p className="text-2xl font-bold text-savings">
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex flex-col gap-1">
+                  <p className="text-sm text-muted-foreground">Bulanan</p>
+                  <p className="md:text-xl text-md font-bold text-savings">
                     {formatIDR(calculatedMonthlyTarget)}
                   </p>
                 </div>
@@ -696,10 +776,10 @@ export default function SavingsGoalDetailPage() {
                 </Button>
               </div>
             ) : goal?.status === "ACTIVE" && (
-              <div className="flex items-end justify-between gap-4">
-                <div>
-                  <p className="text-sm text-muted-foreground">Target Bulanan</p>
-                  <p className="text-2xl font-bold text-savings">
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex flex-col gap-1">
+                  <p className="text-sm text-muted-foreground">Bulanan</p>
+                  <p className="md:text-xl text-md font-bold text-savings">
                     {formatIDR(goal?.monthlyTarget || 0)}
                   </p>
                 </div>
@@ -709,7 +789,7 @@ export default function SavingsGoalDetailPage() {
                   onClick={() => setIsContributionOpen(true)}
                 >
                   <Plus className="h-4 w-4 mr-2" />
-                  Tambah Kontribusi
+                  Kontribusi
                 </Button>
               </div>
             )}

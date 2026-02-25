@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
+import Link from "next/link";
 import { useQuery, useMutation } from "@apollo/client/react";
 import { gql } from "@apollo/client/core";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,7 +32,7 @@ import {
 } from "@/lib/graphql/mutations";
 import { GET_POCKETS } from "@/lib/graphql/queries";
 import { toast } from "sonner";
-import { Loader2, ArrowLeft, ArrowRightLeft, ArrowDownLeft, ArrowUpRight } from "lucide-react";
+import { Loader2, ArrowLeft, ArrowRightLeft, ArrowDownLeft, ArrowUpRight, X, Plus, Pencil, Wallet } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
@@ -119,6 +120,7 @@ export default function PocketDetailPage() {
   const [emoji, setEmoji] = useState("");
   const [cardBgColor, setCardBgColor] = useState<string | null>(null);
   const [isTransferOpen, setIsTransferOpen] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
@@ -268,7 +270,8 @@ export default function PocketDetailPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
+      {/* Header - Desktop (detail) / Both (new) */}
+      <div className={`flex items-center gap-4 ${!isNew ? "hidden md:flex" : ""}`}>
         <Button variant="ghost" size="icon" onClick={() => router.push("/pockets")}>
           <ArrowLeft className="h-5 w-5" />
         </Button>
@@ -279,9 +282,62 @@ export default function PocketDetailPage() {
         </div>
       </div>
 
-      {/* Transfer & Actions */}
+      {/* Mobile Hero Section */}
       {!isNew && pocket && (
-        <div className="flex gap-2">
+        <div 
+        className="md:hidden -mx-4 -mt-6 pb-6 flex flex-col gap-2"
+        style={{ backgroundColor: cardBgColor || "hsl(var(--card))" }}
+        >
+          <div
+            className="static px-6 pt-4 pb-8 flex flex-col items-center"
+          >
+            {/* Top row: Back + Edit */}
+            <div className="flex items-center justify-between w-full my-4">
+              <Button variant="ghost" size="icon" className="text-white/80 hover:text-primary hover:bg-primary/10" onClick={() => router.push("/pockets")}>
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+              <Button variant="ghost" size="icon" className="text-white/80 hover:text-primary hover:bg-primary/10" onClick={() => setIsEditMode(!isEditMode)}>
+                <Pencil className="h-4 w-4" />
+              </Button>
+            </div>
+
+            {/* Emoji */}
+            <div className="text-6xl mb-3">
+              {emoji || <Wallet className="h-14 w-14 text-primary/80" />}
+            </div>
+
+            {/* Pocket Name */}
+            <h1 className="text-xl font-bold text-white mb-1">{pocket.name}</h1>
+
+            {/* Monthly Balance */}
+            <p className="text-2xl font-bold text-white">{formatIDR(monthlyBalance)}</p>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex justify-center gap-8 -mt-5 px-6">
+            <Link href="/incomes" className="flex flex-col items-center gap-1.5">
+              <div className="flex items-center justify-center w-12 h-12 rounded-full bg-income text-white">
+                <Plus size={22} />
+              </div>
+              <span className="text-xs font-medium text-primary">Tambah</span>
+            </Link>
+            <button
+              onClick={() => setIsTransferOpen(true)}
+              disabled={otherPockets.length === 0}
+              className="flex flex-col items-center gap-1.5 disabled:opacity-50"
+            >
+              <div className="flex items-center justify-center w-12 h-12 rounded-full bg-primary text-background">
+                <ArrowRightLeft size={20} />
+              </div>
+              <span className="text-xs font-medium text-primary">Transfer</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Transfer & Actions - Desktop */}
+      {!isNew && pocket && (
+        <div className="hidden md:flex gap-2">
           <Button
             variant="outline"
             onClick={() => setIsTransferOpen(true)}
@@ -308,7 +364,7 @@ export default function PocketDetailPage() {
             value={selectedMonth}
             onChange={setSelectedMonth}
           />
-          <Card>
+          <Card className="hidden md:block">
             <CardContent>
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -333,8 +389,8 @@ export default function PocketDetailPage() {
         </>
       )}
 
-      {/* Form */}
-      <Card>
+      {/* Form - Desktop always, Mobile only for new */}
+      <Card className={!isNew ? "hidden md:block" : ""}>
         <CardHeader>
           <CardTitle>{isNew ? "Data Pocket Baru" : "Edit Pocket"}</CardTitle>
         </CardHeader>
@@ -364,6 +420,64 @@ export default function PocketDetailPage() {
           </form>
         </CardContent>
       </Card>
+
+      {/* Edit Bottom Sheet - Mobile */}
+      {isEditMode && !isNew && pocket && (
+        <div className="fixed inset-0 z-90 md:hidden" onClick={() => setIsEditMode(false)}>
+          <div className="absolute inset-0 bg-black/50" />
+          <div
+            className="border-t absolute bottom-0 left-0 right-0 min-h-[70vh] bg-background rounded-t-2xl p-6 pb-8 flex flex-col animate-in slide-in-from-bottom duration-300"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-lg font-semibold">Edit Pocket</h2>
+              <button onClick={() => setIsEditMode(false)} className="p-1 rounded-full hover:bg-muted">
+                <X size={20} />
+              </button>
+            </div>
+            <form
+              onSubmit={async (e) => {
+                await handleSubmit(e);
+                setIsEditMode(false);
+              }}
+              className="flex flex-col gap-4 flex-1"
+            >
+              <div className="space-y-2">
+                <Label>Emoji & Warna</Label>
+                <div className="flex items-center gap-3">
+                  <EmojiPicker value={emoji} onChange={setEmoji} />
+                  <ColorPicker value={cardBgColor} onChange={setCardBgColor} />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="name-mobile">Nama Pocket</Label>
+                <Input
+                  id="name-mobile"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  placeholder="Contoh: Belanja Bulanan"
+                  required
+                />
+              </div>
+
+              {!pocket.isDefault && (
+                <DeleteConfirmDialog
+                  title="Hapus Pocket"
+                  description={`Yakin ingin menghapus pocket "${pocket.name}"? Saldo harus 0 untuk menghapus pocket.`}
+                  onConfirm={handleDelete}
+                  loading={deleting}
+                />
+              )}
+
+              <Button type="submit" className="w-full mt-auto" disabled={creating || updating}>
+                {(creating || updating) && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                Simpan Perubahan
+              </Button>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Credit & Debit Detail */}
       {!isNew && pocket && (
@@ -454,30 +568,30 @@ export default function PocketDetailPage() {
         </div>
       )}
 
-      {/* Transfer Dialog */}
+      {/* Transfer Dialog - Desktop */}
       <Dialog open={isTransferOpen} onOpenChange={setIsTransferOpen}>
-        <DialogContent>
-          <DialogHeader>
+        <DialogContent className="hidden md:block">
+          <DialogHeader className="mb-6">
             <DialogTitle>Transfer ke Pocket Lain</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleTransfer} className="space-y-4">
-            <div>
+            <div className="flex flex-col gap-3">
               <Label>Dari</Label>
               <Input value={pocket?.name || ""} disabled />
               {pocket && (
                 <p className="text-xs text-muted-foreground mt-1">
-                  Saldo {formatMonthYear(selectedMonth + "-01")}: {formatIDR(monthlyBalance)}
+                  Saldo: {formatIDR(monthlyBalance)}
                 </p>
               )}
             </div>
 
-            <div>
+            <div className="flex flex-col gap-3">
               <Label htmlFor="toPocket">Ke Pocket</Label>
               <Select
                 value={transferData.toPocketId}
                 onValueChange={(v) => setTransferData({ ...transferData, toPocketId: v })}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Pilih pocket tujuan" />
                 </SelectTrigger>
                 <SelectContent>
@@ -490,12 +604,11 @@ export default function PocketDetailPage() {
               </Select>
             </div>
 
-            <div>
+            <div className="flex flex-col gap-3">
               <Label htmlFor="transferAmount">Jumlah</Label>
               <Input
                 id="transferAmount"
                 value={transferData.amount}
-                type="text"
                 inputMode="numeric"
                 pattern="[0-9]*"
                 onChange={(e) => setTransferData({ ...transferData, amount: formatNumber(e.target.value) })}
@@ -504,7 +617,7 @@ export default function PocketDetailPage() {
               />
             </div>
 
-            <div>
+            <div className="flex flex-col gap-3">
               <Label htmlFor="transferDesc">Keterangan (opsional)</Label>
               <Input
                 id="transferDesc"
@@ -526,6 +639,82 @@ export default function PocketDetailPage() {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Transfer Bottom Sheet - Mobile */}
+      {isTransferOpen && (
+        <div className="fixed inset-0 z-90 md:hidden" onClick={() => setIsTransferOpen(false)}>
+          <div className="absolute inset-0 bg-black/50" />
+          <div
+            className="border-t absolute bottom-0 left-0 right-0 min-h-[70vh] bg-background rounded-t-2xl p-6 pb-8 flex flex-col animate-in slide-in-from-bottom duration-300"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-lg font-semibold">Transfer ke Pocket Lain</h2>
+              <button onClick={() => setIsTransferOpen(false)} className="p-1 rounded-full hover:bg-muted">
+                <X size={20} />
+              </button>
+            </div>
+            <form onSubmit={handleTransfer} className="flex flex-col gap-4 flex-1">
+              <div className="flex flex-col gap-3">
+                <Label>Dari</Label>
+                <Input value={pocket?.name || ""} disabled />
+                {pocket && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Saldo: {formatIDR(monthlyBalance)}
+                  </p>
+                )}
+              </div>
+
+              <div className="flex flex-col gap-3">
+                <Label htmlFor="toPocket-mobile">Ke Pocket</Label>
+                <Select
+                  value={transferData.toPocketId}
+                  onValueChange={(v) => setTransferData({ ...transferData, toPocketId: v })}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Pilih pocket tujuan" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {otherPockets.map((p) => (
+                      <SelectItem key={p.id} value={p.id}>
+                        {p.icon ? `${p.icon} ` : ""}{p.name} ({formatIDR(p.currentBalance)})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex flex-col gap-3">
+                <Label htmlFor="transferAmount-mobile">Jumlah</Label>
+                <Input
+                  id="transferAmount-mobile"
+                  value={transferData.amount}
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  onChange={(e) => setTransferData({ ...transferData, amount: formatNumber(e.target.value) })}
+                  placeholder="0"
+                  required
+                />
+              </div>
+
+              <div className="flex flex-col gap-3">
+                <Label htmlFor="transferDesc-mobile">Keterangan (opsional)</Label>
+                <Input
+                  id="transferDesc-mobile"
+                  value={transferData.description}
+                  onChange={(e) => setTransferData({ ...transferData, description: e.target.value })}
+                  placeholder="Transfer untuk belanja"
+                />
+              </div>
+
+              <Button type="submit" className="w-full mt-auto" disabled={transferring}>
+                {transferring && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                Transfer
+              </Button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -265,27 +265,27 @@ export default function DashboardPage() {
           <p className="text-xs sm:text-sm font-medium text-white/70 hidden sm:block">Saldo Bersih Bulan Ini</p>
         }
         balanceValue={
-          <h1 className={`text-lg sm:text-xl md:text-2xl font-bold ${getBalanceColor()} break-all sm:mt-1`}>
+          <h1 className={`text-xl md:text-3xl font-bold ${getBalanceColor()} break-all sm:mt-1`}>
             {formatIDR(netBalance)}
           </h1>
         }
         chip={<ValueChip value={balancePercentage} showPercentage />}
         breakdown={
           <div className="grid grid-cols-2 gap-3 sm:gap-4">
-            <div className="space-y-0.5">
-              <p className="text-[10px] sm:text-xs text-white/70">Credit</p>
-              <p className="text-sm sm:text-base font-semibold text-white break-all">{formatIDR(totalIncome)}</p>
+            <div className="space-y-0.5 text-center md:text-start">
+              <p className="text-xs sm:text-xs text-white/70">Credit</p>
+              <p className="text-xs sm:text-base font-semibold text-white break-all">{formatIDR(totalIncome)}</p>
             </div>
-            <div className="space-y-0.5">
-              <p className="text-[10px] sm:text-xs text-white/70">Debit</p>
-              <p className="text-sm sm:text-base font-semibold text-white break-all">{formatIDR(totalOutflow)}</p>
+            <div className="space-y-0.5 text-center md:text-start">
+              <p className="text-xs sm:text-xs text-white/70">Debit</p>
+              <p className="text-xs sm:text-base font-semibold text-white break-all">{formatIDR(totalOutflow)}</p>
             </div>
           </div>
         }
       />
 
       {/* Mobile Menu Grid */}
-      <div className="grid grid-cols-4 gap-4 md:hidden">
+      <div className="grid grid-cols-4 gap-4 md:hidden bg-card p-4 rounded-2xl border-1 border-border">
         {[
           { href: "/incomes", icon: TrendUp, label: "Pemasukan", color: "text-income" },
           { href: "/expenses", icon: PhReceipt, label: "Pengeluaran", color: "text-expense" },
@@ -301,7 +301,7 @@ export default function DashboardPage() {
             className="flex flex-col items-center gap-1.5"
           >
             <div
-              className="flex flex-col items-center py-3 w-full rounded-xl bg-card border border-border hover:bg-muted/50 transition-colors"
+              className="flex flex-col items-center py-3 w-full rounded-xl bg-background"
             >
               <item.icon size={24}/>
             </div>
@@ -312,7 +312,7 @@ export default function DashboardPage() {
           onClick={() => setMoreOpen(true)}
           className="flex flex-col items-center gap-1.5"
         >
-          <div className="flex flex-col items-center py-3 w-full rounded-xl bg-card border border-border hover:bg-muted/50 transition-colors">
+          <div className="flex flex-col items-center py-3 w-full rounded-xl bg-background">
             <DotsNine size={24} className="text-muted-foreground" />
           </div>
           <span className="text-[10px] font-medium text-muted-foreground text-center">Lainnya</span>
@@ -344,7 +344,7 @@ export default function DashboardPage() {
                   onClick={() => setMoreOpen(false)}
                   className="flex flex-col items-center gap-1.5"
                 >
-                  <div className="flex flex-col items-center py-3 w-full rounded-xl bg-card border border-border hover:bg-muted/50 transition-colors">
+                  <div className="flex flex-col items-center py-3 w-full rounded-xl bg-card">
                     <item.icon size={24} />
                   </div>
                   <span className="text-[10px] font-medium text-muted-foreground text-center">{item.label}</span>
@@ -355,15 +355,15 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Monthly Cash Flow Cards — 2-col grid on mobile, 2-col + 3-col grid on desktop */}
-      <div className="grid grid-cols-2 gap-3 md:hidden">
+      {/* Monthly Cash Flow Cards Mobile */}
+      <div className="grid grid-cols-2 gap-4 md:hidden">
         <Link href="/incomes">
           <Card className="h-full transition-colors hover:bg-muted/50 py-4 gap-4">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 px-4">
-              <CardTitle className="text-sm font-medium">Pemasukan</CardTitle>
+              <CardTitle className="text-xs font-medium">Pemasukan</CardTitle>
             </CardHeader>
             <CardContent className="px-4">
-              <div className="text-md font-bold text-income break-all">
+              <div className="text-sm font-bold text-income break-all">
                 {formatIDR(balanceSummary?.totalIncome || 0)}
               </div>
             </CardContent>
@@ -372,10 +372,10 @@ export default function DashboardPage() {
         <Link href="/expenses">
           <Card className="h-full transition-colors hover:bg-muted/50 py-4 gap-4">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 px-4">
-              <CardTitle className="text-sm font-medium">Pengeluaran</CardTitle>
+              <CardTitle className="text-xs font-medium">Pengeluaran</CardTitle>
             </CardHeader>
             <CardContent className="px-4">
-              <div className="text-lg font-bold text-expense break-all">
+              <div className="text-sm font-bold text-expense break-all">
                 {formatIDR(balanceSummary?.totalExpense || 0)}
               </div>
             </CardContent>
@@ -384,10 +384,10 @@ export default function DashboardPage() {
         <Link href="/installments">
           <Card className="h-full transition-colors hover:bg-muted/50 py-4 gap-4">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 px-4">
-              <CardTitle className="text-sm font-medium">Cicilan</CardTitle>
+              <CardTitle className="text-xs font-medium">Cicilan</CardTitle>
             </CardHeader>
             <CardContent className="px-4">
-              <div className="text-lg font-bold text-installment break-all">
+              <div className="text-sm font-bold text-installment break-all">
                 {formatIDR(balanceSummary?.totalInstallmentPayment || 0)}
               </div>
             </CardContent>
@@ -396,10 +396,10 @@ export default function DashboardPage() {
         <Link href="/debts">
           <Card className="h-full transition-colors hover:bg-muted/50 py-4 gap-4">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 px-4">
-              <CardTitle className="text-sm font-medium">Hutang</CardTitle>
+              <CardTitle className="text-xs font-medium">Hutang</CardTitle>
             </CardHeader>
             <CardContent className="px-4">
-              <div className="text-lg font-bold text-debt break-all">
+              <div className="text-sm font-bold text-debt break-all">
                 {formatIDR(balanceSummary?.totalDebtPayment || 0)}
               </div>
             </CardContent>
@@ -408,10 +408,10 @@ export default function DashboardPage() {
         <Link href="/savings" className="col-span-2">
           <Card className="h-full transition-colors hover:bg-muted/50 py-4 gap-4">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 px-4">
-              <CardTitle className="text-sm font-medium">Tabungan</CardTitle>
+              <CardTitle className="text-xs font-medium">Tabungan</CardTitle>
             </CardHeader>
             <CardContent className="px-4">
-              <div className="text-lg font-bold text-savings break-all">
+              <div className="text-sm font-bold text-savings break-all">
                 {formatIDR(dashboard?.totalSavingsContributionThisMonth || 0)}
               </div>
             </CardContent>
@@ -419,14 +419,15 @@ export default function DashboardPage() {
         </Link>
       </div>
 
+      {/* Monthly Cash Flow Cards Desktop */}
       <div className="hidden md:block space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <Link href="/incomes">
-            <Card className="h-full transition-colors hover:bg-muted/50 py-4">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 px-4">
-                <CardTitle className="text-sm font-medium">Pemasukan</CardTitle>
+            <Card className="h-full transition-colors hover:bg-muted/50 py-6">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0">
+                <CardTitle className="text-lg font-medium">Pemasukan</CardTitle>
               </CardHeader>
-              <CardContent className="px-4">
+              <CardContent className="px-6">
                 <div className="text-xl font-bold text-income">
                   {formatIDR(balanceSummary?.totalIncome || 0)}
                 </div>
@@ -434,11 +435,11 @@ export default function DashboardPage() {
             </Card>
           </Link>
           <Link href="/expenses">
-            <Card className="h-full transition-colors hover:bg-muted/50 py-4">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 px-4">
-                <CardTitle className="text-sm font-medium">Pengeluaran</CardTitle>
+            <Card className="h-full transition-colors hover:bg-muted/50 py-6">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0">
+                <CardTitle className="text-lg font-medium">Pengeluaran</CardTitle>
               </CardHeader>
-              <CardContent className="px-4">
+              <CardContent className="px-6">
                 <div className="text-xl font-bold text-expense">
                   {formatIDR(balanceSummary?.totalExpense || 0)}
                 </div>
@@ -448,11 +449,11 @@ export default function DashboardPage() {
         </div>
         <div className="grid grid-cols-3 gap-4">
           <Link href="/installments">
-            <Card className="h-full transition-colors hover:bg-muted/50 py-4 gap-4">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 px-4">
-                <CardTitle className="text-sm font-medium">Cicilan</CardTitle>
+            <Card className="h-full transition-colors hover:bg-muted/50 py-6 gap-4">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0">
+                <CardTitle className="text-lg font-medium">Cicilan</CardTitle>
               </CardHeader>
-              <CardContent className="px-4">
+              <CardContent className="px-6">
                 <div className="text-xl font-bold text-installment">
                   {formatIDR(balanceSummary?.totalInstallmentPayment || 0)}
                 </div>
@@ -460,11 +461,11 @@ export default function DashboardPage() {
             </Card>
           </Link>
           <Link href="/debts">
-            <Card className="h-full transition-colors hover:bg-muted/50 py-4 gap-4">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 px-4">
-                <CardTitle className="text-sm font-medium">Hutang</CardTitle>
+            <Card className="h-full transition-colors hover:bg-muted/50 py-6 gap-4">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0">
+                <CardTitle className="text-lg font-medium">Hutang</CardTitle>
               </CardHeader>
-              <CardContent className="px-4">
+              <CardContent className="px-6">
                 <div className="text-xl font-bold text-debt">
                   {formatIDR(balanceSummary?.totalDebtPayment || 0)}
                 </div>
@@ -472,11 +473,11 @@ export default function DashboardPage() {
             </Card>
           </Link>
           <Link href="/savings">
-            <Card className="h-full transition-colors hover:bg-muted/50 py-4 gap-4">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 px-4">
-                <CardTitle className="text-sm font-medium">Tabungan</CardTitle>
+            <Card className="h-full transition-colors hover:bg-muted/50 py-6 gap-4">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0">
+                <CardTitle className="text-lgfont-medium">Tabungan</CardTitle>
               </CardHeader>
-              <CardContent className="px-4">
+              <CardContent className="px-6">
                 <div className="text-xl font-bold text-savings">
                   {formatIDR(dashboard?.totalSavingsContributionThisMonth || 0)}
                 </div>

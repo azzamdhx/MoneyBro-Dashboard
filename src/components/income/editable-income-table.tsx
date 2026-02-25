@@ -417,9 +417,9 @@ export const EditableIncomeTable = forwardRef<EditableIncomeTableRef, EditableIn
         <TableHeader>
           <TableRow>
             <TableHead className="min-w-[150px]">Sumber</TableHead>
-            <TableHead className="min-w-[120px]">Kategori</TableHead>
-            <TableHead className="min-w-[120px]">Pocket</TableHead>
-            <TableHead className="text-right min-w-[120px]">Jumlah</TableHead>
+            <TableHead className="min-w-[150px]">Kategori</TableHead>
+            <TableHead className="min-w-[150px]">Pocket</TableHead>
+            <TableHead className="text-right min-w-[150px]">Jumlah</TableHead>
             <TableHead className="w-[50px]"></TableHead>
           </TableRow>
         </TableHeader>
@@ -453,7 +453,7 @@ export const EditableIncomeTable = forwardRef<EditableIncomeTableRef, EditableIn
                   className="h-8 w-full"
                 />
               </TableCell>
-              <TableCell className="text-right text-income font-medium">
+              <TableCell className="text-right text-primary font-medium">
                 {renderEditableCell(item, "amount", formatIDR(item.amount))}
               </TableCell>
               <TableCell>
@@ -487,7 +487,7 @@ export const EditableIncomeTable = forwardRef<EditableIncomeTableRef, EditableIn
             >
               <TableCell>
                 <Input
-                  placeholder="Nama sumber"
+                  placeholder="Sumber"
                   value={newRow.sourceName}
                   onChange={(e) => setNewRow({ ...newRow, sourceName: e.target.value })}
                   className="h-8"
@@ -533,7 +533,6 @@ export const EditableIncomeTable = forwardRef<EditableIncomeTableRef, EditableIn
               <TableCell>
                 <Input
                   placeholder="Nominal"
-                  type="text"
                   inputMode="numeric"
                   pattern="[0-9]*"
                   value={newRow.amount ? formatNumberID(parseInt(newRow.amount)) : ""}
@@ -590,7 +589,7 @@ export const EditableIncomeTable = forwardRef<EditableIncomeTableRef, EditableIn
             }}
           >
             <TableCell colSpan={5} className="text-center text-muted-foreground py-4">
-              <div className="flex items-center justify-center gap-2">
+              <div className="flex items-center md:justify-center justify-start gap-2">
                 <Plus className="h-4 w-4" />
                 <span>Tambah pemasukan baru</span>
               </div>
@@ -600,10 +599,10 @@ export const EditableIncomeTable = forwardRef<EditableIncomeTableRef, EditableIn
       </Table>
     </div>
     <div className="md:static md:mt-4 md:border-0 md:bg-transparent md:p-0 p-6 pb-8 fixed bottom-0 left-0 right-0 z-50 rounded-t-3xl border-t border-x border-border bg-card">
-      <div className="flex items-end justify-between gap-4">
-        <div>
+      <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-1">
           <p className="text-sm text-muted-foreground">Total</p>
-          <p className="text-2xl font-bold text-income">
+          <p className="md:text-xl text-md font-bold text-income">
             {formatIDR(displayItems.reduce((sum, item) => sum + item.amount, 0))}
           </p>
         </div>
@@ -615,7 +614,7 @@ export const EditableIncomeTable = forwardRef<EditableIncomeTableRef, EditableIn
           )}
           <Button onClick={handleSave} disabled={saving || !hasPendingChanges}>
             {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-            Simpan Perubahan
+            Simpan
           </Button>
         </div>
       </div>

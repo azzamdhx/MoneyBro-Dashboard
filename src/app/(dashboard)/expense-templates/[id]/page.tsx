@@ -335,7 +335,7 @@ export default function ExpenseTemplateDetailPage() {
           </Button>
           <div>
             <h1 className="text-lg sm:text-xl md:text-2xl font-bold">
-              {isNew ? "Tambah Template" : "Edit Template"}
+              {isNew ? "Template Pengeluaran" : "Edit Template"}
             </h1>
           </div>
         </div>
@@ -366,7 +366,7 @@ export default function ExpenseTemplateDetailPage() {
                 {isSaving && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-4 md:px-6">
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-2">
@@ -422,10 +422,6 @@ export default function ExpenseTemplateDetailPage() {
                     </div>
                   </div>
                 </div>
-
-                <p className="text-xs text-muted-foreground">
-                  Klik pada field untuk mengedit. Perubahan disimpan otomatis.
-                </p>
               </div>
             </CardContent>
           </Card>
@@ -477,20 +473,20 @@ export default function ExpenseTemplateDetailPage() {
 
       {/* New Mode */}
       {isNew && (
-        <form onSubmit={handleSubmit}>
+        <form id="template-form" onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mb-6">
-          <Card>
+          <Card className="gap-4">
             <CardHeader>
-              <CardTitle>Info Template</CardTitle>
+              <CardTitle>Detail</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 px-4 md:px-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <Label>Nama Template *</Label>
+                  <Label>Nama</Label>
                   <Input
                     value={groupName}
                     onChange={(e) => setGroupName(e.target.value)}
-                    placeholder="Contoh: Belanja Bulanan"
+                    placeholder="Belanja Bulanan"
                   />
                 </div>
                 <div className="space-y-2">
@@ -536,11 +532,11 @@ export default function ExpenseTemplateDetailPage() {
           )}
           </div>
 
-          <Card>
-            <CardHeader>
+          <Card className="p-6">
+            <CardHeader className="p-0">
               <CardTitle>Daftar Item</CardTitle>
             </CardHeader>
-            <CardContent className="px-6">
+            <CardContent className="p-0">
               <EditableExpenseTable
                 items={items.map((item) => ({
                   ...item,
@@ -550,7 +546,11 @@ export default function ExpenseTemplateDetailPage() {
                 onCreateItem={handleLocalCreateItem}
                 onUpdateItem={handleLocalUpdateItem}
                 onDeleteItem={handleLocalDeleteItem}
-                onSaveComplete={() => {}}
+                onSaveComplete={() => {
+                  setTimeout(() => {
+                    (document.getElementById('template-form') as HTMLFormElement)?.requestSubmit();
+                  }, 0);
+                }}
               />
             </CardContent>
           </Card>

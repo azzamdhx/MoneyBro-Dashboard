@@ -98,25 +98,25 @@ export default function ExpenseTemplatesPage() {
         </Button>
       </div>
 
-      <Card className="bg-card border-1">
-        <CardHeader>
-          <CardTitle className="flex flex-col items-start gap-4">
-            <span className="text-primary">Total Template</span>
-            <span className="text-2xl text-expense">{formatIDR(totalAmount)}</span>
+      <Card className="bg-card border-1 py-4 md:py-6">
+        <CardHeader className="flex flex-col px-4">
+          <CardTitle className="flex flex-col items-start md:gap-4 gap-3 w-full">
+            <span className="text-primary text-sm md:text-lg">Total Template</span>
+            <span className="text-md sm:text-2xl text-expense">{formatIDR(totalAmount)}</span>
           </CardTitle>
         </CardHeader>
       </Card>
 
       {groups.length > 0 ? (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 grid-cols-2 sm:grid-cols-3">
           {groups.map((group) => (
             <Card
               key={group.id}
               className="cursor-pointer hover:border-accent transition-colors py-0"
               onClick={() => router.push(`/expense-templates/${group.id}`)}
             >
-              <CardContent className="p-4">
-                <div className="flex items-start justify-between mb-2">
+              <CardContent className="p-4 md:px-6 md:py-0 flex flex-col gap-3">
+                <div className="hidden md:flex items-center justify-between mb-2 ">
                   <div className="h-8 w-8 rounded-lg bg-expense/10 flex items-center justify-center">
                     <FileText className="h-4 w-4 text-expense" />
                   </div>
@@ -124,9 +124,9 @@ export default function ExpenseTemplatesPage() {
                     {group.items.length} item
                   </Badge>
                 </div>
-                <div>
-                  <h3 className="font-semibold">{group.name}</h3>
-                  <p className="text-lg font-bold text-expense">{formatIDR(group.total)}</p>
+                <div className="flex flex-col gap-3 md:gap-2">
+                  <h3 className="text-sm md:text-lg font-semibold">{group.name}</h3>
+                  <p className="text-md font-semibold text-expense">{formatIDR(group.total)}</p>
                 </div>
                 {group.recurringDay && (
                   <div className="flex flex-wrap gap-1 mt-2">
@@ -142,7 +142,6 @@ export default function ExpenseTemplatesPage() {
           <CardContent className="py-12 flex flex-col items-center justify-center text-muted-foreground">
             <FileText className="h-12 w-12 mb-4 opacity-50" />
             <p className="text-sm">Belum ada template</p>
-            <p className="text-xs mt-1">Klik tombol Tambah untuk membuat template baru</p>
           </CardContent>
         </Card>
       )}

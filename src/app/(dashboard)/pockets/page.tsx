@@ -83,7 +83,7 @@ function PocketCard({ pocket, onClick }: { pocket: Pocket; onClick: () => void }
             {pocket.icon ? (
               <span className="text-2xl">{pocket.icon}</span>
             ) : (
-              <Wallet className={cn("h-5 w-5", c.bold || "text-primary")} />
+              <Wallet className={cn("size-5", c.bold || "text-primary")} />
             )}
             {pocket.isDefault && (
               <Badge variant="default" className="text-xs">Utama</Badge>
@@ -91,8 +91,8 @@ function PocketCard({ pocket, onClick }: { pocket: Pocket; onClick: () => void }
           </div>
         </div>
         <div className="space-y-1">
-          <h3 className={cn("text-md font-bold", c.text)}>{pocket.name}</h3>
-          <h4 className={cn("text-sm sm:text-lg md:text-xl font-semibold", c.bold || "text-primary")}>
+          <h3 className={cn("font-semibold text-sm md:text-lg", c.text)}>{pocket.name}</h3>
+          <h4 className={cn("font-bold text-md md:text-xl", c.bold || "text-primary")}>
             {formatIDR(monthlyBalance)}
           </h4>
         </div>
@@ -135,14 +135,14 @@ export default function PocketsPage() {
           </div>
         ) : pockets.length > 0 ? (
           <div className="space-y-6">
-            <Card className="py-0">
-              <CardContent className="p-4">
-                <p className="text-sm text-muted-foreground">Total Saldo</p>
-                <h1 className="text-lg sm:text-xl md:text-2xl font-bold">{formatIDR(totalBalance)}</h1>
+            <Card className="bg-card border-1 py-4 md:py-6">
+              <CardContent className="flex flex-col items-start md:gap-4 gap-3 w-full px-4 md:px-6">
+                <p className="text-primary text-sm md:text-lg">Total Saldo</p>
+                <h1 className="text-md sm:text-2xl font-bold">{formatIDR(totalBalance)}</h1>
               </CardContent>
             </Card>
 
-            <div className="grid gap-4 grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
               {pockets.map((pocket) => (
                 <PocketCard
                   key={pocket.id}

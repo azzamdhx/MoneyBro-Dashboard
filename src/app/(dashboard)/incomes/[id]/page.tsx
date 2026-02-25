@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { GET_RECURRING_INCOMES, GET_INCOMES } from "@/lib/graphql/queries";
+import { GET_RECURRING_INCOME_GROUPS, GET_INCOMES } from "@/lib/graphql/queries";
 import {
   CREATE_INCOME,
   UPDATE_INCOME,
@@ -31,19 +31,20 @@ interface Category {
   name: string;
 }
 
-interface RecurringIncome {
+interface RecurringIncomeGroup {
   id: string;
-  sourceName: string;
-  amount: number;
-  incomeType: string;
-  recurringDay: number;
-  isActive: boolean;
-  notes: string | null;
-  category: Category;
+  name: string;
+  total: number;
+  items: {
+    id: string;
+    sourceName: string;
+    amount: number;
+    category: Category;
+  }[];
 }
 
-interface RecurringIncomesData {
-  recurringIncomes: RecurringIncome[];
+interface RecurringIncomeGroupsData {
+  recurringIncomeGroups: RecurringIncomeGroup[];
 }
 
 interface Income {
@@ -85,13 +86,13 @@ export default function CreateIncomePage() {
     monthParam || new Date().toISOString().slice(0, 7)
   );
 
-  const { data: recurringData } = useQuery<RecurringIncomesData>(GET_RECURRING_INCOMES, {
+  const { data: recurringData } = useQuery<RecurringIncomeGroupsData>(GET_RECURRING_INCOME_GROUPS, {
     variables: { isActive: true },
   });
 
   const { data: incomesData, loading } = useQuery<IncomesData>(GET_INCOMES);
 
-  const recurringIncomes = recurringData?.recurringIncomes || [];
+  const recurringGroups = recurringData?.recurringIncomeGroups || [];
 
   const allIncomes: Income[] = useMemo(
     () => incomesData?.incomes.items || [],
@@ -131,16 +132,18 @@ export default function CreateIncomePage() {
   const [deleteIncome] = useMutation(DELETE_INCOME);
   const tableRef = useRef<EditableIncomeTableRef>(null);
 
-  const handleSelectRecurring = (recurringId: string) => {
-    const recurring = recurringIncomes.find(r => r.id === recurringId);
-    if (!recurring) return;
+  const handleSelectRecurringGroup = (groupId: string) => {
+    const group = recurringGroups.find(g => g.id === groupId);
+    if (!group) return;
 
-    tableRef.current?.addItem({
-      categoryId: recurring.category.id,
-      sourceName: recurring.sourceName,
-      amount: recurring.amount,
-    });
-    toast.success(`Ditambahkan dari income tetap: ${recurring.sourceName}`);
+    for (const item of group.items) {
+      tableRef.current?.addItem({
+        categoryId: item.category.id,
+        sourceName: item.sourceName,
+        amount: item.amount,
+      });
+    }
+    toast.success(`Ditambahkan ${group.items.length} item dari: ${group.name}`);
   };
 
   if (id !== "new") return null;
@@ -153,7 +156,7 @@ export default function CreateIncomePage() {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h1 className="text-lg sm:text-xl md:text-2xl font-bold">Tambah Pemasukan</h1>
+            <h1 className="text-lg sm:text-xl md:text-2xl font-bold">Pemasukan</h1>
             <p className="text-muted-foreground hidden sm:block">
               Catat pemasukan baru
             </p>
@@ -162,7 +165,7 @@ export default function CreateIncomePage() {
       </div>
 
       {/* Date */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start w-fit">
           <MonthPicker
               value={incomeDate}
               onChange={setIncomeDate}
@@ -179,17 +182,17 @@ export default function CreateIncomePage() {
       {/* Editable Table */}
       <Card>
         <CardHeader className="flex items-center justify-between">
-          <CardTitle>Detail Pemasukan</CardTitle>
-          {recurringIncomes.length > 0 && (
-            <Select onValueChange={handleSelectRecurring}>
+          <CardTitle className="md:text-lg text-sm">Detail Pemasukan</CardTitle>
+          {recurringGroups.length > 0 && (
+            <Select onValueChange={handleSelectRecurringGroup}>
               <SelectTrigger>
                 <RefreshCw className="h-4 w-4 mr-2 text-income" />
                 <SelectValue placeholder="Tetap" />
               </SelectTrigger>
               <SelectContent>
-                {recurringIncomes.map((r) => (
-                  <SelectItem key={r.id} value={r.id}>
-                    {r.sourceName} - {formatIDR(r.amount)}
+                {recurringGroups.map((g) => (
+                  <SelectItem key={g.id} value={g.id}>
+                    {g.name} - {formatIDR(g.total)}
                   </SelectItem>
                 ))}
               </SelectContent>

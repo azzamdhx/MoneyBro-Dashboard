@@ -155,7 +155,7 @@ export default function CreateExpensePage() {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h1 className="text-lg sm:text-xl md:text-2xl font-bold">Tambah Pengeluaran</h1>
+            <h1 className="text-lg sm:text-xl md:text-2xl font-bold">Pengeluaran</h1>
             <p className="text-muted-foreground hidden sm:block">
               Rencanakan pengeluaran bulanan kamu
             </p>
@@ -164,7 +164,7 @@ export default function CreateExpensePage() {
       </div>
 
       {/* Date */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start w-fit">
           <MonthPicker
               value={expenseDate}
               onChange={setExpenseDate}
@@ -181,7 +181,7 @@ export default function CreateExpensePage() {
       {/* Editable Table */}
       <Card>
         <CardHeader className="flex items-center justify-between">
-          <CardTitle>Detail Pengeluaran</CardTitle>
+          <CardTitle className="md:text-lg text-sm">Detail Pengeluaran</CardTitle>
           {templateGroups.length > 0 && (
             <Select onValueChange={handleSelectTemplateGroup}>
               <SelectTrigger>

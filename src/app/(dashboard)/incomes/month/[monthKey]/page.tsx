@@ -96,10 +96,10 @@ export default function MonthlyIncomesPage() {
         )}
       </div>
 
-      <Card className="bg-card border-1">
-        <CardHeader>
-          <CardTitle className="flex flex-col gap-4 items-start">
-            <span className="text-primary">Pemasukan</span>
+      <Card className="bg-card border-1 p-4 md:p-6">
+        <CardHeader className="p-0">
+          <CardTitle className="flex flex-col gap-2 md:gap-4 items-start">
+            <span className="text-primary md:text-lg text-sm">Pemasukan</span>
             <span className="text-lg sm:text-2xl text-income">{formatIDR(total)}</span>
           </CardTitle>
         </CardHeader>
@@ -107,7 +107,7 @@ export default function MonthlyIncomesPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Daftar Pemasukan ({incomes.length})</CardTitle>
+          <CardTitle className="md:text-lg text-sm">Detail Pemasukan ({incomes.length})</CardTitle>
         </CardHeader>
         <CardContent className="px-6">
           {loading ? (

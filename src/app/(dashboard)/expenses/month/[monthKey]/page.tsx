@@ -108,10 +108,10 @@ export default function MonthlyExpensesPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card className="bg-card border-1">
-          <CardHeader>
-            <CardTitle className="flex flex-col gap-4 items-start">
-              <span className="text-primary">Pengeluaran</span>
+        <Card className="bg-card border-1 p-4 md:p-6">
+          <CardHeader className="p-0">
+            <CardTitle className="flex flex-col gap-2 md:gap-4 items-start">
+              <span className="text-primary md:text-lg text-sm">Pengeluaran</span>
               <span className="text-lg sm:text-2xl text-expense">{formatIDR(total)}</span>
             </CardTitle>
           </CardHeader>
@@ -120,7 +120,7 @@ export default function MonthlyExpensesPage() {
         {Object.keys(categoryTotals).length > 0 && (
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Per Kategori</CardTitle>
+              <CardTitle className="md:text-lg text-sm">Per Kategori</CardTitle>
             </CardHeader>
             <CardContent className="pt-0">
               <div className="space-y-2">
@@ -138,7 +138,7 @@ export default function MonthlyExpensesPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Daftar Pengeluaran ({expenses.length})</CardTitle>
+          <CardTitle className="md:text-lg text-sm">Detail Pengeluaran ({expenses.length})</CardTitle>
         </CardHeader>
         <CardContent className="px-6">
           {loading ? (

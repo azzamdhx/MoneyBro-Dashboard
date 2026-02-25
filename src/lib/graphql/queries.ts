@@ -225,19 +225,24 @@ export const GET_INCOMES = gql`
   }
 `;
 
-export const GET_RECURRING_INCOMES = gql`
-  query GetRecurringIncomes($isActive: Boolean) {
-    recurringIncomes(isActive: $isActive) {
+export const GET_RECURRING_INCOME_GROUPS = gql`
+  query GetRecurringIncomeGroups($isActive: Boolean) {
+    recurringIncomeGroups(isActive: $isActive) {
       id
-      sourceName
-      amount
+      name
       recurringDay
       isActive
       notes
+      total
       createdAt
-      category {
+      items {
         id
-        name
+        sourceName
+        amount
+        category {
+          id
+          name
+        }
       }
     }
   }

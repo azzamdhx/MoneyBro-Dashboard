@@ -9,46 +9,39 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { GET_INCOME_CATEGORIES } from "@/lib/graphql/queries";
 import {
-  CREATE_RECURRING_INCOME,
-  UPDATE_RECURRING_INCOME,
-  DELETE_RECURRING_INCOME,
-  CREATE_INCOME_CATEGORY,
+  CREATE_RECURRING_INCOME_GROUP,
+  UPDATE_RECURRING_INCOME_GROUP,
+  DELETE_RECURRING_INCOME_GROUP,
+  ADD_RECURRING_INCOME_ITEM,
+  UPDATE_RECURRING_INCOME_ITEM,
+  DELETE_RECURRING_INCOME_ITEM,
 } from "@/lib/graphql/mutations";
 import { toast } from "sonner";
-import { Loader2, ArrowLeft, FolderPlus, Trash2 } from "lucide-react";
+import { Loader2, ArrowLeft, Trash2 } from "lucide-react";
 import { formatIDR } from "@/lib/utils/currency";
-import { formatNumberID } from "@/lib/utils/format";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
+import { EditableIncomeTable } from "@/components/income/editable-income-table";
 
-const GET_RECURRING_INCOME = gql`
-  query GetRecurringIncome($id: UUID!) {
-    recurringIncome(id: $id) {
+const GET_RECURRING_INCOME_GROUP = gql`
+  query GetRecurringIncomeGroup($id: UUID!) {
+    recurringIncomeGroup(id: $id) {
       id
-      sourceName
-      amount
+      name
       recurringDay
       isActive
       notes
-      category {
+      total
+      items {
         id
-        name
+        sourceName
+        amount
+        category {
+          id
+          name
+        }
       }
     }
   }
@@ -59,28 +52,38 @@ interface IncomeCategory {
   name: string;
 }
 
-interface RecurringIncome {
+interface RecurringIncomeItemData {
   id: string;
   sourceName: string;
   amount: number;
-  recurringDay: number;
+  category: IncomeCategory;
+}
+
+interface RecurringIncomeGroup {
+  id: string;
+  name: string;
+  recurringDay: number | null;
   isActive: boolean;
   notes: string | null;
-  category: IncomeCategory;
+  total: number;
+  items: RecurringIncomeItemData[];
 }
 
 interface IncomeCategoriesData {
   incomeCategories: IncomeCategory[];
 }
 
-interface RecurringIncomeData {
-  recurringIncome: RecurringIncome;
+interface RecurringIncomeGroupData {
+  recurringIncomeGroup: RecurringIncomeGroup;
 }
 
-
-const parseNumber = (value: string): number => {
-  return parseInt(value.replace(/\D/g, "")) || 0;
-};
+interface DraftIncomeItem {
+  id: string;
+  categoryId: string;
+  sourceName: string;
+  amount: number;
+  category: IncomeCategory;
+}
 
 export default function RecurringIncomeDetailPage() {
   const router = useRouter();
@@ -88,24 +91,17 @@ export default function RecurringIncomeDetailPage() {
   const id = params.id as string;
   const isNew = id === "new";
 
-  const [isCategoryOpen, setIsCategoryOpen] = useState(false);
-  const [newCategory, setNewCategory] = useState("");
-  const [editingRecurring, setEditingRecurring] = useState<RecurringIncome | null>(null);
-  
-  // Form data for both New and Edit modes
-  const [formData, setFormData] = useState({
-    categoryId: "",
-    sourceName: "",
-    amount: "",
-    recurringDay: "1",
-    isActive: true,
-    notes: "",
-  });
-  
-  // Inline editing state
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Form state for new group
+  const [groupName, setGroupName] = useState("");
+  const [recurringDay, setRecurringDay] = useState("");
+  const [notes, setNotes] = useState("");
+  const [items, setItems] = useState<DraftIncomeItem[]>([]);
+
+  // Inline editing state for edit mode
   const [editingField, setEditingField] = useState<string | null>(null);
   const [editValue, setEditValue] = useState<string>("");
-  const [isSaving, setIsSaving] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -115,35 +111,21 @@ export default function RecurringIncomeDetailPage() {
     }
   }, [editingField]);
 
-  const { data: categoriesData, refetch: refetchCategories } =
-    useQuery<IncomeCategoriesData>(GET_INCOME_CATEGORIES);
+  const { data: categoriesData } = useQuery<IncomeCategoriesData>(GET_INCOME_CATEGORIES);
 
-  const { data: recurringData, loading: loadingRecurring } = useQuery<RecurringIncomeData>(
-    GET_RECURRING_INCOME,
+  const { data: groupData, loading: loadingGroup, refetch: refetchGroup } = useQuery<RecurringIncomeGroupData>(
+    GET_RECURRING_INCOME_GROUP,
     {
       variables: { id },
       skip: isNew,
     }
   );
 
-  const recurring = recurringData?.recurringIncome;
-  useEffect(() => {
-    if (recurring) {
-      setEditingRecurring(recurring);
-      setFormData({
-        categoryId: recurring.category.id,
-        sourceName: recurring.sourceName,
-        amount: formatNumberID(recurring.amount),
-        recurringDay: recurring.recurringDay.toString(),
-        isActive: recurring.isActive,
-        notes: recurring.notes || "",
-      });
-    }
-  }, [recurring]);
+  const group = groupData?.recurringIncomeGroup;
 
-  const [createRecurring, { loading: creating }] = useMutation(CREATE_RECURRING_INCOME, {
+  const [createGroup] = useMutation(CREATE_RECURRING_INCOME_GROUP, {
     onCompleted: () => {
-      toast.success("Income tetap berhasil ditambahkan");
+      toast.success("Pemasukkan tetap berhasil ditambahkan");
       router.push("/recurring-incomes");
     },
     onError: (error) => {
@@ -151,20 +133,12 @@ export default function RecurringIncomeDetailPage() {
     },
   });
 
-  const { refetch: refetchRecurring } = useQuery<RecurringIncomeData>(
-    GET_RECURRING_INCOME,
-    {
-      variables: { id },
-      skip: isNew,
-    }
-  );
-
-  const [updateRecurring, { loading: updating }] = useMutation(UPDATE_RECURRING_INCOME, {
+  const [updateGroup] = useMutation(UPDATE_RECURRING_INCOME_GROUP, {
     onCompleted: () => {
       toast.success("Perubahan disimpan");
       setIsSaving(false);
       setEditingField(null);
-      refetchRecurring();
+      refetchGroup();
     },
     onError: (error) => {
       toast.error(error.message);
@@ -172,9 +146,9 @@ export default function RecurringIncomeDetailPage() {
     },
   });
 
-  const [deleteRecurring, { loading: deleting }] = useMutation(DELETE_RECURRING_INCOME, {
+  const [deleteGroup, { loading: deleting }] = useMutation(DELETE_RECURRING_INCOME_GROUP, {
     onCompleted: () => {
-      toast.success("Income tetap berhasil dihapus");
+      toast.success("Pemasukkan tetap berhasil dihapus");
       router.push("/recurring-incomes");
     },
     onError: (error) => {
@@ -182,196 +156,155 @@ export default function RecurringIncomeDetailPage() {
     },
   });
 
-  const [createCategory, { loading: creatingCategory }] = useMutation(
-    CREATE_INCOME_CATEGORY,
-    {
-      onCompleted: (data) => {
-        const result = data as { createIncomeCategory: IncomeCategory };
-        toast.success("Kategori berhasil ditambahkan");
-        setIsCategoryOpen(false);
-        setNewCategory("");
-        refetchCategories();
-        setFormData((prev) => ({
-          ...prev,
-          categoryId: result.createIncomeCategory.id,
-        }));
-      },
-      onError: (error) => {
-        toast.error(error.message);
-      },
-    }
-  );
+  const [addItem] = useMutation(ADD_RECURRING_INCOME_ITEM);
+  const [updateItem] = useMutation(UPDATE_RECURRING_INCOME_ITEM);
+  const [deleteItem] = useMutation(DELETE_RECURRING_INCOME_ITEM);
 
   const categories: IncomeCategory[] = categoriesData?.incomeCategories || [];
+
+  const resolveCategory = (categoryId: string) => categories.find(c => c.id === categoryId) || { id: categoryId, name: "" };
+
+  const handleLocalCreateItem = async (input: { sourceName: string; categoryId: string; amount: number }) => {
+    const newItem: DraftIncomeItem = {
+      id: crypto.randomUUID(),
+      sourceName: input.sourceName,
+      amount: input.amount,
+      categoryId: input.categoryId,
+      category: resolveCategory(input.categoryId),
+    };
+    setItems(prev => [...prev, newItem]);
+  };
+
+  const handleLocalUpdateItem = async (itemId: string, input: Record<string, unknown>) => {
+    setItems(prev =>
+      prev.map(item => {
+        if (item.id !== itemId) return item;
+        const updated: DraftIncomeItem = { ...item };
+        if (input.sourceName !== undefined) updated.sourceName = input.sourceName as string;
+        if (input.amount !== undefined) updated.amount = input.amount as number;
+        if (input.categoryId !== undefined) {
+          updated.categoryId = input.categoryId as string;
+          updated.category = resolveCategory(input.categoryId as string);
+        }
+        return updated;
+      })
+    );
+  };
+
+  const handleLocalDeleteItem = async (itemId: string) => {
+    setItems(prev => prev.filter(item => item.id !== itemId));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (isNew) {
-      // Validate form data
-      if (!formData.categoryId || !formData.sourceName || !formData.amount) {
-        toast.error("Mohon lengkapi kategori, sumber, dan jumlah");
-        return;
-      }
-
-      const recurringDay = parseInt(formData.recurringDay);
-      if (recurringDay < 1 || recurringDay > 31) {
-        toast.error("Tanggal income tetap harus antara 1-31");
-        return;
-      }
-
-      const input = {
-        categoryId: formData.categoryId,
-        sourceName: formData.sourceName,
-        amount: parseNumber(formData.amount),
-        recurringDay: recurringDay,
-        notes: formData.notes || null,
-      };
-
-      await createRecurring({ variables: { input } });
-    } else {
-      // Edit mode - use formData
-      if (!formData.categoryId || !formData.sourceName || !formData.amount) {
-        toast.error("Mohon lengkapi kategori, sumber, dan jumlah");
-        return;
-      }
-
-      const recurringDay = parseInt(formData.recurringDay);
-      if (recurringDay < 1 || recurringDay > 31) {
-        toast.error("Tanggal income tetap harus antara 1-31");
-        return;
-      }
-
-      const input = {
-        categoryId: formData.categoryId,
-        sourceName: formData.sourceName,
-        amount: parseNumber(formData.amount),
-        recurringDay: recurringDay,
-        notes: formData.notes || null,
-      };
-
-      updateRecurring({ 
-        variables: { 
-          id, 
-          input: {
-            ...input,
-            isActive: formData.isActive,
-          }
-        } 
-      });
+    if (!groupName.trim()) {
+      toast.error("Nama grup harus diisi");
+      return;
     }
+
+    const validItems = items.filter(
+      (item) => item.categoryId && item.sourceName && item.amount
+    );
+
+    if (validItems.length === 0) {
+      toast.error("Mohon tambahkan minimal satu item");
+      return;
+    }
+
+    const recurringDayNum = recurringDay ? parseInt(recurringDay) : null;
+    if (recurringDayNum !== null && (recurringDayNum < 1 || recurringDayNum > 31)) {
+      toast.error("Tanggal jadwal harus antara 1-31");
+      return;
+    }
+
+    const input = {
+      name: groupName.trim(),
+      recurringDay: recurringDayNum,
+      notes: notes.trim() || null,
+      items: validItems.map((item) => ({
+        categoryId: item.categoryId,
+        sourceName: item.sourceName,
+        amount: item.amount,
+      })),
+    };
+
+    await createGroup({ variables: { input } });
   };
 
   const handleDelete = () => {
-    deleteRecurring({ variables: { id } });
+    deleteGroup({ variables: { id } });
   };
 
-  // Inline editing handlers
+  // Inline editing handlers for edit mode
   const startEditing = (field: string, value: string) => {
     setEditingField(field);
     setEditValue(value);
   };
 
-  const saveInlineEdit = async (field: string) => {
-    if (!editingRecurring) return;
-    
-    let newValue: string | number = editValue;
-    
-    if (field === "amount") {
-      newValue = parseInt(editValue.replace(/\D/g, "")) || 0;
-      if (newValue <= 0) {
-        setEditingField(null);
-        return;
-      }
-    }
-    
+  const saveGroupField = async (field: string) => {
+    if (!group) return;
+
+    let newValue: string | number | null = editValue;
+
     if (field === "recurringDay") {
-      newValue = parseInt(editValue) || 1;
-      if (newValue < 1 || newValue > 31) {
+      newValue = editValue ? parseInt(editValue) : null;
+      if (newValue !== null && (newValue < 1 || newValue > 31)) {
         toast.error("Tanggal harus antara 1-31");
         setEditingField(null);
         return;
       }
     }
-    
-    if (field === "sourceName" && !editValue.trim()) {
+
+    if (field === "name" && !editValue.trim()) {
       setEditingField(null);
       return;
     }
-    
+
     setIsSaving(true);
     setEditingField(null);
-    
-    const input: Record<string, unknown> = {
-      categoryId: editingRecurring.category.id,
-      isActive: editingRecurring.isActive,
-    };
-    
-    if (field === "sourceName") {
-      input.sourceName = editValue.trim();
-    } else if (field === "amount") {
-      input.amount = newValue;
-    } else if (field === "recurringDay") {
-      input.recurringDay = newValue;
-    }
-    
-    await updateRecurring({ variables: { id, input } });
+
+    const input: Record<string, unknown> = {};
+    if (field === "name") input.name = editValue.trim();
+    if (field === "recurringDay") input.recurringDay = newValue;
+    if (field === "notes") input.notes = editValue.trim() || null;
+
+    await updateGroup({ variables: { id, input } });
   };
 
-  const handleInlineCategoryChange = async (categoryId: string) => {
-    if (!editingRecurring || categoryId === editingRecurring.category.id) return;
-    
+  const handleActiveChange = async (isActive: boolean) => {
+    if (!group) return;
     setIsSaving(true);
-    await updateRecurring({
-      variables: {
-        id,
-        input: { 
-          categoryId,
-          isActive: editingRecurring.isActive,
-        },
-      },
-    });
-  };
-
-  const handleInlineActiveChange = async (isActive: boolean) => {
-    if (!editingRecurring) return;
-    
-    setIsSaving(true);
-    await updateRecurring({
-      variables: {
-        id,
-        input: { 
-          categoryId: editingRecurring.category.id,
-          isActive,
-        },
-      },
-    });
+    await updateGroup({ variables: { id, input: { isActive } } });
   };
 
   const handleKeyDown = (e: React.KeyboardEvent, field: string) => {
     if (e.key === "Enter") {
-      saveInlineEdit(field);
+      saveGroupField(field);
     } else if (e.key === "Escape") {
       setEditingField(null);
     }
   };
 
-  const handleCreateCategory = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newCategory.trim()) {
-      toast.error("Nama kategori tidak boleh kosong");
-      return;
-    }
-    createCategory({
-      variables: {
-        input: { name: newCategory.trim() },
-      },
-    });
-  };
+  // Group by category for Per Kategori card
+  const categoryTotals = group?.items.reduce((acc, item) => {
+    const catName = item.category.name;
+    if (!acc[catName]) acc[catName] = 0;
+    acc[catName] += item.amount;
+    return acc;
+  }, {} as Record<string, number>) || {};
 
-  const isLoading = creating || updating || deleting;
+  // Group by category for new mode
+  const newModeCategoryTotals = items.reduce((acc, item) => {
+    if (!item.categoryId || !item.amount) return acc;
+    const cat = categories.find(c => c.id === item.categoryId);
+    const catName = cat?.name || "Tidak Berkategori";
+    if (!acc[catName]) acc[catName] = 0;
+    acc[catName] += item.amount;
+    return acc;
+  }, {} as Record<string, number>);
 
-  if (!isNew && loadingRecurring) {
+  if (!isNew && loadingGroup) {
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-4">
@@ -386,12 +319,8 @@ export default function RecurringIncomeDetailPage() {
             <Skeleton className="h-6 w-32" />
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
-            </div>
             <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-[200px] w-full" />
           </CardContent>
         </Card>
       </div>
@@ -401,17 +330,14 @@ export default function RecurringIncomeDetailPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => router.back()} className="shrink-0">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" onClick={() => router.back()}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <div className="min-w-0">
-            <h1 className="text-lg sm:text-xl md:text-2xl font-bold truncate">
-              {isNew ? "Tambah" : "Edit"}
+          <div>
+            <h1 className="text-lg sm:text-xl md:text-2xl font-bold">
+              {isNew ? "Pemasukkan Tetap" : "Edit Pemasukkan Tetap"}
             </h1>
-            <p className="text-muted-foreground text-sm truncate hidden sm:block">
-              {isNew ? "Buat pemasukan berulang baru" : "Ubah detail pemasukkan tetap"}
-            </p>
           </div>
         </div>
         {!isNew && (
@@ -430,250 +356,221 @@ export default function RecurringIncomeDetailPage() {
         )}
       </div>
 
-      {/* Edit Mode - Inline Editing */}
-      {!isNew && editingRecurring && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              Detail
-              {isSaving && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-muted-foreground text-xs">Kategori</Label>
-                  <Select
-                    value={editingRecurring.category.id}
-                    onValueChange={handleInlineCategoryChange}
-                    disabled={isSaving}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories.map((cat) => (
-                        <SelectItem key={cat.id} value={cat.id}>
-                          {cat.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+      {/* Edit Mode */}
+      {!isNew && group && (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                Detail
+                {isSaving && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="px-4 md:px-6">
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-muted-foreground text-xs">Nama Grup</Label>
+                    {editingField === "name" ? (
+                      <Input
+                        ref={inputRef}
+                        value={editValue}
+                        onChange={(e) => setEditValue(e.target.value)}
+                        onBlur={() => saveGroupField("name")}
+                        onKeyDown={(e) => handleKeyDown(e, "name")}
+                        disabled={isSaving}
+                      />
+                    ) : (
+                      <div
+                        className="h-10 px-3 flex items-center border rounded-md cursor-pointer hover:bg-muted/50 font-medium"
+                        onClick={() => startEditing("name", group.name)}
+                      >
+                        {group.name}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-muted-foreground text-xs">Jadwal (Tanggal)</Label>
+                    {editingField === "recurringDay" ? (
+                      <Input
+                        ref={inputRef}
+                        type="number"
+                        min="1"
+                        max="31"
+                        value={editValue}
+                        onChange={(e) => setEditValue(e.target.value)}
+                        onBlur={() => saveGroupField("recurringDay")}
+                        onKeyDown={(e) => handleKeyDown(e, "recurringDay")}
+                        placeholder="1-31"
+                        disabled={isSaving}
+                      />
+                    ) : (
+                      <div
+                        className="h-10 px-3 flex items-center border rounded-md cursor-pointer hover:bg-muted/50 font-medium"
+                        onClick={() => startEditing("recurringDay", group.recurringDay?.toString() || "")}
+                      >
+                        {group.recurringDay ? `Tanggal ${group.recurringDay}` : "-"}
+                      </div>
+                    )}
+                  </div>
                 </div>
 
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-muted-foreground text-xs">Sumber Pemasukan</Label>
-                  {editingField === "sourceName" ? (
-                    <Input
-                      ref={inputRef}
-                      value={editValue}
-                      onChange={(e) => setEditValue(e.target.value)}
-                      onBlur={() => saveInlineEdit("sourceName")}
-                      onKeyDown={(e) => handleKeyDown(e, "sourceName")}
-                      disabled={isSaving}
-                    />
-                  ) : (
-                    <div
-                      className="h-10 px-3 flex items-center border rounded-md cursor-pointer hover:bg-muted/50 font-medium"
-                      onClick={() => startEditing("sourceName", editingRecurring.sourceName)}
-                    >
-                      {editingRecurring.sourceName}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-muted-foreground text-xs">Total</Label>
+                    <div className="h-10 px-3 flex items-center bg-income/10 border border-income/20 rounded-md font-bold text-income">
+                      {formatIDR(group.total)}
                     </div>
-                  )}
-                </div>
+                  </div>
 
-                <div className="space-y-2">
-                  <Label className="text-muted-foreground text-xs">Tanggal (1-31)</Label>
-                  {editingField === "recurringDay" ? (
-                    <Input
-                      ref={inputRef}
-                      type="text"
-                      inputMode="numeric"
-                      pattern="[0-9]*"
-                      min="1"
-                      max="31"
-                      value={editValue}
-                      onChange={(e) => setEditValue(e.target.value)}
-                      onBlur={() => saveInlineEdit("recurringDay")}
-                      onKeyDown={(e) => handleKeyDown(e, "recurringDay")}
-                      disabled={isSaving}
-                    />
-                  ) : (
-                    <div
-                      className="h-10 px-3 flex items-center border rounded-md cursor-pointer hover:bg-muted/50 font-medium"
-                      onClick={() => startEditing("recurringDay", editingRecurring.recurringDay.toString())}
-                    >
-                      Tanggal {editingRecurring.recurringDay}
+                  <div className="space-y-2">
+                    <Label className="text-muted-foreground text-xs">Status</Label>
+                    <div className="flex items-center justify-between h-10 px-3 border rounded-md">
+                      <span className={group.isActive ? "text-income" : "text-muted-foreground"}>
+                        {group.isActive ? "Aktif" : "Nonaktif"}
+                      </span>
+                      <Switch
+                        checked={group.isActive}
+                        onCheckedChange={handleActiveChange}
+                        disabled={isSaving}
+                      />
                     </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-muted-foreground text-xs">Jumlah per Bulan</Label>
-                  {editingField === "amount" ? (
-                    <Input
-                      ref={inputRef}
-                      value={editValue}
-                      onChange={(e) => setEditValue(e.target.value.replace(/\D/g, ""))}
-                      onBlur={() => saveInlineEdit("amount")}
-                      onKeyDown={(e) => handleKeyDown(e, "amount")}
-                      disabled={isSaving}
-                    />
-                  ) : (
-                    <div
-                      className="h-10 px-3 flex items-center border rounded-md cursor-pointer hover:bg-muted/50 font-bold text-income"
-                      onClick={() => startEditing("amount", editingRecurring.amount.toString())}
-                    >
-                      {formatIDR(editingRecurring.amount)}
-                    </div>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-muted-foreground text-xs">Status</Label>
-                  <div className="flex items-center justify-between h-10 px-3 border rounded-md">
-                    <span className={editingRecurring.isActive ? "text-income" : "text-muted-foreground"}>
-                      {editingRecurring.isActive ? "Aktif" : "Nonaktif"}
-                    </span>
-                    <Switch
-                      checked={editingRecurring.isActive}
-                      onCheckedChange={handleInlineActiveChange}
-                      disabled={isSaving}
-                    />
                   </div>
                 </div>
               </div>
+            </CardContent>
+          </Card>
 
-              <p className="text-xs text-muted-foreground">
-                Klik pada field untuk mengedit. Perubahan disimpan otomatis.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+          {/* Per Kategori Card */}
+          {Object.keys(categoryTotals).length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Per Kategori</CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <div className="space-y-2">
+                  {Object.entries(categoryTotals).map(([category, catTotal]) => (
+                    <div key={category} className="flex items-center justify-between text-sm">
+                      <span className="text-primary">{category}</span>
+                      <span className="font-bold">{formatIDR(catTotal)}</span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+          </div>
+
+          {/* Items Table for Edit Mode */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Daftar Item</CardTitle>
+            </CardHeader>
+            <CardContent className="px-6">
+              <EditableIncomeTable
+                items={group.items}
+                onCreateItem={async (input) => {
+                  await addItem({ variables: { groupId: id, input: { categoryId: input.categoryId, sourceName: input.sourceName, amount: input.amount } } });
+                  refetchGroup();
+                }}
+                onUpdateItem={async (itemId, input) => {
+                  await updateItem({ variables: { itemId, input } });
+                }}
+                onDeleteItem={async (itemId) => {
+                  await deleteItem({ variables: { itemId } });
+                }}
+                onSaveComplete={() => refetchGroup()}
+              />
+            </CardContent>
+          </Card>
+        </>
       )}
 
-      {/* New Mode - Form */}
+      {/* New Mode */}
       {isNew && (
-        <>
-        <Card>
-          <CardHeader>
-            <CardTitle>Detail Pemasukkan Tetap</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form id="recurring-income-form" onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <form id="recurring-income-form" onSubmit={handleSubmit}>
+          <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mb-6">
+          <Card className="gap-4">
+            <CardHeader>
+              <CardTitle>Detail</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 px-4 md:px-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-muted-foreground text-xs">Kategori</Label>
-                  <div className="flex gap-1">
-                    <Select
-                      value={formData.categoryId}
-                      onValueChange={(value) => setFormData((prev) => ({ ...prev, categoryId: value }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Pilih kategori" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categories.map((cat) => (
-                          <SelectItem key={cat.id} value={cat.id}>
-                            {cat.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Dialog open={isCategoryOpen} onOpenChange={setIsCategoryOpen}>
-                      <DialogTrigger asChild>
-                        <Button type="button" variant="outline" size="icon" className="shrink-0">
-                          <FolderPlus className="h-4 w-4" />
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Tambah Kategori Pemasukan</DialogTitle>
-                        </DialogHeader>
-                        <form onSubmit={handleCreateCategory} className="space-y-4">
-                          <div className="space-y-2">
-                            <Label>Nama Kategori</Label>
-                            <Input
-                              value={newCategory}
-                              onChange={(e) => setNewCategory(e.target.value)}
-                              placeholder="Contoh: Pekerjaan Utama"
-                            />
-                          </div>
-                          <Button type="submit" className="w-full" disabled={creatingCategory}>
-                            {creatingCategory && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                            Simpan
-                          </Button>
-                        </form>
-                      </DialogContent>
-                    </Dialog>
-                  </div>
-                </div>
-
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-muted-foreground text-xs">Sumber Pemasukan</Label>
+                  <Label>Nama</Label>
                   <Input
-                    value={formData.sourceName}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, sourceName: e.target.value }))}
-                    placeholder="Contoh: Gaji PT ABC"
+                    value={groupName}
+                    onChange={(e) => setGroupName(e.target.value)}
+                    placeholder="Gaji Bulanan"
                   />
                 </div>
-
                 <div className="space-y-2">
-                  <Label className="text-muted-foreground text-xs">Tanggal (1-31)</Label>
+                  <Label>Jadwal (Tanggal)</Label>
                   <Input
                     type="number"
                     min="1"
                     max="31"
-                    value={formData.recurringDay}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, recurringDay: e.target.value }))}
-                    placeholder="Contoh: 25"
+                    value={recurringDay}
+                    onChange={(e) => setRecurringDay(e.target.value)}
+                    placeholder="1-31"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Catatan</Label>
+                  <Input
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    placeholder="Opsional"
                   />
                 </div>
               </div>
+            </CardContent>
+          </Card>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Per Kategori Card - New Mode */}
+          {Object.keys(newModeCategoryTotals).length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Per Kategori</CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0">
                 <div className="space-y-2">
-                  <Label className="text-muted-foreground text-xs">Jumlah per Bulan</Label>
-                  <Input
-                    value={formData.amount}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, amount: e.target.value.replace(/\D/g, "") }))}
-                    placeholder="0"
-                    className="font-bold text-income"
-                  />
+                  {Object.entries(newModeCategoryTotals).map(([category, catTotal]) => (
+                    <div key={category} className="flex items-center justify-between text-sm">
+                      <span className="text-primary">{category}</span>
+                      <span className="font-bold">{formatIDR(catTotal)}</span>
+                    </div>
+                  ))}
                 </div>
-
-                <div className="space-y-2">
-                  <Label className="text-muted-foreground text-xs">Catatan (Opsional)</Label>
-                  <Input
-                    value={formData.notes}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, notes: e.target.value }))}
-                    placeholder="Catatan tambahan"
-                  />
-                </div>
-              </div>
-
-            </form>
-          </CardContent>
-        </Card>
-
-        <div className="md:static md:mt-6 p-5 pb-8 md:rounded-lg md:border fixed bottom-0 left-0 right-0 z-50 rounded-t-3xl border-t border-x border-border bg-card">
-          <div className="flex items-end justify-end">
-            <Button type="submit" form="recurring-income-form" className="w-fit" disabled={isLoading}>
-              {isLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              Simpan Pemasukkan Tetap
-            </Button>
+              </CardContent>
+            </Card>
+          )}
           </div>
-        </div>
-        </>
+
+          <Card className="p-6">
+            <CardHeader className="p-0">
+              <CardTitle>Daftar Item</CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <EditableIncomeTable
+                items={items.map((item) => ({
+                  ...item,
+                  category: resolveCategory(item.categoryId),
+                }))}
+                onCreateItem={handleLocalCreateItem}
+                onUpdateItem={handleLocalUpdateItem}
+                onDeleteItem={handleLocalDeleteItem}
+                onSaveComplete={() => {
+                  setTimeout(() => {
+                    (document.getElementById('recurring-income-form') as HTMLFormElement)?.requestSubmit();
+                  }, 0);
+                }}
+              />
+            </CardContent>
+          </Card>
+        </form>
       )}
     </div>
   );

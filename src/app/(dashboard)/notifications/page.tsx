@@ -2,7 +2,7 @@
 
 import { useQuery } from "@apollo/client/react";
 import { gql } from "@apollo/client/core";
-import { Bell, Mail, CreditCard, Wallet, Inbox } from "lucide-react";
+import { Mail, CreditCard, Wallet, Inbox } from "lucide-react";
 import { formatDateShortID } from "@/lib/utils/format";
 import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
@@ -119,12 +119,6 @@ export default function NotificationsPage() {
           <h1 className="text-lg sm:text-xl md:text-2xl font-bold">Notifikasi</h1>
           <p className="text-muted-foreground hidden sm:block">Riwayat email pengingat yang telah dikirim</p>
         </div>
-        <Button variant="outline" asChild className="w-fit">
-          <Link href="/settings/notifications">
-            <Bell className="h-4 w-4 mr-2" />
-            Pengaturan
-          </Link>
-        </Button>
       </div>
 
       {notifications.length === 0 ? (
@@ -134,9 +128,6 @@ export default function NotificationsPage() {
               <Inbox className="h-8 w-8 text-muted-foreground" />
             </div>
             <h3 className="text-lg font-medium">Belum ada notifikasi</h3>
-            <p className="text-sm text-muted-foreground mt-1 text-center max-w-sm">
-              Email pengingat akan muncul di sini setelah dikirim. Pastikan pengaturan notifikasi sudah aktif.
-            </p>
             <Button variant="outline" className="mt-4" asChild>
               <Link href="/settings/notifications">Atur Notifikasi</Link>
             </Button>

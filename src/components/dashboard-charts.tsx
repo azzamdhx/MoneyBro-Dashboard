@@ -40,7 +40,7 @@ export default function DashboardCharts({ cashFlowData, categoryData }: Dashboar
       {/* Cash Flow Bar Chart */}
       <Card>
         <CardHeader>
-          <CardTitle>Arus Kas Bulan Ini</CardTitle>
+          <CardTitle className="text-md md:text-lg">Arus Kas Bulan Ini</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="h-[300px]">
@@ -83,7 +83,7 @@ export default function DashboardCharts({ cashFlowData, categoryData }: Dashboar
       {/* Top Categories Bar Chart */}
       <Card>
         <CardHeader>
-          <CardTitle>Top Kategori</CardTitle>
+          <CardTitle className="text-md md:text-lg">Top Kategori</CardTitle>
         </CardHeader>
         <CardContent>
           {categoryData.length > 0 ? (

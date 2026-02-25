@@ -10,7 +10,6 @@ import { formatMonthYear } from "@/lib/utils/format";
 import { GET_FORECAST_SUMMARY } from "@/lib/graphql/queries";
 import {
   BarChart3,
-  TrendingUp,
   CalendarClock,
   ArrowLeft,
 } from "lucide-react";
@@ -154,9 +153,6 @@ export default function ForecastPage() {
           <Link href="/dashboard" className="md:hidden">
             <ArrowLeft className="h-5 w-5" />
           </Link>
-          <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center hidden md:flex">
-            <TrendingUp className="h-5 w-5 text-primary" />
-          </div>
           <div>
             <h1 className="text-lg sm:text-xl md:text-2xl font-bold">Forecast</h1>
             <p className="text-muted-foreground">Proyeksi keuangan bulan mendatang</p>
@@ -164,9 +160,6 @@ export default function ForecastPage() {
         </div>
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-16">
-            <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mb-4">
-              <CalendarClock className="h-8 w-8 text-muted-foreground" />
-            </div>
             <h3 className="text-lg font-medium">Belum ada data forecast</h3>
             <p className="text-sm text-muted-foreground mt-1 text-center max-w-sm">
               Tidak ada transaksi terjadwal di bulan-bulan mendatang. Tambahkan pemasukan atau pengeluaran dengan tanggal di masa depan.
@@ -242,9 +235,6 @@ export default function ForecastPage() {
           <Link href="/dashboard" className="md:hidden">
             <ArrowLeft className="h-5 w-5" />
           </Link>
-          <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center hidden md:flex">
-            <TrendingUp className="h-5 w-5 text-primary" />
-          </div>
           <div>
             <h1 className="text-lg sm:text-xl md:text-2xl font-bold">Forecast</h1>
           </div>
@@ -286,98 +276,98 @@ export default function ForecastPage() {
               </p>
             }
             balanceValue={
-              <p className="text-lg sm:text-2xl md:text-3xl font-bold text-white break-all sm:mt-1">
+              <p className="text-xl md:text-3xl font-bold text-white break-all sm:mt-1">
                 {formatIDR(netBalance)}
               </p>
             }
             chip={<ValueChip value={balancePercentage} showPercentage />}
             breakdown={
               <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                <div className="space-y-0.5">
-                  <p className="text-[10px] sm:text-xs text-white/70">Credit</p>
-                  <p className="text-sm sm:text-base font-semibold text-white break-all">{formatIDR(totalIncome)}</p>
+                <div className="space-y-0.5 text-center md:text-start">
+                  <p className="text-xs sm:text-xs text-white/70">Credit</p>
+                  <p className="text-xs sm:text-base font-semibold text-white break-all">{formatIDR(totalIncome)}</p>
                 </div>
-                <div className="space-y-0.5">
-                  <p className="text-[10px] sm:text-xs text-white/70">Debit</p>
-                  <p className="text-sm sm:text-base font-semibold text-white break-all">{formatIDR(totalOutflow)}</p>
+                <div className="space-y-0.5 text-center md:text-start">
+                  <p className="text-xs sm:text-xs text-white/70">Debit</p>
+                  <p className="text-xs sm:text-base font-semibold text-white break-all">{formatIDR(totalOutflow)}</p>
                 </div>
               </div>
             }
           />
 
-          {/* Monthly Cash Flow Cards — 2-col grid on mobile */}
-          <div className="grid grid-cols-2 gap-3 md:hidden">
+          {/* Monthly Cash Flow Cards Mobile */}
+          <div className="grid grid-cols-2 gap-4 md:hidden">
             <Link href="/incomes">
               <Card className="h-full transition-colors hover:bg-muted/50 py-4 gap-4">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 px-4">
-                  <CardTitle className="text-sm font-medium">Pemasukan</CardTitle>
+                  <CardTitle className="text-xs font-medium">Pemasukan</CardTitle>
                 </CardHeader>
                 <CardContent className="px-4">
-                  <div className="text-md font-bold text-income break-all">{formatIDR(incomeSummary?.total || 0)}</div>
+                  <div className="text-sm font-bold text-income break-all">{formatIDR(incomeSummary?.total || 0)}</div>
                 </CardContent>
               </Card>
             </Link>
             <Link href="/expenses">
               <Card className="h-full transition-colors hover:bg-muted/50 py-4 gap-4">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 px-4">
-                  <CardTitle className="text-sm font-medium">Pengeluaran</CardTitle>
+                  <CardTitle className="text-xs font-medium">Pengeluaran</CardTitle>
                 </CardHeader>
                 <CardContent className="px-4">
-                  <div className="text-md font-bold text-expense break-all">{formatIDR(expenseSummary?.total || 0)}</div>
+                  <div className="text-sm font-bold text-expense break-all">{formatIDR(expenseSummary?.total || 0)}</div>
                 </CardContent>
               </Card>
             </Link>
             <Link href="/installments">
               <Card className="h-full transition-colors hover:bg-muted/50 py-4 gap-4">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 px-4">
-                  <CardTitle className="text-sm font-medium">Cicilan</CardTitle>
+                  <CardTitle className="text-xs font-medium">Cicilan</CardTitle>
                 </CardHeader>
                 <CardContent className="px-4">
-                  <div className="text-md font-bold text-installment break-all">{formatIDR(payments?.totalInstallment || 0)}</div>
+                  <div className="text-sm font-bold text-installment break-all">{formatIDR(payments?.totalInstallment || 0)}</div>
                 </CardContent>
               </Card>
             </Link>
             <Link href="/debts">
               <Card className="h-full transition-colors hover:bg-muted/50 py-4 gap-4">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 px-4">
-                  <CardTitle className="text-sm font-medium">Hutang</CardTitle>
+                  <CardTitle className="text-xs font-medium">Hutang</CardTitle>
                 </CardHeader>
                 <CardContent className="px-4">
-                  <div className="text-md font-bold text-debt break-all">{formatIDR(payments?.totalDebt || 0)}</div>
+                  <div className="text-sm font-bold text-debt break-all">{formatIDR(payments?.totalDebt || 0)}</div>
                 </CardContent>
               </Card>
             </Link>
             <Link href="/savings" className="col-span-2">
               <Card className="h-full transition-colors hover:bg-muted/50 py-4 gap-4">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 px-4">
-                  <CardTitle className="text-sm font-medium">Tabungan</CardTitle>
+                  <CardTitle className="text-xs font-medium">Tabungan</CardTitle>
                 </CardHeader>
                 <CardContent className="px-4">
-                  <div className="text-md font-bold text-savings break-all">{formatIDR(summary?.totalSavingsContribution || 0)}</div>
+                  <div className="text-sm font-bold text-savings break-all">{formatIDR(summary?.totalSavingsContribution || 0)}</div>
                 </CardContent>
               </Card>
             </Link>
           </div>
 
-          {/* Desktop: 2-col + 3-col grid */}
+          {/* Monthly Cash Flow Cards Desktop */}
           <div className="hidden md:block space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <Link href="/incomes">
-                <Card className="h-full transition-colors hover:bg-muted/50 py-4 gap-4">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 px-4">
-                    <CardTitle className="text-sm font-medium">Pemasukan</CardTitle>
+                <Card className="h-full transition-colors hover:bg-muted/50 py-6">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0">
+                    <CardTitle className="text-lg font-medium">Pemasukan</CardTitle>
                   </CardHeader>
-                  <CardContent className="px-4">
+                  <CardContent className="px-6">
                     <div className="text-xl font-bold text-income">{formatIDR(incomeSummary?.total || 0)}</div>
                   </CardContent>
                 </Card>
               </Link>
               <Link href="/expenses">
-                <Card className="h-full transition-colors hover:bg-muted/50 py-4 gap-4">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 px-4">
-                    <CardTitle className="text-sm font-medium">Pengeluaran</CardTitle>
+                <Card className="h-full transition-colors hover:bg-muted/50 py-6">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0">
+                    <CardTitle className="text-lg font-medium">Pengeluaran</CardTitle>
                   </CardHeader>
-                  <CardContent className="px-4">
+                  <CardContent className="px-6">
                     <div className="text-xl font-bold text-expense">{formatIDR(expenseSummary?.total || 0)}</div>
                   </CardContent>
                 </Card>
@@ -385,31 +375,31 @@ export default function ForecastPage() {
             </div>
             <div className="grid grid-cols-3 gap-4">
               <Link href="/installments">
-                <Card className="h-full transition-colors hover:bg-muted/50 py-4 gap-4">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 px-4">
-                    <CardTitle className="text-sm font-medium">Cicilan</CardTitle>
+                <Card className="h-full transition-colors hover:bg-muted/50 py-6 gap-4">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0">
+                    <CardTitle className="text-lg font-medium">Cicilan</CardTitle>
                   </CardHeader>
-                  <CardContent className="px-4">
+                  <CardContent className="px-6">
                     <div className="text-xl font-bold text-installment">{formatIDR(payments?.totalInstallment || 0)}</div>
                   </CardContent>
                 </Card>
               </Link>
               <Link href="/debts">
-                <Card className="h-full transition-colors hover:bg-muted/50 py-4 gap-4">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 px-4">
-                    <CardTitle className="text-sm font-medium">Hutang</CardTitle>
+                <Card className="h-full transition-colors hover:bg-muted/50 py-6 gap-4">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0">
+                    <CardTitle className="text-lg font-medium">Hutang</CardTitle>
                   </CardHeader>
-                  <CardContent className="px-4">
+                  <CardContent className="px-6">
                     <div className="text-xl font-bold text-debt">{formatIDR(payments?.totalDebt || 0)}</div>
                   </CardContent>
                 </Card>
               </Link>
               <Link href="/savings">
-                <Card className="h-full transition-colors hover:bg-muted/50 py-4 gap-4">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 px-4">
-                    <CardTitle className="text-sm font-medium">Tabungan</CardTitle>
+                <Card className="h-full transition-colors hover:bg-muted/50 py-6 gap-4">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0">
+                    <CardTitle className="text-lg font-medium">Tabungan</CardTitle>
                   </CardHeader>
-                  <CardContent className="px-4">
+                  <CardContent className="px-6">
                     <div className="text-xl font-bold text-savings">{formatIDR(summary?.totalSavingsContribution || 0)}</div>
                   </CardContent>
                 </Card>

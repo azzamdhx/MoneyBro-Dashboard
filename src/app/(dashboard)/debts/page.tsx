@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { formatIDR } from "@/lib/utils/currency";
 import { formatDateShortID } from "@/lib/utils/format";
 import { GET_DEBTS } from "@/lib/graphql/queries";
-import { Plus, Wallet, CheckCircle2, Clock, ArrowLeft } from "lucide-react";
+import { Plus, Wallet, CheckCircle2, ArrowLeft } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { getContrastStyles } from "@/lib/utils/color";
@@ -107,27 +107,21 @@ export default function DebtsPage() {
       </div>
 
       <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 sm:grid sm:grid-cols-2 sm:overflow-visible">
-        <Card className="bg-card border-1 min-w-[90%] shrink-0 sm:min-w-0">
-          <CardHeader>
-            <CardTitle className="flex flex-col gap-4 items-start">
-              <span className="text-primary">Cicilan Bulanan</span>
-              <span className="text-lg sm:text-2xl text-debt">{formatIDR(totalMonthlyPayment)}</span>
+        <Card className="bg-card border-1 py-4 md:py-6 min-w-[90%]">
+          <CardHeader className="flex flex-col px-4">
+            <CardTitle className="flex flex-col items-start md:gap-4 gap-3 w-full">
+              <span className="text-primary text-sm md:text-lg">Cicilan Bulanan</span>
+              <span className="text-md sm:text-2xl text-debt">{formatIDR(totalMonthlyPayment)}</span>
             </CardTitle>
-            <p className="text-xs text-muted-foreground hidden sm:block">
-              {activeDebts.filter((d) => d.paymentType === "INSTALLMENT").length} hutang cicilan
-            </p>
           </CardHeader>
         </Card>
 
-        <Card className="bg-card border-1 min-w-[90%] shrink-0 sm:min-w-0">
-          <CardHeader>
-            <CardTitle className="flex flex-col gap-4 items-start">
-              <span className="text-primary">Sisa Hutang</span>
-              <span className="text-lg sm:text-2xl text-debt">{formatIDR(totalRemainingAmount)}</span>
+        <Card className="bg-card border-1 py-4 md:py-6 min-w-[90%]">
+          <CardHeader className="flex flex-col px-4">
+            <CardTitle className="flex flex-col items-start md:gap-4 gap-3 w-full">
+              <span className="text-primary text-sm md:text-lg">Sisa Hutang</span>
+              <span className="text-md sm:text-2xl text-debt">{formatIDR(totalRemainingAmount)}</span>
             </CardTitle>
-            <p className="text-xs text-muted-foreground hidden sm:block">
-              {activeDebts.length} hutang aktif
-            </p>
           </CardHeader>
         </Card>
       </div>
@@ -163,8 +157,7 @@ export default function DebtsPage() {
         <div className="space-y-6">
           {activeDebts.length > 0 && (
             <div className="space-y-3">
-              <h2 className="text-lg font-semibold flex items-center gap-2">
-                <Clock className="h-5 w-5 text-debt" />
+              <h2 className="text-sm md:text-lg font-semibold flex items-center gap-2">
                 Hutang Aktif ({activeDebts.length})
               </h2>
               <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
@@ -177,18 +170,18 @@ export default function DebtsPage() {
                     onClick={() => router.push(`/debts/${debt.id}`)}
                     style={debt.cardBgColor ? { backgroundColor: debt.cardBgColor, borderColor: debt.cardBgColor } : undefined}
                   >
-                    <CardContent className="p-4">
+                    <CardContent className="p-4 md:px-6 md:py-0 flex flex-col gap-2">
                       <div className="flex mb-2">
                         {emojis[debt.id] ? (
                           <span className="text-2xl">{emojis[debt.id]}</span>
                         ) : (
-                          <Wallet className={cn("h-5 w-5", c.bold || "text-debt")} />
+                          <Wallet className={cn("size-5", c.bold || "text-debt")} />
                         )}
                       </div>
                       <div className="space-y-2">
                         <div>
                           <h3 className={cn("font-semibold", c.text)}>{debt.personName}</h3>
-                          <div className="flex flex-wrap items-center gap-1 mt-1">
+                          <div className="flex flex-wrap items-center gap-1 mt-1 hidden md:block">
                             <span className={cn("text-sm", c.muted)}>
                               {getPaymentTypeLabel(debt.paymentType)}
                             </span>
@@ -226,8 +219,7 @@ export default function DebtsPage() {
 
           {paidDebts.length > 0 && (
             <div className="space-y-3">
-              <h2 className="text-lg font-semibold flex items-center gap-2">
-                <CheckCircle2 className="h-5 w-5 text-income" />
+              <h2 className="text-sm md:text-lg font-semibold flex items-center gap-2">
                 Hutang Lunas ({paidDebts.length})
               </h2>
               <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
@@ -237,7 +229,7 @@ export default function DebtsPage() {
                     className="cursor-pointer hover:border-accent transition-colors opacity-70 py-0"
                     onClick={() => router.push(`/debts/${debt.id}`)}
                   >
-                    <CardContent className="p-4">
+                    <CardContent className="p-4 md:px-6 md:py-0 flex flex-col gap-2">
                       <div className="flex mb-2">
                         {emojis[debt.id] ? (
                           <span className="text-2xl">{emojis[debt.id]}</span>
@@ -248,7 +240,6 @@ export default function DebtsPage() {
                       <div className="space-y-2">
                         <div>
                           <h3 className="font-semibold">{debt.personName}</h3>
-                          <p className="text-sm text-muted-foreground">Lunas</p>
                         </div>
                         <div>
                           <p className="font-bold text-income">Lunas</p>

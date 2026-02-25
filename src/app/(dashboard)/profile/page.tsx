@@ -49,11 +49,11 @@ interface CheckEmailData {
   checkEmailAvailability: boolean;
 }
 
-function ProfileSection({ title, children }: { title: string; children: React.ReactNode }) {
+function ProfileSection({ title, children, noBgMobile }: { title: string; children: React.ReactNode; noBgMobile?: boolean }) {
   return (
     <div className="space-y-1">
-      <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4 mb-2">{title}</h2>
-      <div className="rounded-xl border bg-card divide-y divide-border">
+      <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4 mb-2 hidden md:block">{title}</h2>
+      <div className={`rounded-xl border divide-y divide-border ${noBgMobile ? 'bg-transparent md:bg-card border-transparent md:border-border' : 'bg-card'}`}>
         {children}
       </div>
     </div>
@@ -391,9 +391,9 @@ export default function ProfilePage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Left Column - Profile */}
         <div className="space-y-4">
-          <ProfileSection title="Profil">
+          <ProfileSection title="Profil" noBgMobile>
             {isEditing ? (
-              <div className="p-6 space-y-4">
+              <div className="p-0 md:p-6 space-y-4">
                 <div className="flex flex-col items-center gap-3 pb-4">
                   <button
                     type="button"
@@ -529,18 +529,18 @@ export default function ProfilePage() {
           <ProfileSection title="Zona Berbahaya">
             <button
               onClick={() => setShowDeleteDialog(true)}
-              className="w-full flex items-center gap-4 p-4 hover:bg-destructive/10 transition-colors text-left"
+              className="w-full flex items-center gap-4 p-4 bg-destructive/60 rounded-lg"
             >
-              <div className="flex-shrink-0 h-10 w-10 rounded-full bg-destructive/10 flex items-center justify-center">
-                <X className="h-5 w-5 text-destructive" />
+              <div className="flex-shrink-0 h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                <X className="h-5 w-5 text-primary" />
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-medium text-destructive">Hapus Akun</p>
-                <p className="text-sm text-muted-foreground hidden sm:block">
+              <div className="flex-1 min-w-0 text-start">
+                <p className="font-medium text-primary">Hapus Akun</p>
+                <p className="text-sm text-foreground hidden sm:block">
                   Hapus akun dan semua data secara permanen
                 </p>
               </div>
-              <ChevronRight className="h-5 w-5 text-muted-foreground" />
+              <ChevronRight className="h-5 w-5 text-primary" />
             </button>
           </ProfileSection>
         </div>

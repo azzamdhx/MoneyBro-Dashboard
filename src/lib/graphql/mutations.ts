@@ -260,15 +260,81 @@ export const DELETE_INCOME = gql`
   }
 `;
 
-export const CREATE_RECURRING_INCOME = gql`
-  mutation CreateRecurringIncome($input: CreateRecurringIncomeInput!) {
-    createRecurringIncome(input: $input) {
+export const CREATE_RECURRING_INCOME_GROUP = gql`
+  mutation CreateRecurringIncomeGroup($input: CreateRecurringIncomeGroupInput!) {
+    createRecurringIncomeGroup(input: $input) {
       id
-      sourceName
-      amount
+      name
       recurringDay
       isActive
       notes
+      total
+      items {
+        id
+        sourceName
+        amount
+        category {
+          id
+          name
+        }
+      }
+    }
+  }
+`;
+
+export const UPDATE_RECURRING_INCOME_GROUP = gql`
+  mutation UpdateRecurringIncomeGroup($id: UUID!, $input: UpdateRecurringIncomeGroupInput!) {
+    updateRecurringIncomeGroup(id: $id, input: $input) {
+      id
+      name
+      recurringDay
+      isActive
+      notes
+      total
+      items {
+        id
+        sourceName
+        amount
+        category {
+          id
+          name
+        }
+      }
+    }
+  }
+`;
+
+export const DELETE_RECURRING_INCOME_GROUP = gql`
+  mutation DeleteRecurringIncomeGroup($id: UUID!) {
+    deleteRecurringIncomeGroup(id: $id)
+  }
+`;
+
+export const ADD_RECURRING_INCOME_ITEM = gql`
+  mutation AddRecurringIncomeItem($groupId: UUID!, $input: CreateRecurringIncomeItemInput!) {
+    addRecurringIncomeItem(groupId: $groupId, input: $input) {
+      id
+      name
+      total
+      items {
+        id
+        sourceName
+        amount
+        category {
+          id
+          name
+        }
+      }
+    }
+  }
+`;
+
+export const UPDATE_RECURRING_INCOME_ITEM = gql`
+  mutation UpdateRecurringIncomeItem($itemId: UUID!, $input: UpdateRecurringIncomeItemInput!) {
+    updateRecurringIncomeItem(itemId: $itemId, input: $input) {
+      id
+      sourceName
+      amount
       category {
         id
         name
@@ -277,32 +343,15 @@ export const CREATE_RECURRING_INCOME = gql`
   }
 `;
 
-export const UPDATE_RECURRING_INCOME = gql`
-  mutation UpdateRecurringIncome($id: UUID!, $input: UpdateRecurringIncomeInput!) {
-    updateRecurringIncome(id: $id, input: $input) {
-      id
-      sourceName
-      amount
-      recurringDay
-      isActive
-      notes
-      category {
-        id
-        name
-      }
-    }
+export const DELETE_RECURRING_INCOME_ITEM = gql`
+  mutation DeleteRecurringIncomeItem($itemId: UUID!) {
+    deleteRecurringIncomeItem(itemId: $itemId)
   }
 `;
 
-export const DELETE_RECURRING_INCOME = gql`
-  mutation DeleteRecurringIncome($id: UUID!) {
-    deleteRecurringIncome(id: $id)
-  }
-`;
-
-export const CREATE_INCOME_FROM_RECURRING = gql`
-  mutation CreateIncomeFromRecurring($recurringId: UUID!, $incomeDate: Date) {
-    createIncomeFromRecurring(recurringId: $recurringId, incomeDate: $incomeDate) {
+export const CREATE_INCOMES_FROM_RECURRING_GROUP = gql`
+  mutation CreateIncomesFromRecurringGroup($groupId: UUID!, $incomeDate: Date) {
+    createIncomesFromRecurringGroup(groupId: $groupId, incomeDate: $incomeDate) {
       id
       sourceName
       amount

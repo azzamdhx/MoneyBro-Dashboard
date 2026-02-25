@@ -407,14 +407,14 @@ export default function DebtDetailPage() {
         </div>
       </div>
 
-      {/* Payment Dialog */}
+      {/* Payment Dialog - Desktop */}
       <Dialog open={isPaymentOpen} onOpenChange={setIsPaymentOpen}>
-        <DialogContent>
-          <DialogHeader>
+        <DialogContent className="hidden md:block">
+          <DialogHeader className="pb-6">
             <DialogTitle>Bayar Hutang</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
+          <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-3">
               <Label>Tanggal Pembayaran</Label>
               <DatePicker
                 value={paymentDate}
@@ -423,7 +423,7 @@ export default function DebtDetailPage() {
               />
             </div>
 
-            <div className="space-y-2">
+            <div className="flex flex-col gap-3">
               <Label>Pocket</Label>
               <PocketSelector
                 value={paymentPocketId}
@@ -432,7 +432,7 @@ export default function DebtDetailPage() {
               />
             </div>
 
-            <div className="space-y-2">
+            <div className="flex flex-col gap-3">
               <Label>Jumlah Pembayaran</Label>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
@@ -443,6 +443,8 @@ export default function DebtDetailPage() {
                   onChange={(e) => setPaymentAmount(formatNumber(e.target.value))}
                   placeholder={debt?.monthlyPayment ? formatNumberID(debt.monthlyPayment) : "0"}
                   className="pl-10"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                 />
               </div>
               <p className="text-xs text-muted-foreground">
@@ -461,6 +463,71 @@ export default function DebtDetailPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Payment Bottom Sheet - Mobile */}
+      {isPaymentOpen && (
+        <div className="fixed inset-0 z-90 md:hidden" onClick={() => setIsPaymentOpen(false)}>
+          <div className="absolute inset-0 bg-black/50" />
+          <div
+            className="border-t absolute bottom-0 left-0 right-0 min-h-[70vh] bg-background rounded-t-2xl p-6 pb-8 flex flex-col animate-in slide-in-from-bottom duration-300"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-lg font-semibold">Bayar Hutang</h2>
+              <button onClick={() => setIsPaymentOpen(false)} className="p-1 rounded-full hover:bg-muted">
+                <X size={20} />
+              </button>
+            </div>
+            <div className="flex flex-col gap-4 flex-1">
+              <div className="flex flex-col gap-3">
+                <Label>Tanggal Pembayaran</Label>
+                <DatePicker
+                  value={paymentDate}
+                  onChange={setPaymentDate}
+                  className="w-full"
+                />
+              </div>
+
+              <div className="flex flex-col gap-3">
+                <Label>Pocket</Label>
+                <PocketSelector
+                  value={paymentPocketId}
+                  onChange={setPaymentPocketId}
+                  className="w-full"
+                />
+              </div>
+
+              <div className="flex flex-col gap-3">
+                <Label>Jumlah Pembayaran</Label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
+                    Rp
+                  </span>
+                  <Input
+                    value={paymentAmount}
+                    onChange={(e) => setPaymentAmount(formatNumber(e.target.value))}
+                    placeholder={debt?.monthlyPayment ? formatNumberID(debt.monthlyPayment) : "0"}
+                    className="pl-10"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Sisa hutang: {formatIDR(debt?.remainingAmount || 0)}
+                </p>
+              </div>
+            </div>
+            <Button
+              className="w-full bg-green-600 hover:bg-green-700 text-primary mt-auto"
+              onClick={handleRecordPayment}
+              disabled={recordingPayment || !paymentDate}
+            >
+              {recordingPayment && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Konfirmasi Pembayaran
+            </Button>
+          </div>
+        </div>
+      )}
 
       {!isNew && debt && (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -635,6 +702,8 @@ export default function DebtDetailPage() {
                     }
                     placeholder="12"
                     min="1"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
                     disabled={!isNew}
                   />
                 </div>
@@ -666,12 +735,12 @@ export default function DebtDetailPage() {
 
           <div className="md:static md:mt-6 p-5 pb-8 md:rounded-lg md:border fixed bottom-0 left-0 right-0 z-50 rounded-t-3xl border-t border-x border-border bg-card">
             {isNew ? (
-              <div className="flex items-end justify-between gap-4">
-                <div>
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex flex-col gap-1">
                   <p className="text-sm text-muted-foreground">
                     {formData.paymentType === "INSTALLMENT" ? "Cicilan per bulan" : "Total bayar"}
                   </p>
-                  <p className="text-2xl font-bold text-primary">
+                  <p className="md:text-xl text-md font-bold text-primary">
                     {formatIDR(monthlyPayment)}
                   </p>
                 </div>
@@ -681,12 +750,12 @@ export default function DebtDetailPage() {
                 </Button>
               </div>
             ) : debt?.status === "ACTIVE" && (
-              <div className="flex items-end justify-between gap-4">
-                <div>
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex flex-col gap-1">
                   <p className="text-sm text-muted-foreground">
                     {debt.paymentType === "INSTALLMENT" ? "Cicilan Bulanan" : "Sisa Hutang"}
                   </p>
-                  <p className="text-2xl font-bold text-primary">
+                  <p className="md:text-xl text-md font-bold text-primary">
                     {formatIDR(debt.paymentType === "INSTALLMENT" ? (debt.monthlyPayment || 0) : debt.remainingAmount)}
                   </p>
                 </div>

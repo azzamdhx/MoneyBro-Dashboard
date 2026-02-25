@@ -350,10 +350,10 @@ export default function InstallmentDetailPage() {
           </div>
         </div>
         <div className="flex flex-wrap gap-2 justify-end">
-          {(isNew || installment?.status === "ACTIVE") && (
-            <Button type="submit" form="installment-form" className="w-fit hidden md:inline-flex" disabled={isLoading}>
+          {!isNew && installment?.status === "ACTIVE" && (
+            <Button type="submit" form="installment-form" className="w-fit" size="sm" disabled={isLoading}>
               {isLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              {isNew ? "Simpan" : "Perbarui"}
+              Perbarui
             </Button>
           )}
           {!isNew && installment?.status === "ACTIVE" && (
@@ -384,13 +384,13 @@ export default function InstallmentDetailPage() {
         </div>
       </div>
 
-      {/* Payment Dialog */}
+      {/* Payment Dialog - Desktop */}
       <Dialog open={isPaymentOpen} onOpenChange={setIsPaymentOpen}>
-        <DialogContent>
-          <DialogHeader>
+        <DialogContent className="hidden md:block">
+          <DialogHeader className="pb-6">
             <DialogTitle>Konfirmasi Pembayaran</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="flex flex-col gap-3">
             <div className="space-y-2">
               <Label>Pocket</Label>
               <PocketSelector
@@ -399,12 +399,12 @@ export default function InstallmentDetailPage() {
                 className="w-full"
               />
             </div>
-            <div className="p-4 bg-card rounded-lg">
-              <p className="text-sm text-primary">Jumlah Pembayaran</p>
-              <p className="text-2xl font-bold text-income">
+            <div className="p-4 bg-card rounded-lg flex flex-col gap-2">
+              <p className="md:text-md text-xs text-primary">Jumlah Pembayaran</p>
+              <p className="text-xl md:text-2xl font-bold text-income">
                 {formatIDR(installment?.monthlyPayment || 0)}
               </p>
-              <p className="text-sm text-primary mt-2">
+              <p className="md:text-sm text-xs text-primary">
                 Pembayaran ke-{(installment?.paidCount || 0) + 1} dari {installment?.tenor}
               </p>
             </div>
@@ -419,6 +419,51 @@ export default function InstallmentDetailPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Payment Bottom Sheet - Mobile */}
+      {isPaymentOpen && (
+        <div className="fixed inset-0 z-90 md:hidden" onClick={() => setIsPaymentOpen(false)}>
+          <div className="absolute inset-0 bg-black/50" />
+          <div
+            className="border-t absolute bottom-0 left-0 right-0 min-h-[70vh] bg-background rounded-t-2xl p-6 pb-8 flex flex-col animate-in slide-in-from-bottom duration-300"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-lg font-semibold">Konfirmasi Pembayaran</h2>
+              <button onClick={() => setIsPaymentOpen(false)} className="p-1 rounded-full hover:bg-muted">
+                <X size={20} />
+              </button>
+            </div>
+            <div className="flex flex-col gap-4 flex-1">
+              <div className="flex flex-col gap-3">
+                <Label>Pocket</Label>
+                <PocketSelector
+                  value={paymentPocketId}
+                  onChange={setPaymentPocketId}
+                  className="w-full"
+                />
+              </div>
+              <div className="p-4 bg-card rounded-lg flex flex-col gap-2">
+                <p className="text-xs text-primary">Jumlah Pembayaran</p>
+                <p className="text-xl font-bold text-income">
+                  {formatIDR(installment?.monthlyPayment || 0)}
+                </p>
+                <p className="text-xs text-primary">
+                  Pembayaran ke-{(installment?.paidCount || 0) + 1} dari {installment?.tenor}
+                </p>
+              </div>
+            </div>
+            <Button
+              className="w-full bg-primary text-background mt-auto"
+              onClick={handleRecordPayment}
+              disabled={recordingPayment}
+            >
+              {recordingPayment && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Konfirmasi Pembayaran
+            </Button>
+          </div>
+        </div>
+      )}
 
       {!isNew && installment && (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -538,6 +583,8 @@ export default function InstallmentDetailPage() {
                       }
                       placeholder="15.000.000"
                       className="pl-10"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
                       disabled={!isNew}
                     />
                   </div>
@@ -554,6 +601,8 @@ export default function InstallmentDetailPage() {
                     placeholder="12"
                     min="1"
                     disabled={!isNew}
+                    inputMode="numeric"
+                    pattern="[0-9]*"
                   />
                 </div>
               </div>
@@ -570,6 +619,8 @@ export default function InstallmentDetailPage() {
                     placeholder="1"
                     min="1"
                     max="31"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
                   />
                 </div>
 
@@ -582,6 +633,7 @@ export default function InstallmentDetailPage() {
                     }
                     disabled={!isNew}
                     className="w-full"
+
                   />
                 </div>
               </div>
@@ -601,10 +653,10 @@ export default function InstallmentDetailPage() {
 
           <div className="md:static md:mt-6 p-5 pb-8 md:p-6 md:rounded-lg md:border fixed bottom-0 left-0 right-0 z-50 rounded-t-3xl border-t border-x border-border bg-card">
             {isNew ? (
-              <div className="flex items-end justify-between gap-4">
-                <div>
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex flex-col gap-1">
                   <p className="text-sm text-muted-foreground">Cicilan per bulan</p>
-                  <p className="text-2xl font-bold text-primary">
+                  <p className="md:text-xl text-md font-bold text-primary">
                     {formatIDR(monthlyPayment)}
                   </p>
                 </div>
@@ -614,10 +666,10 @@ export default function InstallmentDetailPage() {
                 </Button>
               </div>
             ) : installment?.status === "ACTIVE" && (
-              <div className="flex items-end justify-between gap-4">
-                <div>
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex flex-col gap-1">
                   <p className="text-sm text-muted-foreground">Cicilan Bulanan</p>
-                  <p className="text-2xl font-bold text-primary">
+                  <p className="md:text-xl text-md font-bold text-primary">
                     {formatIDR(installment?.monthlyPayment || 0)}
                   </p>
                 </div>
