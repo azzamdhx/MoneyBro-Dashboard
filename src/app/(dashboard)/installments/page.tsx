@@ -239,10 +239,7 @@ export default function InstallmentsPage() {
         <Card>
           <CardContent className="py-12 flex flex-col items-center justify-center text-muted-foreground">
             <CreditCard className="h-12 w-12 mb-4 opacity-50" />
-            <p className="text-sm">Belum ada cicilan</p>
-            <p className="text-xs mt-1">
-              Klik tombol Tambah Cicilan untuk mencatat cicilan baru
-            </p>
+            <p className="text-sm">Belum ada data cicilan</p>
           </CardContent>
         </Card>
       )}

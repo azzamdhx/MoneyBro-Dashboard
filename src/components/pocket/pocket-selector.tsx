@@ -20,7 +20,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Wallet, Plus, Loader2 } from "lucide-react";
+import { Plus, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 interface Pocket {
@@ -94,7 +94,7 @@ export function PocketSelector({ value, onChange, className }: PocketSelectorPro
         }}
       >
         <SelectTrigger className={className}>
-          <Wallet className="h-4 w-4 mr-2 text-muted-foreground" />
+          <span className="mr-2">💰</span>
           <SelectValue placeholder="Pilih Pocket" />
         </SelectTrigger>
         <SelectContent>
@@ -106,7 +106,7 @@ export function PocketSelector({ value, onChange, className }: PocketSelectorPro
           </SelectItem>
           {pockets.map((pocket) => (
             <SelectItem key={pocket.id} value={pocket.id}>
-              {pocket.icon ? `${pocket.icon} ` : ""}{pocket.name}
+              {pocket.icon ? `${pocket.icon} ` : "💰 "}{pocket.name}
             </SelectItem>
           ))}
         </SelectContent>

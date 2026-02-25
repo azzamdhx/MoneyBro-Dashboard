@@ -32,7 +32,7 @@ import {
 } from "@/lib/graphql/mutations";
 import { GET_POCKETS } from "@/lib/graphql/queries";
 import { toast } from "sonner";
-import { Loader2, ArrowLeft, ArrowRightLeft, ArrowDownLeft, ArrowUpRight, X, Plus, Pencil, Wallet } from "lucide-react";
+import { Loader2, ArrowLeft, ArrowRightLeft, ArrowDownLeft, ArrowUpRight, X, Plus, Pencil } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
@@ -303,11 +303,11 @@ export default function PocketDetailPage() {
 
             {/* Emoji */}
             <div className="text-6xl mb-3">
-              {emoji || <Wallet className="h-14 w-14 text-primary/80" />}
+              {emoji || "💰"}
             </div>
 
             {/* Pocket Name */}
-            <h1 className="text-xl font-bold text-white mb-1">{pocket.name}</h1>
+            <h1 className="text-sm font-bold text-white mb-1">{pocket.name}</h1>
 
             {/* Monthly Balance */}
             <p className="text-2xl font-bold text-white">{formatIDR(monthlyBalance)}</p>
@@ -423,7 +423,7 @@ export default function PocketDetailPage() {
 
       {/* Edit Bottom Sheet - Mobile */}
       {isEditMode && !isNew && pocket && (
-        <div className="fixed inset-0 z-90 md:hidden" onClick={() => setIsEditMode(false)}>
+        <div className="fixed inset-0 bottom-0 z-40 md:hidden" onClick={() => setIsEditMode(false)}>
           <div className="absolute inset-0 bg-black/50" />
           <div
             className="border-t absolute bottom-0 left-0 right-0 min-h-[70vh] bg-background rounded-t-2xl p-6 pb-8 flex flex-col animate-in slide-in-from-bottom duration-300"

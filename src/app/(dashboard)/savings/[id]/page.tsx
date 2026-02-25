@@ -361,142 +361,69 @@ export default function SavingsGoalDetailPage() {
 
   return (
     <>
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col gap-4">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => router.back()}>
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div className="flex items-center gap-3">
-            {!isNew && emoji && (
-              <span className="text-3xl">{emoji}</span>
-            )}
-            <div>
-              <h1 className="text-lg sm:text-xl md:text-2xl font-bold">
-                {isNew ? "Tambah Tabungan" : goal?.name}
-              </h1>
-              <p className="text-muted-foreground hidden sm:block">
-                {isNew ? "Buat target tabungan baru" : "Detail tabungan"}
-              </p>
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="icon" onClick={() => router.back()}>
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <div className="flex items-center gap-3">
+              {!isNew && emoji && (
+                <span className="text-3xl">{emoji}</span>
+              )}
+              <div>
+                <h1 className="text-lg sm:text-xl md:text-2xl font-bold">
+                  {isNew ? "Tambah Tabungan" : goal?.name}
+                </h1>
+                <p className="text-muted-foreground hidden sm:block">
+                  {isNew ? "Buat target tabungan baru" : "Detail tabungan"}
+                </p>
+              </div>
             </div>
           </div>
-        </div>
-        <div className="flex flex-wrap gap-2 justify-end">
-          {(isNew || goal?.status === "ACTIVE") && (
-            <Button type="submit" form="savings-form" className="w-fit hidden md:inline-flex" disabled={isLoading}>
-              {isLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              {isNew ? "Simpan" : "Perbarui"}
-            </Button>
-          )}
-          {!isNew && goal?.status === "ACTIVE" && (
-            <>
-              <Button
-                variant="outline"
-                onClick={() => markComplete({ variables: { id } })}
-                disabled={markingComplete}
-                className="hidden md:inline-flex"
-              >
-                {markingComplete ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle2 className="h-4 w-4 mr-2" />}
-                Tandai Selesai
+          <div className="flex flex-wrap gap-2 justify-end">
+            {(isNew || goal?.status === "ACTIVE") && (
+              <Button type="submit" form="savings-form" className="w-fit hidden md:inline-flex" disabled={isLoading}>
+                {isLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                {isNew ? "Simpan" : "Perbarui"}
               </Button>
-              <DeleteConfirmDialog
-                title="Hapus Tabungan"
-                description="Apakah kamu yakin ingin menghapus tabungan ini? Semua riwayat kontribusi juga akan dihapus."
-                onConfirm={handleDelete}
-                loading={deleting}
-                trigger={
-                  <Button variant="destructive" size="sm" className="w-fit">
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Hapus
-                  </Button>
-                }
-              />
-            </>
-          )}
+            )}
+            {!isNew && goal?.status === "ACTIVE" && (
+              <>
+                <Button
+                  variant="outline"
+                  onClick={() => markComplete({ variables: { id } })}
+                  disabled={markingComplete}
+                  className="hidden md:inline-flex"
+                >
+                  {markingComplete ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle2 className="h-4 w-4 mr-2" />}
+                  Tandai Selesai
+                </Button>
+                <DeleteConfirmDialog
+                  title="Hapus Tabungan"
+                  description="Apakah kamu yakin ingin menghapus tabungan ini? Semua riwayat kontribusi juga akan dihapus."
+                  onConfirm={handleDelete}
+                  loading={deleting}
+                  trigger={
+                    <Button variant="destructive" size="sm" className="w-fit">
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Hapus
+                    </Button>
+                  }
+                />
+              </>
+            )}
+          </div>
         </div>
-      </div>
 
-      {/* Contribution Dialog - Desktop */}
-      <Dialog open={isContributionOpen} onOpenChange={setIsContributionOpen}>
-        <DialogContent className="hidden md:block">
-          <DialogHeader className="pb-6">
-            <DialogTitle>Tambah Kontribusi</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleAddContribution} className="space-y-4">
-            <div className="flex flex-col gap-3">
-              <Label>Pocket</Label>
-              <PocketSelector
-                value={contributionPocketId}
-                onChange={setContributionPocketId}
-                className="w-full"
-              />
-            </div>
-            <div className="flex flex-col gap-3">
-              <Label htmlFor="contrib-amount">Jumlah (Rp) *</Label>
-              <Input
-                id="contrib-amount"
-                value={contributionData.amount}
-                onChange={(e) =>
-                  setContributionData({
-                    ...contributionData,
-                    amount: formatNumber(e.target.value),
-                  })
-                }
-                placeholder="0"
-                inputMode="numeric"
-                pattern="[0-9]*"
-              />
-            </div>
-            <div className="flex flex-col gap-3">
-              <Label>Tanggal *</Label>
-              <DatePicker
-                value={contributionData.contributionDate}
-                onChange={(val) =>
-                  setContributionData({
-                    ...contributionData,
-                    contributionDate: val,
-                  })
-                }
-              />
-            </div>
-            <div className="flex flex-col gap-3">
-              <Label htmlFor="contrib-notes">Catatan</Label>
-              <Input
-                id="contrib-notes"
-                value={contributionData.notes}
-                onChange={(e) =>
-                  setContributionData({
-                    ...contributionData,
-                    notes: e.target.value,
-                  })
-                }
-                placeholder="Opsional"
-              />
-            </div>
-            <Button type="submit" className="w-full" disabled={contributing}>
-              {contributing && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              Tambah Kontribusi
-            </Button>
-          </form>
-        </DialogContent>
-      </Dialog>
-
-      {/* Contribution Bottom Sheet - Mobile */}
-      {isContributionOpen && (
-        <div className="fixed inset-0 z-90 md:hidden" onClick={() => setIsContributionOpen(false)}>
-          <div className="absolute inset-0 bg-black/50" />
-          <div
-            className="border-t absolute bottom-0 left-0 right-0 min-h-[70vh] bg-background rounded-t-2xl p-6 pb-8 flex flex-col animate-in slide-in-from-bottom duration-300"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-semibold">Tambah Kontribusi</h2>
-              <button onClick={() => setIsContributionOpen(false)} className="p-1 rounded-full hover:bg-muted">
-                <X size={20} />
-              </button>
-            </div>
-            <form onSubmit={handleAddContribution} className="flex flex-col gap-4 flex-1">
+        {/* Contribution Dialog - Desktop */}
+        <Dialog open={isContributionOpen} onOpenChange={setIsContributionOpen}>
+          <DialogContent className="hidden md:block">
+            <DialogHeader className="pb-6">
+              <DialogTitle>Tambah Kontribusi</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleAddContribution} className="space-y-4">
               <div className="flex flex-col gap-3">
                 <Label>Pocket</Label>
                 <PocketSelector
@@ -506,9 +433,9 @@ export default function SavingsGoalDetailPage() {
                 />
               </div>
               <div className="flex flex-col gap-3">
-                <Label htmlFor="contrib-amount-mobile">Jumlah (Rp) *</Label>
+                <Label htmlFor="contrib-amount">Jumlah (Rp) *</Label>
                 <Input
-                  id="contrib-amount-mobile"
+                  id="contrib-amount"
                   value={contributionData.amount}
                   onChange={(e) =>
                     setContributionData({
@@ -534,9 +461,9 @@ export default function SavingsGoalDetailPage() {
                 />
               </div>
               <div className="flex flex-col gap-3">
-                <Label htmlFor="contrib-notes-mobile">Catatan</Label>
+                <Label htmlFor="contrib-notes">Catatan</Label>
                 <Input
-                  id="contrib-notes-mobile"
+                  id="contrib-notes"
                   value={contributionData.notes}
                   onChange={(e) =>
                     setContributionData({
@@ -547,149 +474,226 @@ export default function SavingsGoalDetailPage() {
                   placeholder="Opsional"
                 />
               </div>
-              <Button type="submit" className="w-full mt-auto" disabled={contributing}>
+              <Button type="submit" className="w-full" disabled={contributing}>
                 {contributing && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                 Tambah Kontribusi
               </Button>
             </form>
-          </div>
-        </div>
-      )}
-
-      {/* Withdraw Confirmation */}
-      {withdrawId && (
-        <Dialog open={!!withdrawId} onOpenChange={(open) => !open && setWithdrawId(null)}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Tarik Kontribusi</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                Kontribusi akan dihapus dan saldo tabungan akan dikurangi. Lanjutkan?
-              </p>
-              <div className="flex gap-3 justify-end">
-                <Button variant="outline" onClick={() => setWithdrawId(null)}>Batal</Button>
-                <Button variant="destructive" onClick={handleWithdraw}>Hapus</Button>
-              </div>
-            </div>
           </DialogContent>
         </Dialog>
-      )}
 
-      {/* Stats Cards — Detail view only */}
-      {!isNew && goal && (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Card>
-            <CardContent className="pt-0">
-              <p className="text-sm text-muted-foreground">Terkumpul</p>
-              <p className="text-lg sm:text-2xl font-bold text-savings">
-                {formatIDR(goal.currentAmount)}
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-0">
-              <p className="text-sm text-muted-foreground">Progress</p>
-              <div className="space-y-1">
-                <p className="text-lg sm:text-2xl font-bold">
-                  {Math.round(goal.progress)}%
-                </p>
-                <div className="w-full bg-muted rounded-full h-2">
-                  <div
-                    className="bg-savings h-2 rounded-full transition-all"
-                    style={{ width: `${Math.min(goal.progress, 100)}%` }}
+        {/* Contribution Bottom Sheet - Mobile */}
+        {isContributionOpen && (
+          <div className="fixed inset-0 z-90 md:hidden" onClick={() => setIsContributionOpen(false)}>
+            <div className="absolute inset-0 bg-black/50" />
+            <div
+              className="border-t absolute bottom-0 left-0 right-0 min-h-[70vh] bg-background rounded-t-2xl p-6 pb-8 flex flex-col animate-in slide-in-from-bottom duration-300"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-lg font-semibold">Tambah Kontribusi</h2>
+                <button onClick={() => setIsContributionOpen(false)} className="p-1 rounded-full hover:bg-muted">
+                  <X size={20} />
+                </button>
+              </div>
+              <form onSubmit={handleAddContribution} className="flex flex-col gap-4 flex-1">
+                <div className="flex flex-col gap-3">
+                  <Label>Pocket</Label>
+                  <PocketSelector
+                    value={contributionPocketId}
+                    onChange={setContributionPocketId}
+                    className="w-full"
                   />
                 </div>
+                <div className="flex flex-col gap-3">
+                  <Label htmlFor="contrib-amount-mobile">Jumlah (Rp) *</Label>
+                  <Input
+                    id="contrib-amount-mobile"
+                    value={contributionData.amount}
+                    onChange={(e) =>
+                      setContributionData({
+                        ...contributionData,
+                        amount: formatNumber(e.target.value),
+                      })
+                    }
+                    placeholder="0"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                  />
+                </div>
+                <div className="flex flex-col gap-3">
+                  <Label>Tanggal *</Label>
+                  <DatePicker
+                    value={contributionData.contributionDate}
+                    onChange={(val) =>
+                      setContributionData({
+                        ...contributionData,
+                        contributionDate: val,
+                      })
+                    }
+                  />
+                </div>
+                <div className="flex flex-col gap-3">
+                  <Label htmlFor="contrib-notes-mobile">Catatan</Label>
+                  <Input
+                    id="contrib-notes-mobile"
+                    value={contributionData.notes}
+                    onChange={(e) =>
+                      setContributionData({
+                        ...contributionData,
+                        notes: e.target.value,
+                      })
+                    }
+                    placeholder="Opsional"
+                  />
+                </div>
+                <Button type="submit" className="w-full mt-auto" disabled={contributing}>
+                  {contributing && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                  Tambah Kontribusi
+                </Button>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Withdraw Confirmation */}
+        {withdrawId && (
+          <Dialog open={!!withdrawId} onOpenChange={(open) => !open && setWithdrawId(null)}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Tarik Kontribusi</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  Kontribusi akan dihapus dan saldo tabungan akan dikurangi. Lanjutkan?
+                </p>
+                <div className="flex gap-3 justify-end">
+                  <Button variant="outline" onClick={() => setWithdrawId(null)}>Batal</Button>
+                  <Button variant="destructive" onClick={handleWithdraw}>Hapus</Button>
+                </div>
               </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-0">
-              <p className="text-sm text-muted-foreground">Sisa Target</p>
-              <p className="text-lg sm:text-2xl font-bold text-destructive">
-                {formatIDR(goal.remainingAmount)}
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-0">
-              <p className="text-sm text-muted-foreground">Deadline</p>
-              <p className="text-lg sm:text-2xl font-bold">{formatDateID(goal.targetDate)}</p>
-            </CardContent>
-          </Card>
-        </div>
-      )}
+            </DialogContent>
+          </Dialog>
+        )}
 
-      {/* Contribution History — Detail view only */}
-      {!isNew && goal && goal.contributions.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Riwayat Kontribusi</CardTitle>
-          </CardHeader>
-          <CardContent className="px-6">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Tanggal</TableHead>
-                  <TableHead>Jumlah</TableHead>
-                  <TableHead className="hidden sm:table-cell">Catatan</TableHead>
-                  {goal.status === "ACTIVE" && <TableHead className="text-right w-12"></TableHead>}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {goal.contributions.map((c) => (
-                  <TableRow key={c.id}>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <CheckCircle2 className="h-4 w-4 text-savings" />
-                        {formatDateID(c.contributionDate)}
-                      </div>
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      {formatIDR(c.amount)}
-                    </TableCell>
-                    <TableCell className="hidden sm:table-cell text-muted-foreground">
-                      {c.notes || "-"}
-                    </TableCell>
-                    {goal.status === "ACTIVE" && (
-                      <TableCell className="text-right">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-destructive"
-                          onClick={() => setWithdrawId(c.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
-                    )}
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-      )}
+        {/* Stats Cards — Detail view only */}
+        {!isNew && goal && (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <Card>
+              <CardContent className="pt-0">
+                <p className="text-sm text-muted-foreground">Terkumpul</p>
+                <p className="text-lg sm:text-2xl font-bold text-savings">
+                  {formatIDR(goal.currentAmount)}
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-0">
+                <p className="text-sm text-muted-foreground">Progress</p>
+                <div className="space-y-1">
+                  <p className="text-lg sm:text-2xl font-bold">
+                    {Math.round(goal.progress)}%
+                  </p>
+                  <div className="w-full bg-muted rounded-full h-2">
+                    <div
+                      className="bg-savings h-2 rounded-full transition-all"
+                      style={{ width: `${Math.min(goal.progress, 100)}%` }}
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-0">
+                <p className="text-sm text-muted-foreground">Sisa Target</p>
+                <p className="text-lg sm:text-2xl font-bold text-destructive">
+                  {formatIDR(goal.remainingAmount)}
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-0">
+                <p className="text-sm text-muted-foreground">Deadline</p>
+                <p className="text-lg sm:text-2xl font-bold">{formatDateID(goal.targetDate)}</p>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
-      {/* Form — show when new or active */}
-      {(isNew || goal?.status === "ACTIVE") && (
-        <form id="savings-form" onSubmit={handleSubmit}>
+        {/* Contribution History — Detail view only */}
+        {!isNew && goal && goal.contributions.length > 0 && (
           <Card>
             <CardHeader>
-              <CardTitle>{isNew ? "Detail Tabungan" : "Edit Tabungan"}</CardTitle>
+              <CardTitle>Riwayat Kontribusi</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label>Nama Tabungan</Label>
-                <div className="flex items-center gap-2">
-                  <EmojiPicker
-                    value={emoji}
-                    onChange={handleEmojiChange}
-                  />
-                  <ColorPicker
-                    value={cardBgColor}
-                    onChange={setCardBgColor}
-                  />
+            <CardContent className="px-6">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Tanggal</TableHead>
+                    <TableHead>Jumlah</TableHead>
+                    <TableHead className="hidden sm:table-cell">Catatan</TableHead>
+                    {goal.status === "ACTIVE" && <TableHead className="text-right w-12"></TableHead>}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {goal.contributions.map((c) => (
+                    <TableRow key={c.id}>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <CheckCircle2 className="h-4 w-4 text-savings" />
+                          {formatDateID(c.contributionDate)}
+                        </div>
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        {formatIDR(c.amount)}
+                      </TableCell>
+                      <TableCell className="hidden sm:table-cell text-muted-foreground">
+                        {c.notes || "-"}
+                      </TableCell>
+                      {goal.status === "ACTIVE" && (
+                        <TableCell className="text-right">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-destructive"
+                            onClick={() => setWithdrawId(c.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                      )}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Form — show when new or active */}
+        {(isNew || goal?.status === "ACTIVE") && (
+          <form id="savings-form" onSubmit={handleSubmit}>
+            <Card>
+              <CardHeader>
+                <CardTitle>{isNew ? "Detail Tabungan" : "Edit Tabungan"}</CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-col gap-4 px-4 md:px-6">
+                <div className="flex flex-col gap-4">
+                  <Label>Emoji & Warna</Label>
+                  <div className="flex items-center gap-2">
+                    <EmojiPicker
+                      value={emoji}
+                      onChange={handleEmojiChange}
+                    />
+                    <ColorPicker
+                      value={cardBgColor}
+                      onChange={setCardBgColor}
+                    />
+                  </div>
+                </div>
+                <div className="flex flex-col gap-4">
+                  <Label>Nama Tabungan</Label>
                   <Input
                     value={formData.name}
                     onChange={(e) =>
@@ -699,161 +703,160 @@ export default function SavingsGoalDetailPage() {
                     className="flex-1"
                   />
                 </div>
-              </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Target (Rp)</Label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
-                      Rp
-                    </span>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-4">
+                    <Label>Target (Rp)</Label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
+                        Rp
+                      </span>
+                      <Input
+                        value={formData.targetAmount}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            targetAmount: formatNumber(e.target.value),
+                          }))
+                        }
+                        placeholder="10.000.000"
+                        className="pl-10"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-4">
+                    <Label>Target (Bulan)</Label>
                     <Input
-                      value={formData.targetAmount}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          targetAmount: formatNumber(e.target.value),
-                        }))
-                      }
-                      placeholder="10.000.000"
-                      className="pl-10"
+                      type="number"
+                      value={formData.targetMonths}
+                      onChange={(e) => updateTargetDateFromMonths(e.target.value)}
+                      placeholder="12"
+                      min="1"
                       inputMode="numeric"
                       pattern="[0-9]*"
                     />
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label>Target (Bulan)</Label>
-                  <Input
-                    type="number"
-                    value={formData.targetMonths}
-                    onChange={(e) => updateTargetDateFromMonths(e.target.value)}
-                    placeholder="12"
-                    min="1"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
+                <div className="flex flex-col gap-4">
+                  <Label>Target Bulan</Label>
+                  <MonthPicker
+                    value={formData.targetDate ? formData.targetDate.slice(0, 7) : ""}
+                    onChange={updateFromMonthPicker}
+                    disablePast
+                    className="w-full"
                   />
                 </div>
-              </div>
 
-              <div className="space-y-2">
-                <Label>Target Bulan</Label>
-                <MonthPicker
-                  value={formData.targetDate ? formData.targetDate.slice(0, 7) : ""}
-                  onChange={updateFromMonthPicker}
-                  disablePast
-                  className="w-full"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Catatan (opsional)</Label>
-                <Input
-                  value={formData.notes}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, notes: e.target.value }))
-                  }
-                  placeholder="Catatan tambahan"
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          <div className="md:static md:mt-6 p-5 pb-8 md:p-6 md:rounded-lg md:border fixed bottom-0 left-0 right-0 z-50 rounded-t-3xl border-t border-x border-border bg-card">
-            {isNew ? (
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex flex-col gap-1">
-                  <p className="text-sm text-muted-foreground">Bulanan</p>
-                  <p className="md:text-xl text-md font-bold text-savings">
-                    {formatIDR(calculatedMonthlyTarget)}
-                  </p>
+                <div className="flex flex-col gap-4">
+                  <Label>Catatan (opsional)</Label>
+                  <Input
+                    value={formData.notes}
+                    onChange={(e) =>
+                      setFormData((prev) => ({ ...prev, notes: e.target.value }))
+                    }
+                    placeholder="Catatan tambahan"
+                  />
                 </div>
-                <Button type="submit" form="savings-form" className="w-fit" disabled={isLoading}>
-                  {isLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                  Simpan
-                </Button>
-              </div>
-            ) : goal?.status === "ACTIVE" && (
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex flex-col gap-1">
-                  <p className="text-sm text-muted-foreground">Bulanan</p>
-                  <p className="md:text-xl text-md font-bold text-savings">
-                    {formatIDR(goal?.monthlyTarget || 0)}
-                  </p>
-                </div>
-                <Button
-                  className="w-fit"
-                  type="button"
-                  onClick={() => setIsContributionOpen(true)}
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Kontribusi
-                </Button>
-              </div>
-            )}
-          </div>
-        </form>
-      )}
-    </div>
+              </CardContent>
+            </Card>
 
-    {/* Floating Action Button - Mobile Only */}
-    {!isNew && goal?.status === "ACTIVE" && (
-      <div className="fixed bottom-28 right-6 z-[60] md:hidden">
-        <Popover open={fabOpen} onOpenChange={setFabOpen}>
-          <PopoverTrigger asChild>
-            <button
-              className={cn(
-                "flex items-center justify-center w-14 h-14 rounded-full shadow-lg transition-all duration-200",
-                fabOpen
-                  ? "bg-destructive text-destructive-foreground scale-95"
-                  : "bg-primary text-primary-foreground"
+            <div className="md:static md:mt-6 p-5 pb-8 md:p-6 md:rounded-lg md:border fixed bottom-0 left-0 right-0 z-50 rounded-t-3xl border-t border-x border-border bg-card">
+              {isNew ? (
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex flex-col gap-1">
+                    <p className="text-sm text-muted-foreground">Bulanan</p>
+                    <p className="md:text-xl text-md font-bold text-savings">
+                      {formatIDR(calculatedMonthlyTarget)}
+                    </p>
+                  </div>
+                  <Button type="submit" form="savings-form" className="w-fit" disabled={isLoading}>
+                    {isLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                    Simpan
+                  </Button>
+                </div>
+              ) : goal?.status === "ACTIVE" && (
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex flex-col gap-1">
+                    <p className="text-sm text-muted-foreground">Bulanan</p>
+                    <p className="md:text-xl text-md font-bold text-savings">
+                      {formatIDR(goal?.monthlyTarget || 0)}
+                    </p>
+                  </div>
+                  <Button
+                    className="w-fit"
+                    type="button"
+                    onClick={() => setIsContributionOpen(true)}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Kontribusi
+                  </Button>
+                </div>
               )}
-            >
-              {fabOpen ? (
-                <X className="h-6 w-6" />
-              ) : (
-                <Plus className="h-6 w-6" />
-              )}
-            </button>
-          </PopoverTrigger>
-          <PopoverContent
-            className="w-52 p-2 mb-2 border-border/50 shadow-2xl backdrop-blur-xl bg-gradient-to-b from-card/95 to-background/95"
-            align="end"
-            side="top"
-          >
-            <div className="grid gap-1">
-              <button
-                onClick={() => {
-                  setIsContributionOpen(true);
-                  setFabOpen(false);
-                }}
-                className="flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors text-muted-foreground hover:bg-muted"
-              >
-                <Plus className="h-4 w-4" />
-                <span>Tambah Kontribusi</span>
-              </button>
-              <button
-                onClick={() => {
-                  markComplete({ variables: { id } });
-                  setFabOpen(false);
-                }}
-                disabled={markingComplete}
-                className="flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors text-muted-foreground hover:bg-muted disabled:opacity-50"
-              >
-                {markingComplete ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <CheckCircle2 className="h-4 w-4" />
-                )}
-                <span>Tandai Selesai</span>
-              </button>
             </div>
-          </PopoverContent>
-        </Popover>
+          </form>
+        )}
       </div>
-    )}
+
+      {/* Floating Action Button - Mobile Only */}
+      {!isNew && goal?.status === "ACTIVE" && (
+        <div className="fixed bottom-28 right-6 z-[60] md:hidden">
+          <Popover open={fabOpen} onOpenChange={setFabOpen}>
+            <PopoverTrigger asChild>
+              <button
+                className={cn(
+                  "flex items-center justify-center w-14 h-14 rounded-full shadow-lg transition-all duration-200",
+                  fabOpen
+                    ? "bg-destructive text-destructive-foreground scale-95"
+                    : "bg-primary text-primary-foreground"
+                )}
+              >
+                {fabOpen ? (
+                  <X className="h-6 w-6" />
+                ) : (
+                  <Plus className="h-6 w-6" />
+                )}
+              </button>
+            </PopoverTrigger>
+            <PopoverContent
+              className="w-52 p-2 mb-2 border-border/50 shadow-2xl backdrop-blur-xl bg-gradient-to-b from-card/95 to-background/95"
+              align="end"
+              side="top"
+            >
+              <div className="grid gap-1">
+                <button
+                  onClick={() => {
+                    setIsContributionOpen(true);
+                    setFabOpen(false);
+                  }}
+                  className="flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors text-muted-foreground hover:bg-muted"
+                >
+                  <Plus className="h-4 w-4" />
+                  <span>Tambah Kontribusi</span>
+                </button>
+                <button
+                  onClick={() => {
+                    markComplete({ variables: { id } });
+                    setFabOpen(false);
+                  }}
+                  disabled={markingComplete}
+                  className="flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors text-muted-foreground hover:bg-muted disabled:opacity-50"
+                >
+                  {markingComplete ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <CheckCircle2 className="h-4 w-4" />
+                  )}
+                  <span>Tandai Selesai</span>
+                </button>
+              </div>
+            </PopoverContent>
+          </Popover>
+        </div>
+      )}
     </>
   );
 }

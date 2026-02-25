@@ -31,7 +31,7 @@ import { formatNumberID } from "@/lib/utils/format";
 import { GET_CATEGORIES } from "@/lib/graphql/queries";
 import { CREATE_CATEGORY } from "@/lib/graphql/mutations";
 import { toast } from "sonner";
-import { Plus, Trash2, Loader2, Check } from "lucide-react";
+import { Plus, Trash2, Loader2, Check, X } from "lucide-react";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
 import { PocketSelector } from "@/components/pocket/pocket-selector";
 
@@ -96,6 +96,12 @@ export const EditableExpenseTable = forwardRef<EditableExpenseTableRef, Editable
   const [newCategory, setNewCategory] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const blurTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Mobile bottom sheet state
+  const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
+  const [mobileSheetMode, setMobileSheetMode] = useState<"create" | "edit">("create");
+  const [mobileSheetItem, setMobileSheetItem] = useState<Item | null>(null);
+  const [mobileForm, setMobileForm] = useState<NewExpenseRow>(initialNewRow);
 
   // Buffered create/edit/delete state
   const [pendingCreates, setPendingCreates] = useState<Map<string, { itemName: string; categoryId: string; unitPrice: number; quantity: number; pocketId?: string }>>(new Map());
@@ -382,6 +388,85 @@ export const EditableExpenseTable = forwardRef<EditableExpenseTableRef, Editable
     setIsAddingNew(false);
   };
 
+  // Mobile bottom sheet helpers
+  const openMobileCreate = () => {
+    setMobileSheetMode("create");
+    setMobileSheetItem(null);
+    setMobileForm(initialNewRow);
+    setMobileSheetOpen(true);
+  };
+
+  const openMobileEdit = (item: Item) => {
+    setMobileSheetMode("edit");
+    setMobileSheetItem(item);
+    setMobileForm({
+      itemName: item.itemName,
+      categoryId: item.category.id,
+      unitPrice: item.unitPrice.toString(),
+      quantity: item.quantity.toString(),
+      pocketId: item.pocketId || "",
+    });
+    setMobileSheetOpen(true);
+  };
+
+  const submitMobileForm = () => {
+    const unitPrice = parseInt(mobileForm.unitPrice.replace(/\D/g, "")) || 0;
+    const quantity = parseInt(mobileForm.quantity) || 1;
+    if (!mobileForm.itemName.trim() || !mobileForm.categoryId || unitPrice <= 0) {
+      toast.error("Lengkapi data terlebih dahulu");
+      return;
+    }
+
+    if (mobileSheetMode === "create") {
+      const tempId = `new-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+      setPendingCreates(prev => {
+        const next = new Map(prev);
+        next.set(tempId, {
+          itemName: mobileForm.itemName.trim(),
+          categoryId: mobileForm.categoryId,
+          unitPrice,
+          quantity,
+          pocketId: mobileForm.pocketId || undefined,
+        });
+        return next;
+      });
+    } else if (mobileSheetItem) {
+      const id = mobileSheetItem.id;
+      if (pendingCreates.has(id)) {
+        setPendingCreates(prev => {
+          const next = new Map(prev);
+          next.set(id, {
+            itemName: mobileForm.itemName.trim(),
+            categoryId: mobileForm.categoryId,
+            unitPrice,
+            quantity,
+            pocketId: mobileForm.pocketId || undefined,
+          });
+          return next;
+        });
+      } else {
+        const updates: Record<string, unknown> = {};
+        if (mobileForm.itemName.trim() !== mobileSheetItem.itemName) updates.itemName = mobileForm.itemName.trim();
+        if (unitPrice !== mobileSheetItem.unitPrice) updates.unitPrice = unitPrice;
+        if (quantity !== mobileSheetItem.quantity) updates.quantity = quantity;
+        if (mobileForm.categoryId !== mobileSheetItem.category.id) updates.categoryId = mobileForm.categoryId;
+        if ((mobileForm.pocketId || "") !== (mobileSheetItem.pocketId || "")) updates.pocketId = mobileForm.pocketId || undefined;
+        if (Object.keys(updates).length > 0) {
+          setPendingUpdates(prev => {
+            const next = new Map(prev);
+            const existing = next.get(id) || {};
+            next.set(id, { ...existing, ...updates });
+            return next;
+          });
+        }
+      }
+    }
+
+    setMobileSheetOpen(false);
+    setMobileForm(initialNewRow);
+    setMobileSheetItem(null);
+  };
+
   const renderEditableCell = (item: Item, field: string, displayValue: string) => {
     const isEditing = editingCell?.id === item.id && editingCell?.field === field;
     const isPending = pendingUpdates.has(item.id) || pendingCreates.has(item.id);
@@ -440,58 +525,78 @@ export const EditableExpenseTable = forwardRef<EditableExpenseTableRef, Editable
           </TableRow>
         </TableHeader>
         <TableBody>
-          {displayItems.map((item) => (
-            <TableRow key={item.id}>
+          {displayItems.map((item) => {
+            const isPending = pendingUpdates.has(item.id) || pendingCreates.has(item.id);
+            return (
+            <TableRow
+              key={item.id}
+              className="md:cursor-default cursor-pointer"
+              onClick={() => {
+                if (window.innerWidth < 768) openMobileEdit(item);
+              }}
+            >
               <TableCell className="font-medium">
-                {renderEditableCell(item, "itemName", item.itemName)}
+                <span className="hidden md:block">{renderEditableCell(item, "itemName", item.itemName)}</span>
+                <span className={`md:hidden ${isPending ? "text-primary" : ""}`}>{item.itemName}</span>
               </TableCell>
               <TableCell>
-                <Select
-                  value={item.category.id}
-                  onValueChange={(value) => handleCategoryChange(item, value)}
-                >
-                  <SelectTrigger className="h-8 w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.map((cat) => (
-                      <SelectItem key={cat.id} value={cat.id}>
-                        {cat.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="hidden md:block">
+                  <Select
+                    value={item.category.id}
+                    onValueChange={(value) => handleCategoryChange(item, value)}
+                  >
+                    <SelectTrigger className="h-8 w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map((cat) => (
+                        <SelectItem key={cat.id} value={cat.id}>
+                          {cat.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <span className="md:hidden text-sm text-muted-foreground">{item.category.name}</span>
               </TableCell>
               <TableCell>
-                <PocketSelector
-                  value={item.pocketId || undefined}
-                  onChange={(pocketId) => handlePocketChange(item, pocketId)}
-                  className="h-8 w-full"
-                />
+                <div>
+                  <PocketSelector
+                    value={item.pocketId || undefined}
+                    onChange={(pocketId) => handlePocketChange(item, pocketId)}
+                    className="h-8 w-full"
+                  />
+                </div>
               </TableCell>
               <TableCell className="text-right">
-                {renderEditableCell(item, "unitPrice", formatIDR(item.unitPrice))}
+                <span className="hidden md:block">{renderEditableCell(item, "unitPrice", formatIDR(item.unitPrice))}</span>
+                <span className={`md:hidden ${isPending ? "text-primary" : ""}`}>{formatIDR(item.unitPrice)}</span>
               </TableCell>
               <TableCell className="text-right">
-                {renderEditableCell(item, "quantity", item.quantity.toString())}
+                <span className="hidden md:block">{renderEditableCell(item, "quantity", item.quantity.toString())}</span>
+                <span className={`md:hidden ${isPending ? "text-primary" : ""}`}>{item.quantity}</span>
               </TableCell>
               <TableCell className="text-right font-medium text-primary">
                 {formatIDR(item.total)}
               </TableCell>
               <TableCell>
-                <DeleteConfirmDialog
-                  title="Hapus Item"
-                  description={`Hapus "${item.itemName}"?`}
-                  onConfirm={() => handleDelete(item.id)}
-                  variant="icon"
-                />
+                <div className="hidden md:block">
+                  <DeleteConfirmDialog
+                    title="Hapus Item"
+                    description={`Hapus "${item.itemName}"?`}
+                    onConfirm={() => handleDelete(item.id)}
+                    variant="icon"
+                  />
+                </div>
               </TableCell>
             </TableRow>
-          ))}
+            );
+          })}
 
-          {/* Add New Row */}
+          {/* Add New Row - Desktop only */}
           {isAddingNew && (
             <TableRow
+              className="hidden md:table-row"
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
@@ -613,10 +718,14 @@ export const EditableExpenseTable = forwardRef<EditableExpenseTableRef, Editable
             </TableRow>
           )}
 
-          {/* Always visible add button */}
+          {/* Add button row */}
           <TableRow
             className="cursor-pointer hover:bg-muted/30"
             onClick={() => {
+              if (window.innerWidth < 768) {
+                openMobileCreate();
+                return;
+              }
               if (isAddingNew) {
                 const committed = commitNewRow();
                 if (!committed) {
@@ -637,7 +746,7 @@ export const EditableExpenseTable = forwardRef<EditableExpenseTableRef, Editable
         </TableBody>
       </Table>
     </div>
-    <div className="md:static md:mt-4 md:border-0 md:bg-transparent md:p-0 p-6 pb-8 fixed bottom-0 left-0 right-0 z-50 rounded-t-3xl border-t border-x border-border bg-card">
+    <div className="md:static md:mt-4 md:border-0 md:bg-transparent md:p-0 p-6 pb-8 fixed bottom-0 left-0 right-0 z-30 rounded-t-3xl border-t border-x border-border bg-card">
       <div className="flex items-end justify-between gap-4">
         <div className="flex flex-col gap-1">
           <p className="text-sm text-muted-foreground">Total</p>
@@ -679,6 +788,123 @@ export const EditableExpenseTable = forwardRef<EditableExpenseTableRef, Editable
         </form>
       </DialogContent>
     </Dialog>
+
+    {/* Mobile Bottom Sheet - Create/Edit */}
+    {mobileSheetOpen && (
+      <div className="fixed inset-0 z-40 md:hidden" onClick={() => setMobileSheetOpen(false)}>
+        <div className="absolute inset-0 bg-black/50" />
+        <div
+          className="border-t absolute bottom-0 left-0 right-0 min-h-[70vh] bg-background rounded-t-2xl p-6 pb-8 flex flex-col animate-in slide-in-from-bottom duration-300"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-lg font-semibold">
+              {mobileSheetMode === "create" ? "Tambah Pengeluaran" : "Edit Pengeluaran"}
+            </h2>
+            <button onClick={() => setMobileSheetOpen(false)} className="p-1 rounded-full hover:bg-muted">
+              <X size={20} />
+            </button>
+          </div>
+          <div className="flex flex-col gap-4 flex-1">
+            <div className="flex flex-col gap-3">
+              <Label>Nama Item *</Label>
+              <Input
+                value={mobileForm.itemName}
+                onChange={(e) => setMobileForm({ ...mobileForm, itemName: e.target.value })}
+                placeholder="Contoh: Makan Siang"
+              />
+            </div>
+            <div className="flex flex-col gap-3">
+              <Label>Kategori *</Label>
+              <Select
+                value={mobileForm.categoryId || undefined}
+                onValueChange={(value) => {
+                  if (value === "__create__") {
+                    setIsCategoryOpen(true);
+                    return;
+                  }
+                  setMobileForm({ ...mobileForm, categoryId: value });
+                }}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder={categories.length === 0 ? "+ Buat kategori" : "Pilih kategori"} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__create__" className="text-primary font-medium">
+                    <span className="flex items-center gap-2">
+                      <Plus className="h-3 w-3" />
+                      Buat kategori
+                    </span>
+                  </SelectItem>
+                  {categories.map((cat) => (
+                    <SelectItem key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex flex-col gap-3">
+              <Label>Pocket</Label>
+              <PocketSelector
+                value={mobileForm.pocketId || undefined}
+                onChange={(pocketId) => setMobileForm({ ...mobileForm, pocketId })}
+                className="w-full"
+              />
+            </div>
+            <div className="flex gap-3">
+              <div className="flex flex-col gap-3 flex-1">
+                <Label>Harga *</Label>
+                <Input
+                  value={mobileForm.unitPrice ? formatNumberID(parseInt(mobileForm.unitPrice.replace(/\D/g, "")) || 0) : ""}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/\D/g, "");
+                    setMobileForm({ ...mobileForm, unitPrice: value });
+                  }}
+                  placeholder="0"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                />
+              </div>
+              <div className="flex flex-col gap-3 w-20">
+                <Label>Qty</Label>
+                <Input
+                  value={mobileForm.quantity}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/\D/g, "");
+                    setMobileForm({ ...mobileForm, quantity: value || "1" });
+                  }}
+                  placeholder="1"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  className="text-center"
+                />
+              </div>
+            </div>
+            <div className="text-right text-sm text-muted-foreground">
+              Subtotal: <span className="font-medium text-primary">{formatIDR((parseInt(mobileForm.unitPrice.replace(/\D/g, "")) || 0) * (parseInt(mobileForm.quantity) || 1))}</span>
+            </div>
+          </div>
+          <div className="flex gap-2 mt-auto pt-4">
+            {mobileSheetMode === "edit" && mobileSheetItem && (
+              <Button
+                variant="destructive"
+                className="flex-shrink-0"
+                onClick={() => {
+                  handleDelete(mobileSheetItem.id);
+                  setMobileSheetOpen(false);
+                }}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            )}
+            <Button className="flex-1 min-w-0" onClick={submitMobileForm}>
+              {mobileSheetMode === "create" ? "Tambah" : "Simpan"}
+            </Button>
+          </div>
+        </div>
+      </div>
+    )}
     </>
   );
 });

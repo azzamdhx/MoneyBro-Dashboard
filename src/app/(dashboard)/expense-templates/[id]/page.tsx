@@ -125,10 +125,10 @@ export default function ExpenseTemplateDetailPage() {
 
   const group = groupData?.expenseTemplateGroup;
 
-  const [createGroup] = useMutation(CREATE_EXPENSE_TEMPLATE_GROUP, {
-    onCompleted: () => {
+  const [createGroup] = useMutation<{ createExpenseTemplateGroup: { id: string } }>(CREATE_EXPENSE_TEMPLATE_GROUP, {
+    onCompleted: (data) => {
       toast.success("Template berhasil ditambahkan");
-      router.push("/expense-templates");
+      router.replace(`/expense-templates/${data.createExpenseTemplateGroup.id}`);
     },
     onError: (error) => {
       toast.error(error.message);
@@ -358,7 +358,7 @@ export default function ExpenseTemplateDetailPage() {
       {/* Edit Mode */}
       {!isNew && group && (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -403,6 +403,8 @@ export default function ExpenseTemplateDetailPage() {
                         onBlur={() => saveGroupField("recurringDay")}
                         onKeyDown={(e) => handleKeyDown(e, "recurringDay")}
                         placeholder="1-31"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
                         disabled={isSaving}
                       />
                     ) : (
@@ -432,7 +434,7 @@ export default function ExpenseTemplateDetailPage() {
               <CardHeader>
                 <CardTitle className="text-base">Per Kategori</CardTitle>
               </CardHeader>
-              <CardContent className="pt-0">
+              <CardContent className="px-4 md:px-6">
                 <div className="space-y-2">
                   {Object.entries(categoryTotals).map(([category, catTotal]) => (
                     <div key={category} className="flex items-center justify-between text-sm">
@@ -451,7 +453,7 @@ export default function ExpenseTemplateDetailPage() {
             <CardHeader>
               <CardTitle>Daftar Item</CardTitle>
             </CardHeader>
-            <CardContent className="px-6">
+            <CardContent className="px-4 md:px-6">
               <EditableExpenseTable
                 items={group.items}
                 onCreateItem={async (input) => {
@@ -498,6 +500,8 @@ export default function ExpenseTemplateDetailPage() {
                     value={recurringDay}
                     onChange={(e) => setRecurringDay(e.target.value)}
                     placeholder="1-31"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
                   />
                 </div>
                 <div className="space-y-2">
@@ -532,11 +536,11 @@ export default function ExpenseTemplateDetailPage() {
           )}
           </div>
 
-          <Card className="p-6">
-            <CardHeader className="p-0">
+          <Card>
+            <CardHeader className="px-4 md:px-6">
               <CardTitle>Daftar Item</CardTitle>
             </CardHeader>
-            <CardContent className="p-0">
+            <CardContent className="px-4 md:px-6">
               <EditableExpenseTable
                 items={items.map((item) => ({
                   ...item,

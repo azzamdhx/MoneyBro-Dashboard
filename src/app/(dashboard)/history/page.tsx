@@ -10,7 +10,6 @@ import { formatMonthYear } from "@/lib/utils/format";
 import { GET_HISTORY_SUMMARY } from "@/lib/graphql/queries";
 import {
   BarChart3,
-  History,
   CalendarX,
   ArrowLeft,
 } from "lucide-react";
@@ -151,12 +150,9 @@ export default function HistoryPage() {
           <Link href="/dashboard" className="md:hidden">
             <ArrowLeft className="h-5 w-5" />
           </Link>
-          <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center hidden md:flex">
-            <History className="h-5 w-5 text-primary" />
-          </div>
           <div>
             <h1 className="text-lg sm:text-xl md:text-2xl font-bold">History</h1>
-            <p className="text-muted-foreground">Riwayat keuangan bulan sebelumnya</p>
+            <p className="text-muted-foreground hidden sm:block">Riwayat keuangan bulan sebelumnya</p>
           </div>
         </div>
         <Card>
@@ -165,9 +161,6 @@ export default function HistoryPage() {
               <CalendarX className="h-8 w-8 text-muted-foreground" />
             </div>
             <h3 className="text-lg font-medium">Belum ada data history</h3>
-            <p className="text-sm text-muted-foreground mt-1 text-center max-w-sm">
-              Tidak ada transaksi di bulan-bulan sebelumnya. Mulai catat pemasukan atau pengeluaran kamu.
-            </p>
           </CardContent>
         </Card>
       </div>

@@ -259,10 +259,7 @@ export default function DebtsPage() {
         <Card>
           <CardContent className="py-12 flex flex-col items-center justify-center text-muted-foreground">
             <Wallet className="h-12 w-12 mb-4 opacity-50" />
-            <p className="text-sm">Belum ada hutang</p>
-            <p className="text-xs mt-1">
-              Klik tombol Tambah Hutang untuk mencatat hutang baru
-            </p>
+            <p className="text-sm">Belum ada data hutang</p>
           </CardContent>
         </Card>
       )}

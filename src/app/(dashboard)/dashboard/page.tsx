@@ -292,8 +292,8 @@ export default function DashboardPage() {
           { href: "/installments", icon: PhCreditCard, label: "Cicilan", color: "text-installment" },
           { href: "/debts", icon: PhWallet, label: "Hutang", color: "text-debt" },
           { href: "/savings", icon: PhPiggyBank, label: "Tabungan", color: "text-savings" },
-          { href: "/forecast", icon: ChartLineUp, label: "Forecast", color: "text-primary" },
-          { href: "/history", icon: ClockCounterClockwise, label: "History", color: "text-primary" },
+          { href: "/recurring-incomes", icon: ArrowsClockwise, label: "Pemasukan Tetap", color: "text-income" },
+          { href: "/expense-templates", icon: FileText, label: "Template Pengeluaran", color: "text-expense" },
         ].map((item) => (
           <Link
             key={item.href}
@@ -301,7 +301,7 @@ export default function DashboardPage() {
             className="flex flex-col items-center gap-1.5"
           >
             <div
-              className="flex flex-col items-center py-3 w-full rounded-xl bg-background"
+              className="flex flex-col items-center py-3 w-full rounded-xl bg-card border-1"
             >
               <item.icon size={24}/>
             </div>
@@ -312,7 +312,7 @@ export default function DashboardPage() {
           onClick={() => setMoreOpen(true)}
           className="flex flex-col items-center gap-1.5"
         >
-          <div className="flex flex-col items-center py-3 w-full rounded-xl bg-background">
+          <div className="flex flex-col items-center py-3 w-full rounded-xl bg-card border-1">
             <DotsNine size={24} className="text-muted-foreground" />
           </div>
           <span className="text-[10px] font-medium text-muted-foreground text-center">Lainnya</span>
@@ -335,8 +335,8 @@ export default function DashboardPage() {
             </div>
             <div className="grid grid-cols-4 gap-4">
               {[
-                { href: "/recurring-incomes", icon: ArrowsClockwise, label: "Pemasukan Tetap", color: "text-income" },
-                { href: "/expense-templates", icon: FileText, label: "Template Pengeluaran", color: "text-expense" },
+                { href: "/forecast", icon: ChartLineUp, label: "Forecast", color: "text-primary" },
+                { href: "/history", icon: ClockCounterClockwise, label: "History", color: "text-primary" },
               ].map((item) => (
                 <Link
                   key={item.href}
@@ -344,7 +344,7 @@ export default function DashboardPage() {
                   onClick={() => setMoreOpen(false)}
                   className="flex flex-col items-center gap-1.5"
                 >
-                  <div className="flex flex-col items-center py-3 w-full rounded-xl bg-card">
+                  <div className="flex flex-col items-center py-3 w-full rounded-xl bg-card border-1">
                     <item.icon size={24} />
                   </div>
                   <span className="text-[10px] font-medium text-muted-foreground text-center">{item.label}</span>

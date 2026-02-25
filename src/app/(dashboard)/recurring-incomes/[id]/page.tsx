@@ -123,10 +123,10 @@ export default function RecurringIncomeDetailPage() {
 
   const group = groupData?.recurringIncomeGroup;
 
-  const [createGroup] = useMutation(CREATE_RECURRING_INCOME_GROUP, {
-    onCompleted: () => {
+  const [createGroup] = useMutation<{ createRecurringIncomeGroup: { id: string } }>(CREATE_RECURRING_INCOME_GROUP, {
+    onCompleted: (data) => {
       toast.success("Pemasukkan tetap berhasil ditambahkan");
-      router.push("/recurring-incomes");
+      router.replace(`/recurring-incomes/${data.createRecurringIncomeGroup.id}`);
     },
     onError: (error) => {
       toast.error(error.message);
@@ -359,7 +359,7 @@ export default function RecurringIncomeDetailPage() {
       {/* Edit Mode */}
       {!isNew && group && (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -404,6 +404,8 @@ export default function RecurringIncomeDetailPage() {
                         onBlur={() => saveGroupField("recurringDay")}
                         onKeyDown={(e) => handleKeyDown(e, "recurringDay")}
                         placeholder="1-31"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
                         disabled={isSaving}
                       />
                     ) : (
@@ -449,7 +451,7 @@ export default function RecurringIncomeDetailPage() {
               <CardHeader>
                 <CardTitle className="text-base">Per Kategori</CardTitle>
               </CardHeader>
-              <CardContent className="pt-0">
+              <CardContent className="px-4 md:px-6">
                 <div className="space-y-2">
                   {Object.entries(categoryTotals).map(([category, catTotal]) => (
                     <div key={category} className="flex items-center justify-between text-sm">
@@ -468,7 +470,7 @@ export default function RecurringIncomeDetailPage() {
             <CardHeader>
               <CardTitle>Daftar Item</CardTitle>
             </CardHeader>
-            <CardContent className="px-6">
+            <CardContent className="px-4 md:px-6">
               <EditableIncomeTable
                 items={group.items}
                 onCreateItem={async (input) => {
@@ -515,6 +517,8 @@ export default function RecurringIncomeDetailPage() {
                     value={recurringDay}
                     onChange={(e) => setRecurringDay(e.target.value)}
                     placeholder="1-31"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
                   />
                 </div>
                 <div className="space-y-2">
@@ -549,11 +553,11 @@ export default function RecurringIncomeDetailPage() {
           )}
           </div>
 
-          <Card className="p-6">
-            <CardHeader className="p-0">
+          <Card>
+            <CardHeader className="px-4 md:px-6">
               <CardTitle>Daftar Item</CardTitle>
             </CardHeader>
-            <CardContent className="p-0">
+            <CardContent className="px-4 md:px-6">
               <EditableIncomeTable
                 items={items.map((item) => ({
                   ...item,

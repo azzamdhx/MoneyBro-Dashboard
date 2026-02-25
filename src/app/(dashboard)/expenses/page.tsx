@@ -165,8 +165,7 @@ export default function ExpensesPage() {
         <Card>
           <CardContent className="py-12 flex flex-col items-center justify-center text-muted-foreground">
             <Receipt className="h-12 w-12 mb-4 opacity-50" />
-            <p className="text-sm">Belum ada pengeluaran</p>
-            <p className="text-xs mt-1">Klik tombol Tambah untuk membuat</p>
+            <p className="text-sm">Belum ada data pengeluaran</p>
           </CardContent>
         </Card>
       )}

@@ -155,15 +155,13 @@ export default function ForecastPage() {
           </Link>
           <div>
             <h1 className="text-lg sm:text-xl md:text-2xl font-bold">Forecast</h1>
-            <p className="text-muted-foreground">Proyeksi keuangan bulan mendatang</p>
+            <p className="text-muted-foreground hidden sm:block">Proyeksi keuangan bulan mendatang</p>
           </div>
         </div>
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-16">
+            <CalendarClock className="h-8 w-8 text-muted-foreground" />
             <h3 className="text-lg font-medium">Belum ada data forecast</h3>
-            <p className="text-sm text-muted-foreground mt-1 text-center max-w-sm">
-              Tidak ada transaksi terjadwal di bulan-bulan mendatang. Tambahkan pemasukan atau pengeluaran dengan tanggal di masa depan.
-            </p>
           </CardContent>
         </Card>
       </div>
@@ -260,9 +258,6 @@ export default function ForecastPage() {
               <CalendarClock className="h-8 w-8 text-muted-foreground" />
             </div>
             <h3 className="text-lg font-medium">Belum ada data untuk {currentMonth ? formatMonthYear(`${currentMonth}-01`) : "bulan ini"}</h3>
-            <p className="text-sm text-muted-foreground mt-1 text-center max-w-sm">
-              Tambahkan pemasukan atau pengeluaran yang dijadwalkan untuk bulan ini untuk melihat proyeksi.
-            </p>
           </CardContent>
         </Card>
       ) : (

@@ -199,7 +199,7 @@ export default function CreateIncomePage() {
             </Select>
           )}
         </CardHeader>
-        <CardContent className="px-6">
+        <CardContent className="px-4 md:px-6">
           {loading ? (
             <div className="p-4 space-y-3">
               {[...Array(5)].map((_, i) => (

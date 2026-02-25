@@ -268,10 +268,7 @@ export default function SavingsPage() {
           <Card>
             <CardContent className="py-12 flex flex-col items-center justify-center text-muted-foreground">
               <PiggyBank className="h-12 w-12 mb-4 opacity-50" />
-              <p className="text-sm">Belum ada tabungan</p>
-              <p className="text-xs mt-1">
-                Klik tombol Tambah Tabungan untuk mulai menabung
-              </p>
+              <p className="text-sm">Belum ada data tabungan</p>
             </CardContent>
           </Card>
         )}

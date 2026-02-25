@@ -135,8 +135,7 @@ export default function DashboardCharts({ cashFlowData, categoryData }: Dashboar
           ) : (
             <div className="h-[300px] flex flex-col items-center justify-center text-muted-foreground">
               <BarChart3 className="h-12 w-12 mb-4 opacity-50" />
-              <p className="text-sm">Belum ada kategori</p>
-              <p className="text-xs mt-1">Buat kategori untuk mulai tracking</p>
+              <p className="text-sm">Belum ada data pengeluaran</p>
             </div>
           )}
         </CardContent>

@@ -80,11 +80,7 @@ function PocketCard({ pocket, onClick }: { pocket: Pocket; onClick: () => void }
       <CardContent className="p-4">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center justify-between w-full gap-2">
-            {pocket.icon ? (
-              <span className="text-2xl">{pocket.icon}</span>
-            ) : (
-              <Wallet className={cn("size-5", c.bold || "text-primary")} />
-            )}
+            <span className="text-2xl">{pocket.icon || "💰"}</span>
             {pocket.isDefault && (
               <Badge variant="default" className="text-xs">Utama</Badge>
             )}
