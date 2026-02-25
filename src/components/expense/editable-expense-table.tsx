@@ -139,6 +139,7 @@ export const EditableExpenseTable = forwardRef<EditableExpenseTableRef, Editable
           const cat = categories.find(c => c.id === pending.categoryId);
           if (cat) merged.category = cat;
         }
+        if (pending.pocketId !== undefined) merged.pocketId = pending.pocketId as string;
         merged.total = merged.unitPrice * merged.quantity;
         return merged;
       });

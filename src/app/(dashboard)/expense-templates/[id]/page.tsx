@@ -125,7 +125,15 @@ export default function ExpenseTemplateDetailPage() {
 
   const group = groupData?.expenseTemplateGroup;
 
-  const [createGroup] = useMutation<{ createExpenseTemplateGroup: { id: string } }>(CREATE_EXPENSE_TEMPLATE_GROUP, {
+  const [createGroup] = useMutation<{ createExpenseTemplateGroup: ExpenseTemplateGroup }>(CREATE_EXPENSE_TEMPLATE_GROUP, {
+    update: (cache, { data }) => {
+      if (!data) return;
+      cache.writeQuery({
+        query: GET_EXPENSE_TEMPLATE_GROUP,
+        variables: { id: data.createExpenseTemplateGroup.id },
+        data: { expenseTemplateGroup: data.createExpenseTemplateGroup },
+      });
+    },
     onCompleted: (data) => {
       toast.success("Template berhasil ditambahkan");
       router.replace(`/expense-templates/${data.createExpenseTemplateGroup.id}`);
@@ -457,10 +465,11 @@ export default function ExpenseTemplateDetailPage() {
               <EditableExpenseTable
                 items={group.items}
                 onCreateItem={async (input) => {
-                  await addItem({ variables: { groupId: id, input } });
+                  await addItem({ variables: { groupId: id, input: { itemName: input.itemName, categoryId: input.categoryId, unitPrice: input.unitPrice, quantity: input.quantity } } });
                   refetchGroup();
                 }}
-                onUpdateItem={async (itemId, input) => {
+                onUpdateItem={async (itemId, { pocketId: _, ...input }) => {
+                  void _;
                   await updateItem({ variables: { itemId, input } });
                 }}
                 onDeleteItem={async (itemId) => {

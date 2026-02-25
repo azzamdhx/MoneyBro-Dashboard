@@ -81,6 +81,8 @@ export function PocketSelector({ value, onChange, className }: PocketSelectorPro
     setTimeout(() => onChange(defaultPocket.id), 0);
   }
 
+  const selectedPocket = pockets.find((p) => p.id === value);
+
   return (
     <>
       <Select
@@ -94,8 +96,17 @@ export function PocketSelector({ value, onChange, className }: PocketSelectorPro
         }}
       >
         <SelectTrigger className={className}>
-          <span className="mr-2">💰</span>
-          <SelectValue placeholder="Pilih Pocket" />
+          {selectedPocket ? (
+            <span className="flex items-center truncate">
+              <span className="mr-2">{selectedPocket.icon || "💰"}</span>
+              {selectedPocket.name}
+            </span>
+          ) : (
+            <>
+              <span className="mr-2">💰</span>
+              <SelectValue placeholder="Pilih Pocket" />
+            </>
+          )}
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="__create__" className="text-primary font-medium">

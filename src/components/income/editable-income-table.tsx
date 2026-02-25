@@ -135,6 +135,7 @@ export const EditableIncomeTable = forwardRef<EditableIncomeTableRef, EditableIn
           const cat = categories.find(c => c.id === pending.categoryId);
           if (cat) merged.category = cat;
         }
+        if (pending.pocketId !== undefined) merged.pocketId = pending.pocketId as string;
         return merged;
       });
 

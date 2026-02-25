@@ -123,7 +123,15 @@ export default function RecurringIncomeDetailPage() {
 
   const group = groupData?.recurringIncomeGroup;
 
-  const [createGroup] = useMutation<{ createRecurringIncomeGroup: { id: string } }>(CREATE_RECURRING_INCOME_GROUP, {
+  const [createGroup] = useMutation<{ createRecurringIncomeGroup: RecurringIncomeGroup }>(CREATE_RECURRING_INCOME_GROUP, {
+    update: (cache, { data }) => {
+      if (!data) return;
+      cache.writeQuery({
+        query: GET_RECURRING_INCOME_GROUP,
+        variables: { id: data.createRecurringIncomeGroup.id },
+        data: { recurringIncomeGroup: data.createRecurringIncomeGroup },
+      });
+    },
     onCompleted: (data) => {
       toast.success("Pemasukkan tetap berhasil ditambahkan");
       router.replace(`/recurring-incomes/${data.createRecurringIncomeGroup.id}`);
@@ -477,7 +485,8 @@ export default function RecurringIncomeDetailPage() {
                   await addItem({ variables: { groupId: id, input: { categoryId: input.categoryId, sourceName: input.sourceName, amount: input.amount } } });
                   refetchGroup();
                 }}
-                onUpdateItem={async (itemId, input) => {
+                onUpdateItem={async (itemId, { pocketId: _, ...input }) => {
+                  void _;
                   await updateItem({ variables: { itemId, input } });
                 }}
                 onDeleteItem={async (itemId) => {
