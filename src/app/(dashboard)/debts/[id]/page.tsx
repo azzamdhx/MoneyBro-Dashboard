@@ -374,7 +374,7 @@ export default function DebtDetailPage() {
           </div>
           <div className="flex flex-wrap gap-2 justify-end">
             {(isNew || debt?.status === "ACTIVE") && (
-              <Button type="submit" form="debt-form" className="w-fit hidden md:inline-flex" disabled={isLoading}>
+              <Button type="submit" form="debt-form" className="w-fit" size="sm" disabled={isLoading}>
                 {isLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                 {isNew ? "Simpan" : "Perbarui"}
               </Button>
@@ -780,7 +780,7 @@ export default function DebtDetailPage() {
 
       {/* Floating Action Button - Mobile Only */}
       {!isNew && debt?.status === "ACTIVE" && (
-        <div className="fixed bottom-28 right-6 z-[60] md:hidden">
+        <div className="fixed bottom-28 right-6 z-[30] md:hidden">
           <Popover open={fabOpen} onOpenChange={setFabOpen}>
             <PopoverTrigger asChild>
               <button

@@ -692,7 +692,7 @@ export default function InstallmentDetailPage() {
 
       {/* Floating Action Button - Mobile Only */}
       {!isNew && installment?.status === "ACTIVE" && (
-        <div className="fixed bottom-28 right-6 z-[60] md:hidden">
+        <div className="fixed bottom-28 right-6 z-[30] md:hidden">
           <Popover open={fabOpen} onOpenChange={setFabOpen}>
             <PopoverTrigger asChild>
               <button
