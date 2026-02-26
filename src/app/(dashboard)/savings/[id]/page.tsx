@@ -722,7 +722,6 @@ export default function SavingsGoalDetailPage() {
                         placeholder="10.000.000"
                         className="pl-10"
                         inputMode="numeric"
-                        pattern="[0-9]*"
                       />
                     </div>
                   </div>
@@ -730,11 +729,11 @@ export default function SavingsGoalDetailPage() {
                   <div className="flex flex-col gap-4">
                     <Label>Target (Bulan)</Label>
                     <Input
-                      type="number"
                       value={formData.targetMonths}
                       onChange={(e) => updateTargetDateFromMonths(e.target.value)}
                       placeholder="12"
                       min="1"
+                      type="number"
                       inputMode="numeric"
                       pattern="[0-9]*"
                     />

@@ -667,7 +667,6 @@ export default function DebtDetailPage() {
                           placeholder="5.000.000"
                           className="pl-10"
                           inputMode="numeric"
-                          pattern="[0-9]*"
                           disabled={!isNew}
                         />
                       </div>
@@ -700,12 +699,12 @@ export default function DebtDetailPage() {
                     <div className="flex flex-col gap-4">
                       <Label>Tenor (Bulan)</Label>
                       <Input
-                        type="number"
                         value={formData.tenor}
                         onChange={(e) =>
                           setFormData((prev) => ({ ...prev, tenor: e.target.value }))
                         }
                         placeholder="12"
+                        type="number"
                         min="1"
                         inputMode="numeric"
                         pattern="[0-9]*"

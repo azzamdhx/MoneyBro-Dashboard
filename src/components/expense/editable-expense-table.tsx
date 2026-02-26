@@ -677,6 +677,7 @@ export const EditableExpenseTable = forwardRef<EditableExpenseTableRef, Editable
                   placeholder="Qty"
                   inputMode="numeric"
                   pattern="[0-9]*"
+                  min="0"
                   value={newRow.quantity}
                   onChange={(e) => {
                     const value = e.target.value.replace(/\D/g, "");
@@ -876,6 +877,7 @@ export const EditableExpenseTable = forwardRef<EditableExpenseTableRef, Editable
                     setMobileForm({ ...mobileForm, quantity: value || "1" });
                   }}
                   placeholder="1"
+                  min="0"
                   inputMode="numeric"
                   pattern="[0-9]*"
                   className="text-center"

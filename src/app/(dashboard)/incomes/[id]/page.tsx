@@ -22,7 +22,6 @@ import {
 import { toast } from "sonner";
 import { ArrowLeft, RefreshCw } from "lucide-react";
 import { MonthPicker } from "@/components/ui/month-picker";
-import { formatIDR } from "@/lib/utils/currency";
 import { toRFC3339 } from "@/lib/utils/format";
 import { EditableIncomeTable, EditableIncomeTableRef } from "@/components/income/editable-income-table";
 
@@ -192,7 +191,7 @@ export default function CreateIncomePage() {
               <SelectContent>
                 {recurringGroups.map((g) => (
                   <SelectItem key={g.id} value={g.id}>
-                    {g.name} - {formatIDR(g.total)}
+                    {g.name}
                   </SelectItem>
                 ))}
               </SelectContent>

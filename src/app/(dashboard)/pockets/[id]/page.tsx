@@ -392,13 +392,15 @@ export default function PocketDetailPage() {
       {/* Form - Desktop always, Mobile only for new */}
       <Card className={!isNew ? "hidden md:block" : ""}>
         <CardHeader>
-          <CardTitle>{isNew ? "Data Pocket Baru" : "Edit Pocket"}</CardTitle>
+          <CardTitle>{isNew ? "Pocket Baru" : "Edit Pocket"}</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-4 md:px-6">
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="flex items-end gap-3">
-              <EmojiPicker value={emoji} onChange={setEmoji} />
-              <ColorPicker value={cardBgColor} onChange={setCardBgColor} />
+            <div className="flex flex-col gap-3">
+              <div className="flex gap-2">
+                <EmojiPicker value={emoji} onChange={setEmoji} />
+                <ColorPicker value={cardBgColor} onChange={setCardBgColor} />
+              </div>
               <div className="flex-1">
                 <Label htmlFor="name" className="pb-3">Nama Pocket</Label>
                 <Input
@@ -423,10 +425,10 @@ export default function PocketDetailPage() {
 
       {/* Edit Bottom Sheet - Mobile */}
       {isEditMode && !isNew && pocket && (
-        <div className="fixed inset-0 bottom-0 z-40 md:hidden" onClick={() => setIsEditMode(false)}>
+        <div className="fixed inset-0 bottom-0 z-40 md:hidden m-0" onClick={() => setIsEditMode(false)}>
           <div className="absolute inset-0 bg-black/50" />
           <div
-            className="border-t absolute bottom-0 left-0 right-0 min-h-[70vh] bg-background rounded-t-2xl p-6 pb-8 flex flex-col animate-in slide-in-from-bottom duration-300"
+            className="border-t absolute !bottom-0 left-0 right-0 min-h-[70vh] bg-background rounded-t-2xl p-6 pb-8 flex flex-col animate-in slide-in-from-bottom duration-300"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-6">
@@ -569,8 +571,8 @@ export default function PocketDetailPage() {
       )}
 
       {/* Transfer Dialog - Desktop */}
-      <Dialog open={isTransferOpen} onOpenChange={setIsTransferOpen}>
-        <DialogContent className="hidden md:block">
+      <Dialog open={isTransferOpen && typeof window !== "undefined" && window.innerWidth >= 768} onOpenChange={setIsTransferOpen}>
+        <DialogContent>
           <DialogHeader className="mb-6">
             <DialogTitle>Transfer ke Pocket Lain</DialogTitle>
           </DialogHeader>
@@ -610,7 +612,6 @@ export default function PocketDetailPage() {
                 id="transferAmount"
                 value={transferData.amount}
                 inputMode="numeric"
-                pattern="[0-9]*"
                 onChange={(e) => setTransferData({ ...transferData, amount: formatNumber(e.target.value) })}
                 placeholder="0"
                 required
@@ -642,7 +643,7 @@ export default function PocketDetailPage() {
 
       {/* Transfer Bottom Sheet - Mobile */}
       {isTransferOpen && (
-        <div className="fixed inset-0 z-90 md:hidden" onClick={() => setIsTransferOpen(false)}>
+        <div className="fixed inset-0 z-40 md:hidden" onClick={() => setIsTransferOpen(false)}>
           <div className="absolute inset-0 bg-black/50" />
           <div
             className="border-t absolute bottom-0 left-0 right-0 min-h-[70vh] bg-background rounded-t-2xl p-6 pb-8 flex flex-col animate-in slide-in-from-bottom duration-300"
@@ -690,7 +691,6 @@ export default function PocketDetailPage() {
                   id="transferAmount-mobile"
                   value={transferData.amount}
                   inputMode="numeric"
-                  pattern="[0-9]*"
                   onChange={(e) => setTransferData({ ...transferData, amount: formatNumber(e.target.value) })}
                   placeholder="0"
                   required

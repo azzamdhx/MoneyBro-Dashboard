@@ -191,7 +191,7 @@ export default function CreateExpensePage() {
               <SelectContent>
                 {templateGroups.map((g) => (
                   <SelectItem key={g.id} value={g.id}>
-                    {g.name} ({g.items.length} item)
+                    {g.name}
                   </SelectItem>
                 ))}
               </SelectContent>

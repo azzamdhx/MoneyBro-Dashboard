@@ -587,7 +587,6 @@ export default function InstallmentDetailPage() {
                         placeholder="15.000.000"
                         className="pl-10"
                         inputMode="numeric"
-                        pattern="[0-9]*"
                         disabled={!isNew}
                       />
                     </div>
@@ -614,12 +613,12 @@ export default function InstallmentDetailPage() {
                   <div className="flex flex-col gap-4">
                     <Label>Tanggal Jatuh Tempo</Label>
                     <Input
-                      type="number"
                       value={formData.dueDay}
                       onChange={(e) =>
                         setFormData((prev) => ({ ...prev, dueDay: e.target.value }))
                       }
                       placeholder="1"
+                      type="number"
                       min="1"
                       max="31"
                       inputMode="numeric"
