@@ -88,21 +88,21 @@ export default function SavingsPage() {
           </Button>
         </div>
 
-        <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 sm:grid sm:grid-cols-2 sm:overflow-visible">
-          <Card className="bg-card border-1 py-4 md:py-6 min-w-[90%]">
+        <div className="grid grid-cols-2 gap-4 md:gap-6">
+          <Card>
             <CardHeader className="flex flex-col px-4">
               <CardTitle className="flex flex-col items-start md:gap-4 gap-3 w-full">
-                <span className="text-primary text-sm md:text-lg">Total Terkumpul</span>
-                <span className="text-md sm:text-2xl text-savings">{formatIDR(totalSaved)}</span>
+                <span className="text-primary text-xs md:text-lg">Total Terkumpul</span>
+                <span className="text-sm sm:text-2xl text-savings">{formatIDR(totalSaved)}</span>
               </CardTitle>
             </CardHeader>
           </Card>
 
-          <Card className="bg-card border-1 py-4 md:py-6 min-w-[90%]">
+          <Card>
             <CardHeader className="flex flex-col px-4">
               <CardTitle className="flex flex-col items-start md:gap-4 gap-3 w-full">
-                <span className="text-primary text-sm md:text-lg">Sisa Target</span>
-                <span className="text-md sm:text-2xl text-savings">{formatIDR(totalTarget - totalSaved)}</span>
+                <span className="text-primary text-xs md:text-lg">Sisa Target</span>
+                <span className="text-sm sm:text-2xl text-savings">{formatIDR(totalTarget - totalSaved)}</span>
               </CardTitle>
             </CardHeader>
           </Card>

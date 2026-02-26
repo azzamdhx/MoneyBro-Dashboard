@@ -418,8 +418,8 @@ export default function SavingsGoalDetailPage() {
         </div>
 
         {/* Contribution Dialog - Desktop */}
-        <Dialog open={isContributionOpen} onOpenChange={setIsContributionOpen}>
-          <DialogContent className="hidden md:block">
+        <Dialog open={isContributionOpen && typeof window !== "undefined" && window.innerWidth >= 768} onOpenChange={setIsContributionOpen}>
+          <DialogContent>
             <DialogHeader className="pb-6">
               <DialogTitle>Tambah Kontribusi</DialogTitle>
             </DialogHeader>
@@ -484,7 +484,7 @@ export default function SavingsGoalDetailPage() {
 
         {/* Contribution Bottom Sheet - Mobile */}
         {isContributionOpen && (
-          <div className="fixed inset-0 z-90 md:hidden" onClick={() => setIsContributionOpen(false)}>
+          <div className="fixed inset-0 z-40 md:hidden" onClick={() => setIsContributionOpen(false)}>
             <div className="absolute inset-0 bg-black/50" />
             <div
               className="border-t absolute bottom-0 left-0 right-0 min-h-[70vh] bg-background rounded-t-2xl p-6 pb-8 flex flex-col animate-in slide-in-from-bottom duration-300"
@@ -763,7 +763,7 @@ export default function SavingsGoalDetailPage() {
               </CardContent>
             </Card>
 
-            <div className="md:static md:mt-6 p-5 pb-8 md:p-6 md:rounded-lg md:border fixed bottom-0 left-0 right-0 z-50 rounded-t-3xl border-t border-x border-border bg-card">
+            <div className="md:static md:mt-6 p-5 pb-8 md:p-6 md:rounded-lg md:border fixed bottom-0 left-0 right-0 z-30 rounded-t-3xl border-t border-x border-border bg-card">
               {isNew ? (
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex flex-col gap-1">

@@ -408,8 +408,8 @@ export default function DebtDetailPage() {
         </div>
 
         {/* Payment Dialog - Desktop */}
-        <Dialog open={isPaymentOpen} onOpenChange={setIsPaymentOpen}>
-          <DialogContent className="hidden md:block">
+        <Dialog open={isPaymentOpen && typeof window !== "undefined" && window.innerWidth >= 768} onOpenChange={setIsPaymentOpen}>
+          <DialogContent>
             <DialogHeader className="pb-6">
               <DialogTitle>Bayar Hutang</DialogTitle>
             </DialogHeader>
@@ -466,7 +466,7 @@ export default function DebtDetailPage() {
 
         {/* Payment Bottom Sheet - Mobile */}
         {isPaymentOpen && (
-          <div className="fixed inset-0 z-90 md:hidden" onClick={() => setIsPaymentOpen(false)}>
+          <div className="fixed inset-0 z-40 md:hidden" onClick={() => setIsPaymentOpen(false)}>
             <div className="absolute inset-0 bg-black/50" />
             <div
               className="border-t absolute bottom-0 left-0 right-0 min-h-[70vh] bg-background rounded-t-2xl p-6 pb-8 flex flex-col animate-in slide-in-from-bottom duration-300"
@@ -737,7 +737,7 @@ export default function DebtDetailPage() {
               </CardContent>
             </Card>
 
-            <div className="md:static md:mt-6 p-5 pb-8 md:rounded-lg md:border fixed bottom-0 left-0 right-0 z-50 rounded-t-3xl border-t border-x border-border bg-card">
+            <div className="md:static md:mt-6 p-5 pb-8 md:rounded-lg md:border fixed bottom-0 left-0 right-0 z-30 rounded-t-3xl border-t border-x border-border bg-card">
               {isNew ? (
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex flex-col gap-1">

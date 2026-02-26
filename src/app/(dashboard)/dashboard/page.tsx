@@ -321,7 +321,7 @@ export default function DashboardPage() {
 
       {/* More Modal */}
       {moreOpen && (
-        <div className="fixed inset-0 z-90 md:hidden" onClick={() => setMoreOpen(false)}>
+        <div className="fixed inset-0 z-[90] md:hidden" onClick={() => setMoreOpen(false)}>
           <div className="absolute inset-0 bg-black/50" />
           <div
             className="border-t absolute bottom-0 left-0 right-0 h-[70vh] bg-background rounded-t-2xl p-6 animate-in slide-in-from-bottom duration-300"
