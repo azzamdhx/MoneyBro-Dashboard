@@ -2,6 +2,7 @@
 
 Aplikasi dashboard untuk manajemen keuangan pribadi yang dibangun dengan Next.js dan teknologi modern lainnya.
 
+
 ## Fitur Utama
 
 - Manajemen transaksi keuangan
